@@ -1,4 +1,4 @@
-# Execute using ./magnetovis.sh --script=magnetovis_demo.py
+# Execute using magnetovis.sh --script=magnetovis_demo.py
 
 from magnetovis import objects
 

@@ -238,7 +238,7 @@ def slice(structured_grid, origin, normal,
     slice1Display.SetScalarBarVisibility(renderView, True)
 
 
-# https://docs.paraview.org/en/latest/ReferenceManual/colorMapping.html
+    # https://docs.paraview.org/en/latest/ReferenceManual/colorMapping.html
     # apply custom color transfer function
     if False:
         colorMap.RGBPoints = get_color_transfer_function()
@@ -382,8 +382,6 @@ def axis(time, val, coord_sys='GSM',
     h = length_positive
     assert(length_negative == 0.)
 
-
-
     import paraview.simple as pvs
     if not renderView:
         renderView = pvs.GetActiveViewOrCreate('RenderView')
@@ -505,7 +503,12 @@ def axis(time, val, coord_sys='GSM',
     #pass
 
 
-def axes(time, lengths_positive=[15., 15., 15.], lengths_negative=[0.,0.,0.], labels=[True, True, True], coord_sys='GSM', tick_spacing=1,
+def axes(time,
+            lengths_positive=[15., 15., 15.],
+            lengths_negative=[0.,0.,0.],
+            labels=[True, True, True],
+            coord_sys='GSM',
+            tick_spacing=1,
             renderView=None,
             render=True,
             show=True,
@@ -519,7 +522,6 @@ def axes(time, lengths_positive=[15., 15., 15.], lengths_negative=[0.,0.,0.], la
     axis(time, 'z', length_positive=lengths_positive[1], length_negative=lengths_negative[1], label=labels[1],
         coord_sys=coord_sys, tick_spacing=tick_spacing, renderView=renderView, render=render, show=show, out_dir=out_dir, debug=debug)
 
-    #pass
 
 def magnetic_dipole(time,
             renderView=None,
@@ -528,7 +530,7 @@ def magnetic_dipole(time,
             out_dir=tempfile.gettempdir(),
             debug=False):
     axis(time, 'z', coord_sys='MAG',
-        length_positive=15., length_negative=0., tick_spacing=1, label=False,
+            length_positive=15., length_negative=0., tick_spacing=1, label=False,
             renderView=renderView,
             render=render,
             show=show,
@@ -537,12 +539,15 @@ def magnetic_dipole(time,
 
 
 
-def trace_lines(points, connectivity, out_fname=os.path.join(tempfile.gettempdir(),'line_tmp.vtk'),
-                                        color=[1,0,0], ftype='BINARY',
-                                            renderView=None,
-                                            render=True,
-                                            show=True,
-                                            debug=False):
+def trace_lines(points, connectivity,
+                    out_fname=os.path.join(tempfile.gettempdir(),'line_tmp.vtk'),
+                    ftype='BINARY',
+                    color=[1,0,0],
+                    renderView=None,
+                    render=True,
+                    show=True,
+                    debug=False):
+
     # connectivity = [0,0,0,0,0,1,1,1,1,1,1,1,2,2,2,2,2,2,2,3,3,3,3,3] 
     # ?or? connectivity = [5,7,7,5]
 
@@ -610,12 +615,13 @@ def trace_lines(points, connectivity, out_fname=os.path.join(tempfile.gettempdir
     tube1Display.DiffuseColor = color
 
 
-def latitude_lines(time, coord_sys='GEO', increment=15, color=[1,0,0],
-                                        renderView=None,
-                                        render=True,
-                                        show=True,
-                                        out_dir=tempfile.gettempdir(),
-                                        debug=False):
+def latitude_lines(time, coord_sys='GEO', increment=15,
+                    color=[1,0,0],
+                    renderView=None,
+                    render=True,
+                    show=True,
+                    out_dir=tempfile.gettempdir(),
+                    debug=False):
 
     npts = 100
 
@@ -847,10 +853,10 @@ def magnetopause(time, Bz=None, Psw=None, model='Shue97', coord_sys='GSM',
     """Show magnetopause surface"""
     # If time is an array, show surface for each time (with varying opacity or color)
     
+    import pytz 
     import numpy as np
     import numpy.matlib
     from datetime import datetime
-    import pytz 
     from util import tstrTimeDelta, tstr, time2datetime
     from vtk_export import vtk_export
     from cxtransform import transform
