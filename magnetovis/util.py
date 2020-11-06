@@ -1,11 +1,6 @@
 import os
 import sys
 
-print('\n\n util path: ~/magnetovis/pkg/magnetovis/util.py \n\n')
-
-#sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../')
-# from config import conf
-
 # TODO: Remove
 def tstrTimeDelta(time, minute_delta):
     from datetime import timedelta
@@ -118,3 +113,103 @@ def urlretrieve(url, fname):
             return(e.args)
         except ValueError:
             print("'" + url + "' is not a valid URL")
+
+
+def compatability_check(debug=False):
+
+    import glob
+    import warnings
+    import subprocess
+    import site
+
+    if sys.platform == "darwin":
+        versions = glob.glob("/Applications/ParaView*")
+        versions.sort()
+        version = versions[-1]
+        if len(version) == 0:
+            print("ParaView not found in /Applications directory." \
+                " To install ParaView, see https://www.paraview.org/download/.")
+            # TODO?: Allow for ParaView not located in /Applications/
+            sys.exit(1)
+        use = ""
+        # versions list will have elements of, e.g.,
+        # ["/Applications/ParaView-5.7.0.app", "/Applications/ParaView-5.8.0.app"].
+        for version in versions:
+            if debug:
+                print("Found " + version)
+            version_str = version \
+                            .replace("/Applications/ParaView-", "") \
+                            .replace(".app", "")
+            version_num = [int(i) for i in version_str.split(".")]
+            # version_num will be tuple of (major, minor, patch)
+            if list(sys.version_info[0:2]) > [2, 7] and version_num <= [5, 8]:
+                if debug:
+                    print('Python > 2.7 is not compatible with ParaView ' \
+                        + version_str + ' on OS-X.')
+            elif list(sys.version_info[0:2]) == [2, 7] and version_num[0:2] == [5, 8]:
+                if debug:
+                    print('A bug in ParaView 5.8 for OS-X prevents magnetovis from working. ' \
+                        + 'See https://gitlab.kitware.com/paraview/paraview/-/issues/20146')
+            else:            
+                use = version
+                PARAVIEW = use + "/Contents/MacOS/paraview"
+                PVPYTHON = use + "/Contents/bin/pvpython"
+        if use == "":
+            sys.exit(1)
+        else:
+            if debug:
+                print("Using " + use)
+
+    elif sys.platform == "linux":
+        try:
+            PARAVIEW = subprocess.check_output(['which','paraview'])
+        except:
+            print("Executable named 'paraview' was not found in path. " \
+                " Install ParaView such that 'which paraview' returns location of paraview.")
+            sys.exit(1)
+        try:
+            PVPYTHON = subprocess.check_output(['which','pvpython'])
+        except:
+            print("Executable named 'pvpython' was not found in path. " \
+                " Install ParaView such that 'which pvpython' returns location of pvpython.")
+            sys.exit(1)
+    else:
+        print("Installation implemented only for Linux and OS-X.")
+        sys.exit(0)
+
+    util_path = os.path.dirname(os.path.realpath(__file__))
+    ver_path = os.path.join(util_path,'..','etc','version.py')
+    if debug:
+        print("Executing %s %s" % (PVPYTHON, ver_path))
+    try:
+            pvpython_version_str = subprocess.check_output([PVPYTHON, ver_path])
+    except:
+        print("Could not execute " + PVPYTHON + ". Exiting.")
+        sys.exit(1)
+
+    ver = sys.version_info
+    python_version_str = str(ver.major) + "." + str(ver.minor) + "." + str(ver.micro)
+
+    pvpython_version_str = pvpython_version_str.decode().strip()
+    pvpython_version_lst = [int(i) for i in pvpython_version_str.split(".")]
+
+    if pvpython_version_lst[0:2] == [2, 7] and sys.version_info[0:2] != (2, 7):
+        print('Installed ParaView uses Python 2.7 and so magnetovis requires Python 2.7. Exiting.')
+        print("pvpython Python version           = " + pvpython_version_str)
+        print("Python version executing setup.py = " + python_version_str)
+        #sys.exit(1)
+
+    if sys.version_info[0:2] != pvpython_version_lst[0:2]:
+        # Hack to prevent warning from including unneeded information.
+        def _warning(message, category=UserWarning, filename='', lineno=-1, file=None, line=''):
+            print("UserWarning: " + str(message))
+        warnings.showwarning = _warning
+
+        warnings.warn("Installed ParaView uses Python " + pvpython_version_str \
+                    + " and magnetovis is being installed for Python " \
+                    + python_version_str \
+                    + ". There may be compatability issues if you use " \
+                    + "libraries and code used are not compatable with Python " \
+                    + pvpython_version_str + ".")
+
+    return PARAVIEW

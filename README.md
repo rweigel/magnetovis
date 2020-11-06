@@ -17,9 +17,8 @@ pip install --editable .
 
 # Use
 
-
 ```
-./magnetovis.sh --script=magnetovis_demo.py
+magnetovis --script=magnetovis_demo.py
 ```
 
 # Notes
