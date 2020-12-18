@@ -16,10 +16,11 @@ Installation has been tested only on OS-X and Linux.
 
 ## User
 
-To install, use
+To install and test, use
 
 ```
 pip install 'git+https://github.com/rweigel/magnetovis' --upgrade
+cd magnetovis; magnetovis --script=magnetovis_demo.py
 ```
 
 A PyPi package will not be available until the project is ready for general use.
@@ -28,7 +29,8 @@ A PyPi package will not be available until the project is ready for general use.
 
 ```
 git clone https://github.com/rweigel/magnetovis
-pip install --editable .
+cd magnetovis; pip install --editable .
+cd magnetovis; magnetovis --script=magnetovis_demo.py
 ```
 
 Please provide feedback by submitting an [issue](https://github.com/rweigel/magnetovis/issues).

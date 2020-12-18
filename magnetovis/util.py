@@ -184,7 +184,7 @@ def compatability_check(debug=False):
     try:
             pvpython_version_str = subprocess.check_output([PVPYTHON, ver_path])
     except:
-        print("Could not execute " + PVPYTHON + ". Exiting.")
+        print("Could not execute " + PVPYTHON + " " + ver_path + ". Exiting.")
         sys.exit(1)
 
     ver = sys.version_info
