@@ -69,13 +69,13 @@ def earth(time,
     
     urlPNG = topo_url.format(time[1])
     filePNG = os.path.join(out_dir, os.path.split(topo_url)[1].format(time[1]))
-    import util # i needed to add this line to make it work
+    from hapiclient.util import urlretrieve
+
     # Download topographic overlay file if not found.
     if not os.path.exists(filePNG):
         if debug:
             print("Downloading " + urlPNG)
-        # TODO: Use d/l function in hapiclient.util
-        util.urlretrieve(urlPNG, filePNG)
+        urlretrieve(urlPNG, filePNG)
         if debug:
             print("Downloaded " + urlPNG + "\nto\n" + filePNG)
 

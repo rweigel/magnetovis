@@ -77,44 +77,6 @@ def time2datetime(t):
         return dt.datetime(int(t[0]), int(t[1]), int(t[2]), int(t[3]), int(t[4]), int(t[5]), int(t[6]))    
 
 
-# TODO: Use version in hapiclient.py
-def urlretrieve(url, fname):
-    """Python 2/3 urlretrieve compatability function.
-
-    If Python 3, returns
-    urllib.request.urlretrieve(url, fname)
-
-    If Python 2, returns
-    urllib.urlretrieve(url, fname)
-    """
-
-    import sys
-
-    if sys.version_info[0] > 2:
-        import urllib.request, urllib.error
-        try:
-            res = urllib.request.urlretrieve(url, fname)
-            return res
-        except urllib.error.URLError as e:
-            print(e)
-        except ValueError as e:
-            print("'" + url + "' is not a valid URL")
-    else:
-        import urllib, urllib2 #, ssl
-        try:
-            #context = ssl._create_unverified_context()
-            urllib2.urlopen(url) 
-            res = urllib.urlretrieve(url, fname)#, context=context)
-            return res
-        #https://stackoverflow.com/questions/16778435/python-check-if-website-exists
-        except urllib2.HTTPError, e: 
-            return(e.code)
-        except urllib2.URLError, e:
-            return(e.args)
-        except ValueError:
-            print("'" + url + "' is not a valid URL")
-
-
 def compatability_check(debug=False):
 
     import glob
@@ -197,7 +159,7 @@ def compatability_check(debug=False):
         print('Installed ParaView uses Python 2.7 and so magnetovis requires Python 2.7. Exiting.')
         print("pvpython Python version           = " + pvpython_version_str)
         print("Python version executing setup.py = " + python_version_str)
-        #sys.exit(1)
+        sys.exit(1)
 
     if sys.version_info[0:2] != pvpython_version_lst[0:2]:
         # Hack to prevent warning from including unneeded information.
