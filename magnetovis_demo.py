@@ -1,5 +1,11 @@
 # Execute using magnetovis.sh --script=magnetovis_demo.py
 
+import sys
+if sys.maxunicode > 65535:
+    print('UCS4 build')
+else:
+    print('UCS2 build')
+
 from magnetovis import objects
 
 objects.earth([2000, 1, 1, 0, 0, 0], debug=True)

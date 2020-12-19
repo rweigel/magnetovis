@@ -77,6 +77,54 @@ def time2datetime(t):
         return dt.datetime(int(t[0]), int(t[1]), int(t[2]), int(t[3]), int(t[4]), int(t[5]), int(t[6]))    
 
 
+def prompt(question, default=''):
+    # Based on suggestions in https://gist.github.com/garrettdreyfus/8153571
+
+    import sys
+    if sys.version_info[0] > 2:
+        reply = str(input(question + ': ')).lower().strip()
+    else:
+        reply = str(raw_input(question + ': ')).lower().strip()
+
+    if len(reply) == 0:
+        return default
+    return reply[:1] 
+
+
+def install_paraview(paraview_version, install_path='/tmp/'):
+
+
+    def extract(fullpath, install_path):
+        cmd_list = ['tar', 'zxvf', fullpath, '--directory', install_path]
+        print('Executing ' + ' '.join(cmd_list))
+        import subprocess
+        subprocess.run(cmd_list)
+        
+    file = paraview_version + '.tar.gz'  
+    tmpdir = '/tmp/'
+    fullpath = tmpdir + file
+
+    if os.path.exists(fullpath):
+        extract(fullpath, install_path)
+        return
+    
+    print('Downloading ' + file + ' to ' + tmpdir)
+    url = 'https://www.paraview.org/paraview-downloads/download.php?' + \
+          'submit=Download&version=v5.8&type=binary&os=Linux&downloadFile=' + file 
+
+    # https://stackoverflow.com/questions/15644964/python-progress-bar-and-downloads
+    from clint.textui import progress
+    import requests
+
+    r = requests.get(url, stream=True)
+    with open(fullpath, 'wb') as f:
+        total_length = int(r.headers.get('content-length'))
+        for chunk in progress.bar(r.iter_content(chunk_size=1024), expected_size=(total_length/1024) + 1): 
+            if chunk:
+                f.write(chunk)
+                f.flush()
+
+                
 def compatability_check(debug=False):
 
     import glob
@@ -84,7 +132,15 @@ def compatability_check(debug=False):
     import subprocess
     import site
 
-    if sys.platform == "darwin":
+    if sys.maxunicode > 65535:
+        print('UCS4 build')
+    else:
+        print('UCS2 build')
+        
+    debug = True
+    if debug:
+        print('sys.platform = ' + sys.platform)
+    if sys.platform.startswith("darwin"):
         versions = glob.glob("/Applications/ParaView*")
         versions.sort()
         version = versions[-1]
@@ -122,19 +178,96 @@ def compatability_check(debug=False):
             if debug:
                 print("Using " + use)
 
-    elif sys.platform == "linux":
-        try:
-            PARAVIEW = subprocess.check_output(['which','paraview'])
-        except:
-            print("Executable named 'paraview' was not found in path. " \
-                " Install ParaView such that 'which paraview' returns location of paraview.")
-            sys.exit(1)
-        try:
-            PVPYTHON = subprocess.check_output(['which','pvpython'])
-        except:
-            print("Executable named 'pvpython' was not found in path. " \
-                " Install ParaView such that 'which pvpython' returns location of pvpython.")
-            sys.exit(1)
+    elif sys.platform.startswith("linux"):
+        import os
+
+        if sys.version_info[0] < 3:
+            from backports import configparser
+        else:
+            import configparser
+
+        config_file = os.path.expanduser('~') + '/.magnetovis.conf'
+        PARAVIEWPATH = ''
+        if 'PARAVIEWPATH' in os.environ:
+            if debug:
+                print('PARAVIEW os environment variable set as ' + os.environ['PARAVIEWPATH'])
+            PARAVIEWPATH = os.path.expanduser(config['DEFAULT']['PARAVIEWPATH'])                
+            PARAVIEW = PARAVIEWPATH + '/bin/paraview'
+            PVPYTHON = PARAVIEWPATH + '/bin/pvpython'
+        else:
+            if debug:
+                print('PARAVIEW os environment not set.')
+            
+        if PARAVIEWPATH == '' and os.path.exists(config_file):
+            if debug:
+                print('File ' + config_file + ' found')
+            config = configparser.ConfigParser()
+            config.read(config_file)
+            if 'PARAVIEWPATH' in config['DEFAULT']:
+                PARAVIEWPATH = os.path.expanduser(config['DEFAULT']['PARAVIEWPATH'])
+                if debug:
+                    print('Found PARAVIEWPATH = ' + PARAVIEWPATH + ' in [DEFAULT] section of ' + config_file + '.')
+                if os.path.exists(PARAVIEWPATH):
+                    PARAVIEW = PARAVIEWPATH + '/bin/paraview'
+                    PVPYTHON = PARAVIEWPATH + '/bin/pvpython'
+                else:
+                    print(PARAVIEWPATH + ' not found.')
+                    PARAVIEWPATH = ''
+                    #sys.exit(1)
+            else:
+                if debug:
+                    print('PARAVIEWPATH variable not found in ' + config_file + '.')
+
+        if PARAVIEWPATH == '':
+            PVPYTHON = ''
+            try:
+                if debug:
+                    print('Trying output of `which paraview`')
+                PARAVIEW = subprocess.check_output(['which','paraview'])
+                try:
+                    if debug:
+                        print('Trying output of `which pvpython`')
+                    PVPYTHON = subprocess.check_output(['which','pvpython'])
+                except:
+                    print("Executable named 'pvpython' was not found in path, but 'paraview' found at " \
+                          + PARAVIEW + ". Check installation; pvpython binary should be in the " \
+                          + "same directory as paraview binary.")
+                    sys.exit(1)
+            except:
+                print("Executable named 'paraview' was not found in path.")
+                if prompt('Attempt to install? [y]/n', default='y') == 'y':
+                    install_path = prompt('Enter installation path [~]', default='~')
+                    install_path = os.path.expanduser(install_path)
+                    paraview_version = 'ParaView-5.8.0-MPI-Linux-Python3.7-64bit'
+                    install_paraview(paraview_version, install_path=install_path)
+                    PARAVIEWPATH = install_path + '/' + paraview_version
+                    PARAVIEW = PARAVIEWPATH + '/bin/paraview'
+                    PVPYTHON = PARAVIEWPATH + '/bin/pvpython'
+                    config = configparser.ConfigParser()
+                    if os.path.exists(config_file):
+                        if debug:
+                            print("Found " + config_file + ". Updating PARAVIEWPATH " + \
+                                  "variable to " + PARAVIEWPATH)
+                        config.read(config_file)
+                        if 'PARAVIEWPATH' in config['DEFAULT']:
+                            config['DEFAULT']['PARAVIEWPATH'] = PARAVIEWPATH
+                        else:
+                            config['DEFAULT'] = {'PARAVIEWPATH': PARAVIEWPATH}
+                        with open(config_file, 'w') as f:
+                            config.write(f)
+                        if debug:
+                            print("Updated PARAVIEWPATH variable to " + PARAVIEWPATH)
+                    else:
+                        if debug:
+                            print("Writing " + config_file)
+                        config['DEFAULT'] = {'PARAVIEWPATH': install_path}
+                        with open(config_file, 'w') as f:
+                            config.write(f)
+                        if debug:
+                            print("Wrote " + config_file)
+                else:
+                    sys.exit(1)
+                            
     else:
         print("Installation implemented only for Linux and OS-X.")
         sys.exit(0)

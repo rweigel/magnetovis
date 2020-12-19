@@ -6,7 +6,7 @@ import numpy as np
 #sys.path.append(os.path.dirname(os.path.abspath(__file__)) + '/../' )
 #from config import conf
 
-from util import tpad
+from magnetovis.util import tpad
 
 import spacepy.coordinates as sc
 from spacepy.time import Ticktock

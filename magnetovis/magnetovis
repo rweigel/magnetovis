@@ -36,7 +36,7 @@ try:
     args = shlex.split(syscom)
     process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=my_env)
     for line in process.stdout:
-        sys.stdout.write(line)
+        sys.stdout.write(str(line))
 except OSError as e:
     msg = "Execution failed: " + cmd + "\n" + e[1]
     raise OSError(msg)
