@@ -1,9 +1,9 @@
 import os
 import sys
 import tempfile
-import util
 import numpy as np
 
+from magnetovis import util
 
 def earth(time,
             coord_sys='GSM',
@@ -22,7 +22,7 @@ def earth(time,
 
         import numpy as np
 
-        import cxtransform as cx
+        from magnetovis import cxtransform as cx
         from vtk_export import vtk_export
 
 
@@ -69,13 +69,13 @@ def earth(time,
     
     urlPNG = topo_url.format(time[1])
     filePNG = os.path.join(out_dir, os.path.split(topo_url)[1].format(time[1]))
-    import util # i needed to add this line to make it work
+    from hapiclient.util import urlretrieve
+
     # Download topographic overlay file if not found.
     if not os.path.exists(filePNG):
         if debug:
             print("Downloading " + urlPNG)
-        # TODO: Use d/l function in hapiclient.util
-        util.urlretrieve(urlPNG, filePNG)
+        urlretrieve(urlPNG, filePNG)
         if debug:
             print("Downloaded " + urlPNG + "\nto\n" + filePNG)
 
@@ -857,9 +857,9 @@ def magnetopause(time, Bz=None, Psw=None, model='Shue97', coord_sys='GSM',
     import numpy as np
     import numpy.matlib
     from datetime import datetime
-    from util import tstrTimeDelta, tstr, time2datetime
+    from magnetovis.util import tstrTimeDelta, tstr, time2datetime
     from vtk_export import vtk_export
-    from cxtransform import transform
+    from magnetovis.cxtransform import transform
 
 
     def mpause_Shue97(Bz, Psw, return_x_max = False):
@@ -1355,9 +1355,9 @@ def bowshock(time, model='Fairfield71', Bz = None, Psw = None,
 
     from datetime import datetime
     import pytz 
-    from util import tstrTimeDelta, tstr, time2datetime
+    from magnetovis.util import tstrTimeDelta, tstr, time2datetime
     from vtk_export import vtk_export
-    from cxtransform import transform
+    from magnetovis.cxtransform import transform
     
     def bowshock_Fairfield71(Bz, Psw,
                              mpause_model='Roelof_Sibeck93'):
@@ -1814,7 +1814,7 @@ def neutralsheet(time, psi=None,
     
     import numpy as np
     import numpy.matlib
-    import cxtransform as cx
+    import magnetovis.cxtransform as cx
     from vtk_export import vtk_export
     from util import tstr
     
@@ -1941,8 +1941,8 @@ def plasmasheet(time, psi=None,
                  debug=False):
     """Show plasma sheet volume"""    
     
-    from util import tstr
-    import cxtransform as cx
+    from magnetovis.util import tstr
+    import magnetovis.cxtransform as cx
     from vtk_export import vtk_export
     
     if psi == None:
@@ -2036,7 +2036,7 @@ def plasmasheet(time, psi=None,
     
     return plasmaSheetDisplay, renderView, plasmaShVTK
         
-def rot_mat(points, angle=-4, (h,k)= (0,0)):
+def rot_mat(points, angle=-4, h=0, k=0):
     deg = np.deg2rad(angle)
     
     points = np.pad(points, ((0,0),(0,1)), 'constant', constant_values=1)

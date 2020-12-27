@@ -5,16 +5,27 @@ from setuptools import setup, find_packages
 install_requires = [
                         "numpy",
                         "spacepy",
-                        "hapiclient"
+                        "clint",
+                        "requests"
                     ]
 
+if sys.version_info[0] < 3:
+    from setuptools.command.build_ext import build_ext
+    if sys.maxunicode > 65535:
+        print('UCS4 build')
+    else:
+        print('UCS2 build')
+else:
+    build_ext = None
+
+        
 debug = False
 if len(sys.argv) > 1 and sys.argv[1] == 'develop':
     debug = True
     #install_requires.append("pytest")
 
 # https://stackoverflow.com/a/8663557
-# Temporarily modify path to that util functions can be used.
+# Temporarily modify path so that util functions can be used.
 setup_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.insert(0, os.path.join(setup_path, 'magnetovis', 'magnetovis'))
 import util
