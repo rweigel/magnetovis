@@ -5,7 +5,7 @@ This script shows a demonstration of magnetovis if ran with: demo = True
 
 Instructions for running 
 From the terminal run command:
-    
+    PYTHONPATH=/.../site-packages:. paraview --script=magnetovis_demo2.py
 
 """
 
