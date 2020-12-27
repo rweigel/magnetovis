@@ -33,7 +33,7 @@ if demo:
     
     objects2.bowshock(time=demo_time, color=[0,0,1,.5], coord_sys=demo_coord)
     
-    objects2.pro_satellite(time_o = '2005-01-01T00:00:00.000Z', 
+    objects2.satellite(time_o = '2005-01-01T00:00:00.000Z', 
                       time_f = '2005-01-06T00:15:00.000Z', 
                       satellite_id = 'geotail', coord_sys=demo_coord,
                       representation='Surface',
@@ -93,12 +93,12 @@ renderView.Background = [0.0865796902418555, 0.35515373464560923, 0.489219501029
 
 if satellite_path:
 
-    objects2.pro_satellite(time_o = '2005-01-01T10:50:00.000Z', 
+    objects2.satellite(time_o = '2005-01-01T10:50:00.000Z', 
                       time_f = '2005-01-06T00:15:00.000Z', 
                       satellite_id = 'aura', coord_sys='GSE',
-                      representation='Point Gaussian',
+                      representation='Surface',
                       shader_preset='Sphere',
-                      color=None, tube_radius=1,
+                      color=None, tube_radius=.03,
                       region_colors = {
                           'D_Msheath' : [0.0,0.0,0.0,0.7],
                           'N_Msheath' : [0.5,0.0,0.0,0.7],

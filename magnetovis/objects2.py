@@ -783,18 +783,12 @@ def plasmapause(time):
     pass
 
 
-def _neutralsheet(self, output, time, psi=None, 
-                 Rh=8, G=10, Lw=10, d=4,
-                 xlims = (-40,-10), ylims = (-18,18),
-                 coord_sys='GSM',
-                 model='tsyganenko95',
-                 color = [1,0,0,0.5],
-                 representation='Surface',
-                 return_sheet=False,
-                 renderView=None,
-                 render=True,
-                 show=True,
-                 debug=False):
+def _neutralsheet(self, output, time, psi, 
+                 Rh, G, Lw, d,
+                 xlims, ylims,
+                 coord_sys,
+                 model,
+                 return_sheet):
 
     """
     Show neutral sheet surface.
@@ -832,12 +826,6 @@ def _neutralsheet(self, output, time, psi=None,
     import numpy.matlib
     from magnetovis import cxtransform as cx
     import paraview.simple as pvs
-    
-    valid_rep = ['Surface', '3D Glyphs', 'Feature Edges', 
-                   'Outline' 'Point Gaussian', 'Points', 'Surface With Edges',
-                   'Wireframe', 'Volume']
-    assert representation in valid_rep,\
-    """representation must be one of the following {}""".format(valid_rep)
     
     # retrieving psi value based on time.
     if psi == None:
@@ -937,19 +925,12 @@ def plasmasheet(time, psi=None,
                  obj='Plasmasheet')
     
 
-def _plasmasheet(self, output, time, psi=None, 
-                 Rh=8, G=10, Lw=10, d=4,
-                 xlims = (-40,0), ylims = (-18,18),
-                 coord_sys='GSM',
-                 model='tsyganenko95',
-                 color = [1,0,0,0.5],
-                 representation='Surface With Edges',
-                 return_sheet=False,
-                 renderView=None,
-                 render=True,
-                 show=True,
-                 out_dir=tempfile.gettempdir(),
-                 debug=False):
+def _plasmasheet(self, output, time, psi,
+                 Rh, G, Lw, d,
+                 xlims, ylims,
+                 coord_sys,
+                 model,
+                 return_sheet):
     
     """Show plasma sheet volume"""    
     
@@ -972,8 +953,6 @@ def _plasmasheet(self, output, time, psi=None,
     sheet, psi = _neutralsheet(self=False, output=False, time=time, psi=psi, Rh=Rh, G=G, 
                               Lw=Lw, d=d, xlims=xlims, ylims=ylims, 
                               coord_sys=coord_sys, model=model, 
-                              color=color, 
-                              representation=representation, 
                               return_sheet=True)
     
     low_sheet = np.copy(sheet)
@@ -1035,6 +1014,12 @@ def objs_wrapper(**kwargs):
     import re
     import cxtransform as cx
     from util import tstr
+    
+    valid_rep = ['Surface', '3D Glyphs', 'Feature Edges', 
+                   'Outline' 'Point Gaussian', 'Points', 'Surface With Edges',
+                   'Wireframe', 'Volume']
+    assert kwargs['representation'] in valid_rep,\
+    """representation must be one of the following {}""".format(valid_rep)
     
     path = os.path.join(os.getcwd() + "/magnetovis/objects2.py")    
     programmableSource = pvs.ProgrammableSource()
@@ -1242,26 +1227,10 @@ def objs_wrapper(**kwargs):
 
     renderView.ResetCamera()
 
-def _satellite(self, time_o, time_f, satellite_id, 
-              coord_sys='GSM',
-              color=[1,0,0,1],
-              representation='Surface',
-              tube_radius=None, 
-              shader_preset=None,
-              region_colors=None,
-              out_dir=tempfile.gettempdir(),
-              renderView=None,
-              render=True,
-              show=True):
+def _satellite(self, time_o, time_f, satellite_id, coord_sys, region_colors):
     
     import vtk
-    import numpy as np
-    valid_rep = ['Surface', '3D Glyphs', 'Feature Edges', 
-                   'Outline', 'Point Gaussian', 'Points', 'Surface With Edges',
-                   'Wireframe', 'Volume']
-    assert representation in valid_rep,\
-    "representation must be one of the following\n{}".format(valid_rep)
-    
+    import numpy as np    
     from hapiclient import hapi
     
     server     = 'http://hapi-server.org/servers/SSCWeb/hapi';
@@ -1300,11 +1269,7 @@ def _satellite(self, time_o, time_f, satellite_id,
             
     pdo.GetPointData().AddArray(colors)
     
-def _magnetopause(self, output, time, Bz=None, Psw=None, model='Shue97', coord_sys='GSM',
-                 color=[0,1,0,0.5], representation='Surface',
-                 out_dir=tempfile.gettempdir(),
-                 renderView=None, render=True, show=True,
-                 return_x_max = False, Num_prev_surfaces=0):
+def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max):
     
     import numpy as np
     import numpy.matlib
@@ -1612,14 +1577,7 @@ def _magnetopause(self, output, time, Bz=None, Psw=None, model='Shue97', coord_s
         return points
     
     
-    r, g, b, opacity = color
     year_limit = datetime(1995, 1, 1)
-    
-    valid_rep = ['Surface', '3D Glyphs', 'Feature Edges', 
-                   'Outline' 'Point Gaussian', 'Points', 'Surface With Edges',
-                   'Wireframe', 'Volume']
-    assert representation in valid_rep,\
-    """representation must be one of the following {}""".format(valid_rep)
     
     if not return_x_max:
         if time == None:
@@ -1766,12 +1724,7 @@ def _magnetopause(self, output, time, Bz=None, Psw=None, model='Shue97', coord_s
     output.SetPoints(pts)
     output.GetPointData().AddArray(colors)
     
-def _bowshock(self, output, time, model='Fairfield71', Bz = None, Psw = None,
-             mpause_model='Roelof_Sibeck93',
-             coord_sys='GSE',
-             color=[0,1,0,1], representation='Surface',
-             out_dir=tempfile.gettempdir(),
-             renderView=None, render=True, show=True):
+def _bowshock(self, output, time, model, Bz, Psw, mpause_model, coord_sys):
     """Show bowshock suraface"""
 
     from datetime import datetime
@@ -1856,7 +1809,6 @@ def _bowshock(self, output, time, model='Fairfield71', Bz = None, Psw = None,
     
         return points
     year_limit = datetime(1995, 1, 1)
-    r, g, b, opacity = color
     
     if time == None:
        assert Bz != None and Psw != None, \
@@ -2014,17 +1966,17 @@ def magnetopause(time=None, Bz=None, Psw=None, model='Shue97', coord_sys='GSM',
     
 def bowshock(time=None, model='Fairfield71', Bz = None, Psw = None,
              mpause_model='Roelof_Sibeck93',
-             coord_sys='GSE',
+             coord_sys='GSM',
              color=[0,1,0,1], representation='Surface',
-             out_dir=tempfile.gettempdir(),
              renderView=None, render=True, show=True):
     
-    objs_wrapper(time=time, Bz=Bz, Psw=Psw, model=model, coord_sys=coord_sys,
-                 color=color, representation=representation,
-                 out_dir=out_dir, renderView=renderView, render=render,
+    objs_wrapper(time=time, Bz=Bz, Psw=Psw, model=model, 
+                 mpause_model=mpause_model, coord_sys=coord_sys,
+                 color=color, representation=representation, 
+                 renderView=renderView, render=render,
                  show=show, obj='Bowshock')
     
-def pro_satellite(time_o='', time_f='', satellite_id='', 
+def satellite(time_o='', time_f='', satellite_id='', 
               coord_sys='GSM',
               color=[1,0,0,1],
               representation='Surface',
@@ -2066,7 +2018,6 @@ def _axis(self, output, time, val, coord_sys, lims,
     import numpy.matlib
     from magnetovis.objects2 import rot_mat
     from magnetovis.cxtransform import transform
-    # import paraview.simple as pvs
     
     X = np.linspace(lims[0],lims[1], 300)
     X = X.repeat(300)
@@ -2132,138 +2083,6 @@ def _axis(self, output, time, val, coord_sys, lims,
     # output.GetPointData().AddArray(colors)
     
 
-def old_axis(time, val, coord_sys='GSM',
-        length_positive=20., length_negative=0., 
-        tick_spacing=1, label=True,
-            renderView=None,
-            render=True,
-            show=True,
-            out_dir=tempfile.gettempdir(),
-            debug=False):
-    """Show coordinate axis with origin at center of Earth"""
-    if True:
-        h = length_positive
-        assert(length_negative == 0.)
-    
-
-        import paraview.simple as pvs
-        if not renderView:
-            renderView = pvs.GetActiveViewOrCreate('RenderView')
-    
-        #------------------
-        # x axis
-        #------------------
-        cylinder = pvs.Cylinder()
-        cylinder.Radius = 0.05
-        cylinder.Center = [0., (length_positive-length_negative)/2., 0.]
-        cylinder.Height = length_positive + length_negative
-        cylinderDisplay = pvs.Show(cylinder, renderView)
-        cylinderDisplay.ColorArrayName = [None, '']
-    
-        if val == 'x':
-            cylinderDisplay.DiffuseColor = [1.0, 0.0, 0.0]
-        if val == 'y':
-            cylinderDisplay.DiffuseColor = [1.0, 1.0, 0.5]
-        if val == 'z':
-            cylinderDisplay.DiffuseColor = [0.0, 1.0, 0.0]
-    
-        if val == 'x':
-            # Default Cylinder is orientated along y-axis.
-            # To get x cylinder, rotate by -90 around z-axis.
-            cylinderDisplay.Orientation = [0.0, 0.0, -90.0]
-        if val == 'y':
-            # Default Cylinder is orientated along y-axis, so 
-            # the following statement is not needed.
-            cylinderDisplay.Orientation = [0.0, 0.0, 0.0]
-        if val == 'z':
-            # Default Cylinder is orientated along y-axis.
-            # To get z cylinder, rotate by 90 around x-axis.
-            cylinderDisplay.Orientation = [90.0, 0.0, 0.0]
-    
-        # cone x
-        cone = pvs.Cone()
-        # Properties modified on coneX
-        cone.Resolution = 30
-        cone.Radius = 0.2
-        cone.Height = 0.4
-        if val == 'x':
-            cone.Center = [length_positive, 0.0, 0.0]
-            cone.Direction = [1., 0., 0.]
-        if val == 'y':
-            cone.Center = [0.0, length_positive, 0.0]
-            cone.Direction = [0., 1., 0.]
-        if val == 'z':
-            cone.Center = [0.0, 0.0, length_positive]
-            cone.Direction = [0., 0., 1.]
-        # show data in view
-        coneDisplay = pvs.Show(cone, renderView)
-        # trace defaults for the display properties.
-        coneDisplay.Representation = 'Surface'
-        coneDisplay.ColorArrayName = [None, '']
-        coneDisplay.OSPRayScaleFunction = 'PiecewiseFunction'
-        coneDisplay.SelectOrientationVectors = 'None'
-        coneDisplay.ScaleFactor = 0.04000000357627869
-        coneDisplay.SelectScaleArray = 'None'
-        coneDisplay.GlyphType = 'Arrow'
-        coneDisplay.GlyphTableIndexArray = 'None'
-        coneDisplay.DataAxesGrid = 'GridAxesRepresentation'
-        coneDisplay.PolarAxes = 'PolarAxesRepresentation'
-        # change solid color
-        if val == 'x':
-            coneDisplay.DiffuseColor = [1.0, 0.0, 0.0]
-        if val == 'y':
-            coneDisplay.DiffuseColor = [1.0, 1.0, 0.5]
-        if val == 'z':
-            coneDisplay.DiffuseColor = [0.0, 1.0, 0.0]
-    
-        for i in range(int(h)-1):
-            # create a new 'Sphere'
-            sph = pvs.Sphere()
-    
-            # Properties modified on sph
-            if val == 'x':
-                sph.Center = [i+1, 0.0, 0.0]
-            elif val == 'y':
-                sph.Center = [0., i+1, 0.]
-            elif val == 'z':
-                sph.Center = [0., 0., i+1]
-    
-            sph.Radius = 0.2
-            sph.ThetaResolution = 10
-            sph.PhiResolution = 10
-    
-            # show data in view
-            sphDisplay = pvs.Show(sph, renderView)
-            # trace defaults for the display properties.
-            sphDisplay.Representation = 'Surface'
-            sphDisplay.ColorArrayName = [None, '']
-            sphDisplay.OSPRayScaleArray = 'Normals'
-            sphDisplay.OSPRayScaleFunction = 'PiecewiseFunction'
-            sphDisplay.SelectOrientationVectors = 'None'
-            sphDisplay.ScaleFactor = 0.2
-            sphDisplay.SelectScaleArray = 'None'
-            sphDisplay.GlyphType = 'Arrow'
-            sphDisplay.GlyphTableIndexArray = 'None'
-            sphDisplay.DataAxesGrid = 'GridAxesRepresentation'
-            sphDisplay.PolarAxes = 'PolarAxesRepresentation'
-            # change solid color
-            if val == 'x':
-                sphDisplay.DiffuseColor = [1.0, 0.0, 0.0]
-            elif val == 'y':
-                sphDisplay.DiffuseColor = [1.0, 1.0, 0.5]
-            elif val == 'z':
-                sphDisplay.DiffuseColor = [0.0, 1.0, 0.0]
-    
-        if not show:
-            #pvs.Hide(sphereVTK, renderView)
-            assert(True)
-        if render:
-            # Render all display objects in renderView
-            pvs.Render()
-    
-    
-        return None
-
 def neutralsheet(time=None, psi=None, 
                  Rh=8, G=10, Lw=10, d=4,
                  xlims = (-40,-10), ylims = (-18,18),
@@ -2293,50 +2112,38 @@ if False:
 if "kwargs" in vars():         
         
     if kwargs['obj'] == 'satellite':
-        _satellite(self, kwargs['time_o'], kwargs['time_f'],
-                       kwargs['satellite_id'],
-                       kwargs['coord_sys'], kwargs['color'], 
-                       kwargs['representation'], kwargs['tube_radius'],
-                       kwargs['shader_preset'], kwargs['region_colors'],
-                       kwargs['out_dir'], kwargs['renderView'],
-                       kwargs['render'], kwargs['show'])
+        _satellite(self, time_o=kwargs['time_o'], time_f=kwargs['time_f'],
+                       satellite_id=kwargs['satellite_id'],
+                       coord_sys=kwargs['coord_sys'],
+                       region_colors=kwargs['region_colors'])
     
     elif kwargs['obj'] == 'Magnetopause':
         _magnetopause(self, output, time=kwargs['time'], Bz=kwargs['Bz'], 
                       Psw=kwargs['Psw'], model=kwargs['model'],
-                      coord_sys=kwargs['coord_sys'], color=kwargs['color'],
-                      out_dir=kwargs['out_dir'], renderView=kwargs['renderView'],
-                      render=kwargs['render'], show=kwargs['show'],
+                      coord_sys=kwargs['coord_sys'],
                       return_x_max=kwargs['return_x_max'])
     
     elif kwargs['obj'] == 'Bowshock':
         _bowshock(self, output, time=kwargs['time'], Bz=kwargs['Bz'], 
-                      Psw=kwargs['Psw'], model=kwargs['model'],
-                      coord_sys=kwargs['coord_sys'], color=kwargs['color'],
-                      out_dir=kwargs['out_dir'], renderView=kwargs['renderView'],
-                      render=kwargs['render'], show=kwargs['show'])
+                      Psw=kwargs['Psw'], model=kwargs['model'], 
+                      mpause_model=kwargs['mpause_model'],
+                      coord_sys=kwargs['coord_sys'])
     
     elif kwargs['obj'] == 'Neutralsheet':
         _neutralsheet(self, output, time=kwargs['time'], psi=kwargs['psi'], 
                       Rh=kwargs['Rh'], G=kwargs['G'], Lw=kwargs['Lw'], 
                       d=kwargs['d'], xlims=kwargs['xlims'], 
                       ylims=kwargs['ylims'], coord_sys=kwargs['coord_sys'],
-                      model=kwargs['model'],color = kwargs['color'],
-                      representation=kwargs['representation'],
-                      return_sheet=kwargs['return_sheet'],
-                      renderView=kwargs['renderView'], render=kwargs['render'],
-                      show=kwargs['show'], debug=kwargs['debug'])
+                      model=kwargs['model'],
+                      return_sheet=kwargs['return_sheet'])
         
     elif kwargs['obj'] == 'Plasmasheet':
         _plasmasheet(self, output, time=kwargs['time'], psi=kwargs['psi'], 
                       Rh=kwargs['Rh'], G=kwargs['G'], Lw=kwargs['Lw'], 
                       d=kwargs['d'], xlims=kwargs['xlims'], 
                       ylims=kwargs['ylims'], coord_sys=kwargs['coord_sys'],
-                      model=kwargs['model'],color = kwargs['color'],
-                      representation=kwargs['representation'],
-                      return_sheet=kwargs['return_sheet'],
-                      renderView=kwargs['renderView'], render=kwargs['render'],
-                      show=kwargs['show'], debug=kwargs['debug'])
+                      model=kwargs['model'],
+                      return_sheet=kwargs['return_sheet'])
     
     elif kwargs['obj'] == 'axis':
         _axis(self, output, time = kwargs['time'], val=kwargs['val'],
