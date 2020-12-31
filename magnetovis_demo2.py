@@ -21,6 +21,11 @@ bowshock = False
 satellite_path = False
 neutralsheet = False
 plasmasheet = False
+plasmapause = False
+
+if plasmapause:
+    objects2.plasmapause('')
+
 
 
 if demo:
@@ -69,21 +74,18 @@ if axis:
 
 
 if plasmasheet:
-    objects2.plasmasheet(time = [2000,1,1,1,1])
+    objects2.plasmasheet(time = demo_time)
 
 if neutralsheet:
-    objects2.neutralsheet(time = [2000,1,1,1,1])
-    objects.neutralsheet(time=[2000,1,1,1,1])
-    objects2.neutralsheet(time = None, psi=28)
-    objects.neutralsheet(time=None, psi=28)
+    objects2.neutralsheet(time = demo_time)
 
 if mpause:
-    objects2.magnetopause(time=None, Bz=0, Psw=2.04, 
+    objects2.magnetopause(time=demo_time,
                           model='Shue97', coord_sys='GSE', 
                           color=[.5,.5,0.3,0.5],
                           representation='Surface')
 if bowshock:
-    objects2.bowshock(Bz = 0, Psw=2, color=[0,0,1,.5])
+    objects2.bowshock(time=demo_time, color=[0,0,1,.5])
     
 
 renderView = pvs.GetActiveViewOrCreate('RenderView')

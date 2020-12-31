@@ -1,13 +1,6 @@
 import os
 import sys
 
-# TODO: Remove
-def tstrTimeDelta(time, minute_delta):
-    from datetime import timedelta
-    
-    t_datetime = time2datetime(time) + timedelta(minutes=minute_delta)
-    return tstr(t_datetime)
-
 
 # TODO: Duplicated in Gary's
 def tpad(time, length=7):

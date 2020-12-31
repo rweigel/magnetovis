@@ -105,12 +105,13 @@ def earth(time,
     print(urlPNG)
     filePNG = os.path.join(out_dir, os.path.split(topo_url)[1].format(time[1]))
     import util # i needed to add this line to make it work
+    from hapiclient.util import urlretrieve
     # Download topographic overlay file if not found.
     if not os.path.exists(filePNG):
         if debug:
             print("Downloading " + urlPNG)
         # TODO: Use d/l function in hapiclient.util
-        util.urlretrieve(urlPNG, filePNG)
+        urlretrieve(urlPNG, filePNG)
         if debug:
             print("Downloaded " + urlPNG + "\nto\n" + filePNG)
 
@@ -407,21 +408,6 @@ if False:
 
 
 
-def old_axes(time, lengths_positive=[15., 15., 15.], lengths_negative=[0.,0.,0.], labels=[True, True, True], coord_sys='GSM', tick_spacing=1,
-            renderView=None,
-            render=True,
-            show=True,
-            out_dir=tempfile.gettempdir(),
-            debug=False): 
-
-    old_axis(time, 'x', length_positive=lengths_positive[0], length_negative=lengths_negative[0], label=labels[0],
-        coord_sys=coord_sys, tick_spacing=tick_spacing, renderView=renderView, render=render, show=show, out_dir=out_dir, debug=debug)
-    old_axis(time, 'y', length_positive=lengths_positive[1], length_negative=lengths_negative[1], label=labels[1],
-        coord_sys=coord_sys, tick_spacing=tick_spacing, renderView=renderView, render=render, show=show, out_dir=out_dir, debug=debug)
-    old_axis(time, 'z', length_positive=lengths_positive[1], length_negative=lengths_negative[1], label=labels[1],
-        coord_sys=coord_sys, tick_spacing=tick_spacing, renderView=renderView, render=render, show=show, out_dir=out_dir, debug=debug)
-
-    #pass
 
 def magnetic_dipole(time,
             renderView=None,
@@ -429,7 +415,7 @@ def magnetic_dipole(time,
             show=True,
             out_dir=tempfile.gettempdir(),
             debug=False):
-    old_axis(time, 'z', coord_sys='MAG',
+    axis(time, 'z', coord_sys='MAG',
         length_positive=15., length_negative=0., tick_spacing=1, label=False,
             renderView=renderView,
             render=render,
@@ -512,37 +498,35 @@ def trace_lines(points, connectivity, out_fname=os.path.join(tempfile.gettempdir
     tube1Display.DiffuseColor = color
 
 
-def latitude_lines(time, coord_sys='GEO', increment=15, color=[1,0,0],
-                                        renderView=None,
-                                        render=True,
-                                        show=True,
-                                        out_dir=tempfile.gettempdir(),
-                                        debug=False):
+def _latitude_lines(self, time, coord_sys='GEO', increment=15, color=[1,0,0]):
 
+    import cxtransform as cx
+    
     npts = 100
 
     lat_array = np.arange(-90., 90. + increment, increment)
     lon = np.linspace(0,360,npts)
     #np.einstum('',lat_array,lon)
 
-    import cxtransform as cx
-
+    
     points = np.zeros((npts*lat_array.size, 3))
     for i in range(lat_array.size):
         a = np.column_stack([np.ones(npts, ), lat_array[i]*np.ones(npts, ), lon])
         line = cx.transform(a, time, coord_sys, 'GSM', ctype_in='sph', ctype_out='car')
         points[i*npts : (i+1)*npts, :] = line
+        
 
-    conn = npts*np.ones(lat_array.size, dtype=int)
 
-    out_fname = os.path.join(out_dir, coord_sys + '_latitude_lines.vtk')
+    # conn = npts*np.ones(lat_array.size, dtype=int)
 
-    trace_lines(points, {'LINES' : conn}, out_fname=out_fname,
-                                        color=color, ftype='BINARY',
-                                            renderView=renderView,
-                                            render=render,
-                                            show=show,
-                                            debug = debug)
+    # out_fname = os.path.join(out_dir, coord_sys + '_latitude_lines.vtk')
+
+    # trace_lines(points, {'LINES' : conn}, out_fname=out_fname,
+    #                                     color=color, ftype='BINARY',
+    #                                         renderView=renderView,
+    #                                         render=render,
+    #                                         show=show,
+    #                                         debug = debug)
 
 
 def longitude_lines(time, coord_sys='GEO', increment=30, color=[0,0,1],
@@ -745,23 +729,27 @@ if False:
 
   
     
-def plasmapause(time):
+def _plasmapause(self, output, time):
     
     """
     log(n) = a1 * F(L) * G(L) * H(L) = 1.5
     
     where,
-    F(L) = a2 - e ** (a3 * (1 -a4 * e ** (-h(L,lambda) / a5)))
+    F(L) = a2 - e ** (a3 * (1 -a4 * e ** (-h(L,Lambda) / a5)))
     
     G(L) = a6 * L + a7
     
     H(L) = (1 + (L / a8) ** (2 * (a9 - 1))) ** (-a9 / (a9 - 1))
     
+    L = R/cos**2(Lambda)
+    
     L is the McIlwain L-Shell parameter.
     
-    h(L, lambda) is the height above the Earth's surface
+    h(L, Lambda) is the height above the Earth's surface
     
-    and lambda is the geomagnetic latitude 
+    and Lambda is the geomagnetic latitude 
+    
+    L = R/cos**2(Lambda)
     
     constants:
         a1 = 1.4
@@ -778,11 +766,40 @@ def plasmapause(time):
     
     a9 = 15.3 * cos(2 * pi * MLT / 24) + 19.7
     
+    
+    also, also
+    MLT is the magnetic local time measured in HH:MM. MLT=0=24 is midnight
+    and MLT=12 is noon. Spacepy is used to calculate this number. 
+    
     """
     
-    pass
+    import spacepy as sc
+    import numpy as np
+    
+    # constants
+    a1 = 1.4
+    a2 = 1.53
+    a3 = -0.036
+    a4 = 30.76
+    a5 = 159.9
+    a7 = 6.27
+    
+    # still gotta figure out
+    Lambda = 0
+    R = 1
+    L = R/np.cos(Lambda)**2
+    h = L * Lambda
+    
+    F = a2 - np.exp(a3 * (1 - a4 * np.exp(-h / a5)))
+    
 
-
+def plasmapause(time, representation='Surface', renderView=None, render=True,
+                show=True):
+    
+    objs_wrapper(time=time, representation=representation, 
+                 renderView=renderView, render=render, show=show, 
+                 obj='Plasmapause')
+    
 def _neutralsheet(self, output, time, psi, 
                  Rh, G, Lw, d,
                  xlims, ylims,
@@ -914,14 +931,12 @@ def plasmasheet(time, psi=None,
                  return_sheet=False,
                  renderView=None,
                  render=True,
-                 show=True,
-                 out_dir=tempfile.gettempdir(),
-                 debug=False):
+                 show=True):
     
     objs_wrapper(time=time, psi=psi, Rh=Rh, G=G, Lw=Lw, d=d, xlims=xlims,
                  ylims=ylims, coord_sys=coord_sys, model=model, color=color,
                  representation=representation, return_sheet=return_sheet,
-                 renderView=renderView, render=render, show=show, debug=debug,
+                 renderView=renderView, render=render, show=show, 
                  obj='Plasmasheet')
     
 
@@ -1108,15 +1123,39 @@ def objs_wrapper(**kwargs):
         if not kwargs['time']:
             kwargs['time'] = ''
             
-        if kwargs['obj'] == 'Bowshock' or kwargs['obj'] == 'Magnetopause':
+        if kwargs['obj'] == 'Magnetopause':
+            
+            
+            time_str, Bz_str, Psw_str = \
+                _magnetopause(self='', output='', time=kwargs['time'],
+                              Bz=kwargs['Bz'], Psw=kwargs['Psw'],
+                              model=kwargs['model'],
+                              coord_sys=kwargs['coord_sys'], 
+                              return_x_max=False, return_title=True)
+            
             title = "{} {} {} {} Bz={} Psw={}".format(
                 kwargs['obj'], kwargs['model'], kwargs['coord_sys'], 
-                tstr(kwargs['time'],length=5), kwargs['Bz'], kwargs['Psw'])
+                time_str, Bz_str, Psw_str)
+        
+        elif kwargs['obj'] == 'Bowshock':
+            time_str, Bz_str, Psw_str = \
+                _bowshock(self='', output='', time=kwargs['time'], Bz=kwargs['Bz'],
+                          Psw=kwargs['Psw'], model=kwargs['model'], 
+                          mpause_model=kwargs['mpause_model'], 
+                          coord_sys=kwargs['coord_sys'], return_title=True)
+            
+            title = "{} {} {} {} {} {} mpause_model={}".format(
+                kwargs['obj'], kwargs['model'], kwargs['coord_sys'], 
+                time_str, Bz_str, Psw_str, kwargs['mpause_model'])
+            
         elif kwargs['obj'] == 'Neutralsheet' or kwargs['obj'] == 'Plasmasheet':
             if kwargs['psi'] == None:
                 dipole = cx.MAGtoGSM(np.array([0., 0., 1.]), kwargs['time'], 'car', 'sph') # [radius, latitude,longitude]
                 kwargs['psi'] = 90 - dipole[1]
-            title = '{} {} {} {} psi={} Rh={} G={} Lw={} d={}'\
+                time_str = ''
+            else:
+                time_str = tstr(kwargs['time'], 5)
+            title = '{} {} {} {} psi={:.3g} Rh={:.3g} G={:.3g} Lw={:.3g} d={:.3g}'\
                 .format(kwargs['obj'], kwargs['model'], kwargs['coord_sys'],
                         tstr(kwargs['time'],length=5), kwargs['psi'], kwargs['Rh'], 
                         kwargs['G'], kwargs['Lw'], kwargs['d'])\
@@ -1269,13 +1308,14 @@ def _satellite(self, time_o, time_f, satellite_id, coord_sys, region_colors):
             
     pdo.GetPointData().AddArray(colors)
     
-def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max):
+def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
+                  return_title=False):
     
     import numpy as np
     import numpy.matlib
-    from datetime import datetime
+    from datetime import datetime, timedelta
     import pytz 
-    from magnetovis.util import tstrTimeDelta, tstr, time2datetime
+    from magnetovis.util import tstr, time2datetime
     from magnetovis.cxtransform import transform, rot_mat
     import paraview.simple as pvs
 
@@ -1583,28 +1623,29 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max):
         if time == None:
            assert Bz != None and Psw != None, 'If time is None then  '+\
                'neither Psw or Bz can be None.'
-           assert coord_sys == 'GSE', 'If time is None then Coord_sys cannot ' +\
+           assert coord_sys != None, 'If time is None then Coord_sys cannot ' +\
                'be None.'
         
         if model == 'Sibeck_Lopez_Roelof91':
             assert (isinstance(Psw,bool) and Psw == False) \
                 or (isinstance(Bz, bool) and  Bz == False), \
                     'If model=Sibeck_Lopez_Roelof91 Psw or Bz has to be False but not both.'
-            assert not (isinstance(Psw,bool) and Psw == 999 \
+            ## TODO: recheck this 999 should not be there anymore
+            assert not (isinstance(Psw,bool) and Psw == False \
                         and Bz == False and isinstance(Bz, bool)),\
                 'when model=Siebck_Lopez_Roelof Both Psw and Bz cannot be False.'
         
         
         if time != None:
-            time_str = tstr(time,5).replace(':','-')
+            time_str = ""+tstr(time,5)
             if Bz == None or Psw == None:
                 from hapiclient import hapi, hapitime2datetime
                 server     = 'https://cdaweb.gsfc.nasa.gov/hapi';
                 dataset    = 'OMNI_HRO2_1MIN';
                 parameters = 'BZ_GSE,Pressure';
                 opts = {'logging': True, 'usecache': True}
-                start = tstrTimeDelta(time, -30)
-                stop =  tstrTimeDelta(time, +30)
+                start = tstr(time2datetime(time) + timedelta(minutes=-30)) 
+                stop =  tstr(time2datetime(time) + timedelta(minutes= 30))
                 data, meta = hapi(server, dataset, parameters, start, stop, **opts)
                 time_arr = hapitime2datetime(data['Time'])
                 data['Pressure'][data['Pressure'] == 99.99] = np.nan
@@ -1642,7 +1683,7 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max):
                     BZ_GSE_OMNI= np.interp(t1, t1[~nans], data['BZ_GSE'][~nans])
                     Bz = np.interp(time_to_interpolate, t1, BZ_GSE_OMNI)
                 
-            Bz_str = 'Bz {:.3g}'.format(Bz)
+            Bz_str = 'Bz={:.3g}'.format(Bz)
         
         if Psw == False and isinstance(Psw, bool) \
             and model == 'Sibeck_Lopez_Roelof91':
@@ -1664,7 +1705,10 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max):
                     nans = np.isnan(data['Pressure'])
                     pressure_OMNI = np.interp(t1, t1[~nans], data['Pressure'][~nans])
                     Psw = np.interp(time_to_interpolate, t1, pressure_OMNI)
-            Psw_str = 'Psw {:.3g}'.format(Psw)
+            Psw_str = 'Psw={:.3g}'.format(Psw)
+            
+    if return_title:
+        return (time_str, Bz_str, Psw_str)
     
     if model == "Shue97":
         if return_x_max:
@@ -1724,12 +1768,13 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max):
     output.SetPoints(pts)
     output.GetPointData().AddArray(colors)
     
-def _bowshock(self, output, time, model, Bz, Psw, mpause_model, coord_sys):
+def _bowshock(self, output, time, model, Bz, Psw, mpause_model, 
+              coord_sys, return_title=False):
     """Show bowshock suraface"""
 
-    from datetime import datetime
+    from datetime import datetime, timedelta
     import pytz 
-    from magnetovis.util import tstrTimeDelta, tstr, time2datetime
+    from magnetovis.util import tstr, time2datetime
     from magnetovis.cxtransform import transform
     from magnetovis.objects2 import _magnetopause
     from magnetovis.objects2 import rot_mat
@@ -1772,7 +1817,7 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model, coord_sys):
         
         x_max_pause = _magnetopause(self=None, output=None, time=None, Bz=Bz, Psw=Psw, 
                                    model=mpause_model,
-                                   coord_sys='GSE', return_x_max=True)
+                                   coord_sys='GSE', return_x_max=True, return_title=False)
 
         
         c1 = (A * C - 2 * D)/(A**2 - 4 * B)
@@ -1825,7 +1870,7 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model, coord_sys):
             'when model=Siebck_Lopez_Roelof Both Psw and Bz cannot be False.'
     
     if time != None:
-        time_str = tstr(time,5).replace(':','-')
+        time_str = tstr(time,5)
         if Bz == None or Psw == None:
             from hapiclient import hapi, hapitime2datetime
             
@@ -1833,8 +1878,8 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model, coord_sys):
             dataset    = 'OMNI_HRO2_1MIN';
             parameters = 'BZ_GSE,Pressure';
             opts = {'logging': True, 'usecache': True}
-            start = tstrTimeDelta(time, -30)
-            stop =  tstrTimeDelta(time, +30)
+            start = tstr(time2datetime(time) + timedelta(minutes=-30)) 
+            stop =  tstr(time2datetime(time) + timedelta(minutes= 30)) 
             data, meta = hapi(server, dataset, parameters, start, stop, **opts)
             
             time_arr = hapitime2datetime(data['Time'])
@@ -1870,7 +1915,7 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model, coord_sys):
                 nans = np.isnan(data['BZ_GSE'])
                 BZ_GSE_OMNI= np.interp(t1, t1[~nans], data['BZ_GSE'][~nans])
                 Bz = np.interp(time_to_interpolate, t1, BZ_GSE_OMNI)
-        Bz_str = 'Bz {:.3g}'.format(Bz)
+        Bz_str = 'Bz={:.3g}'.format(Bz)
     
     if isinstance(Psw, bool)  and Psw == False \
         and mpause_model == 'Sibeck_Lopez_Roelof91':
@@ -1890,8 +1935,10 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model, coord_sys):
                 nans = np.isnan(data['Pressure'])
                 pressure_OMNI = np.interp(t1, t1[~nans], data['Pressure'][~nans])
                 Psw = np.interp(time_to_interpolate, t1, pressure_OMNI)
-        Psw_str = 'Psw {:.3g}'.format(Psw)
+        Psw_str = 'Psw={:.3g}'.format(Psw)
 
+    if return_title:
+        return (time_str, Bz_str, Psw_str)
     
     if model == 'Fairfield71':
         points = bowshock_Fairfield71(Bz, Psw, mpause_model=mpause_model)
@@ -2149,6 +2196,9 @@ if "kwargs" in vars():
         _axis(self, output, time = kwargs['time'], val=kwargs['val'],
               coord_sys=kwargs['coord_sys'], lims=kwargs['lims'],
               tick_spacing=kwargs['label'], label=kwargs['label'])
+    
+    elif kwargs['obj'] == 'plasmapause':
+        _plasmapause(self, output, time=kwargs['time'])
         
         
     
