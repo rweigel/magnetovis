@@ -11,6 +11,22 @@ from magnetovis.util import tpad
 import spacepy.coordinates as sc
 from spacepy.time import Ticktock
 
+def rot_mat(points, angle=-4, (h,k)= (0,0)):
+    deg = np.deg2rad(angle)
+    
+    points = np.pad(points, ((0,0),(0,1)), 'constant', constant_values=1)
+    
+    rot_trans_mat = np.array(
+                [[np.cos(deg), -np.sin(deg), 0, h],
+                 [np.sin(deg),  np.cos(deg), 0, k],
+                 [0          ,  0          , 1, 0],
+                 [0          ,  0          , 0, 0]]
+                )
+    
+    points = np.matmul(rot_trans_mat, points.transpose()).transpose()
+    points = np.delete(points, 3, 1)
+    return points    
+
 
 def transform(v, time, csys_in, csys_out, ctype_in=None, ctype_out=None):
     """Transfrom between coordinates systems using SpacePy library.

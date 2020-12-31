@@ -5,20 +5,35 @@ import tempfile
 # from magnetovis import util
 import numpy as np
 
-def rot_mat(points, angle=-4, (h,k)= (0,0)):
+
+def rot_mat(points, angle=-4, (h,k)= (0,0), translate=True, axis='Z'):
     deg = np.deg2rad(angle)
     
-    points = np.pad(points, ((0,0),(0,1)), 'constant', constant_values=1)
-    
-    rot_trans_mat = np.array(
-                [[np.cos(deg), -np.sin(deg), 0, h],
-                 [np.sin(deg),  np.cos(deg), 0, k],
-                 [0          ,  0          , 1, 0],
-                 [0          ,  0          , 0, 0]]
-                )
-    
-    points = np.matmul(rot_trans_mat, points.transpose()).transpose()
-    points = np.delete(points, 3, 1)
+    if translate:
+        points = np.pad(points, ((0,0),(0,1)), 'constant', constant_values=1)
+        
+        
+        rot_trans_mat = np.array(
+                    [[np.cos(deg), -np.sin(deg), 0, h],
+                     [np.sin(deg),  np.cos(deg), 0, k],
+                     [0          ,  0          , 1, 0],
+                     [0          ,  0          , 0, 0]]
+                    )
+        
+        points = np.matmul(rot_trans_mat, points.transpose()).transpose()
+        points = np.delete(points, 3, 1)
+    else:
+        if axis == 'Z':
+            rot_mat = np.array(
+                [[np.cos(deg), -np.sin(deg), 0],
+                 [np.sin(deg),  np.cos(deg), 0],
+                 [0           , 0          , 1]])
+        if axis == 'Y':
+            rot_mat = np.array(
+                [[np.cos(deg), 0, -np.sin(deg)],
+                 [0          , 1,  0          ],
+                 [np.sin(deg), 0,  np.cos(deg)]])
+        points = np.matmul(rot_mat, points.transpose()).transpose()
     return points    
 
 
@@ -70,6 +85,8 @@ def earth(time,
 
         # TODO: Use this:
         # XYZr = cx.transform(XYZ, time, 'GEO', coord_sys)
+        if coord_sys != 'GSM':
+            XYZr = cx.transform(XYZ, time, 'GEO', coord_sys)
         XYZr = cx.GEOtoGSM(XYZ, time, 'car', 'car')
 
         vtk_export(fnameVTK, XYZr,
@@ -85,14 +102,16 @@ def earth(time,
         return fnameVTK
     
     urlPNG = topo_url.format(time[1])
+    print(urlPNG)
     filePNG = os.path.join(out_dir, os.path.split(topo_url)[1].format(time[1]))
     import util # i needed to add this line to make it work
+    from hapiclient.util import urlretrieve
     # Download topographic overlay file if not found.
     if not os.path.exists(filePNG):
         if debug:
             print("Downloading " + urlPNG)
         # TODO: Use d/l function in hapiclient.util
-        util.urlretrieve(urlPNG, filePNG)
+        urlretrieve(urlPNG, filePNG)
         if debug:
             print("Downloaded " + urlPNG + "\nto\n" + filePNG)
 
@@ -139,7 +158,7 @@ def earth(time,
     if render:
         # Render all display objects in renderView
         pvs.Render()
-
+    pvs.RenameSource('Earth - {} {}'.format(coord_sys, util.tstr(time,6)))
     return sphereDisplay, renderView, sphereVTK
 
 def field_data(time, Xgrid, values, dims, texture, # dims = [Nx,Ny,Nz]
@@ -387,157 +406,8 @@ if False:
     pass
 
 
-def axis(time, val, coord_sys='GSM',
-        length_positive=15., length_negative=0., 
-        tick_spacing=1, label=True,
-            renderView=None,
-            render=True,
-            show=True,
-            out_dir=tempfile.gettempdir(),
-            debug=False):
-    """Show coordinate axis with origin at center of Earth"""
-
-    h = length_positive
-    assert(length_negative == 0.)
 
 
-
-    import paraview.simple as pvs
-    if not renderView:
-        renderView = pvs.GetActiveViewOrCreate('RenderView')
-
-    #------------------
-    # x axis
-    #------------------
-    cylinder = pvs.Cylinder()
-    cylinder.Radius = 0.05
-    cylinder.Center = [0., (length_positive-length_negative)/2., 0.]
-    cylinder.Height = length_positive + length_negative
-    cylinderDisplay = pvs.Show(cylinder, renderView)
-    cylinderDisplay.ColorArrayName = [None, '']
-
-    if val == 'x':
-        cylinderDisplay.DiffuseColor = [1.0, 0.0, 0.0]
-    if val == 'y':
-        cylinderDisplay.DiffuseColor = [1.0, 1.0, 0.5]
-    if val == 'z':
-        cylinderDisplay.DiffuseColor = [0.0, 1.0, 0.0]
-
-    if val == 'x':
-        # Default Cylinder is orientated along y-axis.
-        # To get x cylinder, rotate by -90 around z-axis.
-        cylinderDisplay.Orientation = [0.0, 0.0, -90.0]
-    if val == 'y':
-        # Default Cylinder is orientated along y-axis, so 
-        # the following statement is not needed.
-        cylinderDisplay.Orientation = [0.0, 0.0, 0.0]
-    if val == 'z':
-        # Default Cylinder is orientated along y-axis.
-        # To get z cylinder, rotate by 90 around x-axis.
-        cylinderDisplay.Orientation = [90.0, 0.0, 0.0]
-
-    # cone x
-    cone = pvs.Cone()
-    # Properties modified on coneX
-    cone.Resolution = 30
-    cone.Radius = 0.2
-    cone.Height = 0.4
-    if val == 'x':
-        cone.Center = [length_positive, 0.0, 0.0]
-        cone.Direction = [1., 0., 0.]
-    if val == 'y':
-        cone.Center = [0.0, length_positive, 0.0]
-        cone.Direction = [0., 1., 0.]
-    if val == 'z':
-        cone.Center = [0.0, 0.0, length_positive]
-        cone.Direction = [0., 0., 1.]
-    # show data in view
-    coneDisplay = pvs.Show(cone, renderView)
-    # trace defaults for the display properties.
-    coneDisplay.Representation = 'Surface'
-    coneDisplay.ColorArrayName = [None, '']
-    coneDisplay.OSPRayScaleFunction = 'PiecewiseFunction'
-    coneDisplay.SelectOrientationVectors = 'None'
-    coneDisplay.ScaleFactor = 0.04000000357627869
-    coneDisplay.SelectScaleArray = 'None'
-    coneDisplay.GlyphType = 'Arrow'
-    coneDisplay.GlyphTableIndexArray = 'None'
-    coneDisplay.DataAxesGrid = 'GridAxesRepresentation'
-    coneDisplay.PolarAxes = 'PolarAxesRepresentation'
-    # change solid color
-    if val == 'x':
-        coneDisplay.DiffuseColor = [1.0, 0.0, 0.0]
-    if val == 'y':
-        coneDisplay.DiffuseColor = [1.0, 1.0, 0.5]
-    if val == 'z':
-        coneDisplay.DiffuseColor = [0.0, 1.0, 0.0]
-
-    for i in range(int(h)-1):
-        # create a new 'Sphere'
-        sph = pvs.Sphere()
-
-        # Properties modified on sph
-        if val == 'x':
-            sph.Center = [i+1, 0.0, 0.0]
-        elif val == 'y':
-            sph.Center = [0., i+1, 0.]
-        elif val == 'z':
-            sph.Center = [0., 0., i+1]
-
-        sph.Radius = 0.2
-        sph.ThetaResolution = 10
-        sph.PhiResolution = 10
-
-        # show data in view
-        sphDisplay = pvs.Show(sph, renderView)
-        # trace defaults for the display properties.
-        sphDisplay.Representation = 'Surface'
-        sphDisplay.ColorArrayName = [None, '']
-        sphDisplay.OSPRayScaleArray = 'Normals'
-        sphDisplay.OSPRayScaleFunction = 'PiecewiseFunction'
-        sphDisplay.SelectOrientationVectors = 'None'
-        sphDisplay.ScaleFactor = 0.2
-        sphDisplay.SelectScaleArray = 'None'
-        sphDisplay.GlyphType = 'Arrow'
-        sphDisplay.GlyphTableIndexArray = 'None'
-        sphDisplay.DataAxesGrid = 'GridAxesRepresentation'
-        sphDisplay.PolarAxes = 'PolarAxesRepresentation'
-        # change solid color
-        if val == 'x':
-            sphDisplay.DiffuseColor = [1.0, 0.0, 0.0]
-        elif val == 'y':
-            sphDisplay.DiffuseColor = [1.0, 1.0, 0.5]
-        elif val == 'z':
-            sphDisplay.DiffuseColor = [0.0, 1.0, 0.0]
-
-    if not show:
-        #pvs.Hide(sphereVTK, renderView)
-        assert(True)
-    if render:
-        # Render all display objects in renderView
-        pvs.Render()
-
-
-    return None
-
-    #pass
-
-
-def axes(time, lengths_positive=[15., 15., 15.], lengths_negative=[0.,0.,0.], labels=[True, True, True], coord_sys='GSM', tick_spacing=1,
-            renderView=None,
-            render=True,
-            show=True,
-            out_dir=tempfile.gettempdir(),
-            debug=False): 
-
-    axis(time, 'x', length_positive=lengths_positive[0], length_negative=lengths_negative[0], label=labels[0],
-        coord_sys=coord_sys, tick_spacing=tick_spacing, renderView=renderView, render=render, show=show, out_dir=out_dir, debug=debug)
-    axis(time, 'y', length_positive=lengths_positive[1], length_negative=lengths_negative[1], label=labels[1],
-        coord_sys=coord_sys, tick_spacing=tick_spacing, renderView=renderView, render=render, show=show, out_dir=out_dir, debug=debug)
-    axis(time, 'z', length_positive=lengths_positive[1], length_negative=lengths_negative[1], label=labels[1],
-        coord_sys=coord_sys, tick_spacing=tick_spacing, renderView=renderView, render=render, show=show, out_dir=out_dir, debug=debug)
-
-    #pass
 
 def magnetic_dipole(time,
             renderView=None,
@@ -628,37 +498,35 @@ def trace_lines(points, connectivity, out_fname=os.path.join(tempfile.gettempdir
     tube1Display.DiffuseColor = color
 
 
-def latitude_lines(time, coord_sys='GEO', increment=15, color=[1,0,0],
-                                        renderView=None,
-                                        render=True,
-                                        show=True,
-                                        out_dir=tempfile.gettempdir(),
-                                        debug=False):
+def _latitude_lines(self, time, coord_sys='GEO', increment=15, color=[1,0,0]):
 
+    import cxtransform as cx
+    
     npts = 100
 
     lat_array = np.arange(-90., 90. + increment, increment)
     lon = np.linspace(0,360,npts)
     #np.einstum('',lat_array,lon)
 
-    import cxtransform as cx
-
+    
     points = np.zeros((npts*lat_array.size, 3))
     for i in range(lat_array.size):
         a = np.column_stack([np.ones(npts, ), lat_array[i]*np.ones(npts, ), lon])
         line = cx.transform(a, time, coord_sys, 'GSM', ctype_in='sph', ctype_out='car')
         points[i*npts : (i+1)*npts, :] = line
+        
 
-    conn = npts*np.ones(lat_array.size, dtype=int)
 
-    out_fname = os.path.join(out_dir, coord_sys + '_latitude_lines.vtk')
+    # conn = npts*np.ones(lat_array.size, dtype=int)
 
-    trace_lines(points, {'LINES' : conn}, out_fname=out_fname,
-                                        color=color, ftype='BINARY',
-                                            renderView=renderView,
-                                            render=render,
-                                            show=show,
-                                            debug = debug)
+    # out_fname = os.path.join(out_dir, coord_sys + '_latitude_lines.vtk')
+
+    # trace_lines(points, {'LINES' : conn}, out_fname=out_fname,
+    #                                     color=color, ftype='BINARY',
+    #                                         renderView=renderView,
+    #                                         render=render,
+    #                                         show=show,
+    #                                         debug = debug)
 
 
 def longitude_lines(time, coord_sys='GEO', increment=30, color=[0,0,1],
@@ -694,11 +562,12 @@ def longitude_lines(time, coord_sys='GEO', increment=30, color=[0,0,1],
                                             debug = debug)
 
 
-def plane(time, val, extend=[[-15,15],[-15,15]], coord_sys='GSE', labels=True,
+def plane(time, val, extend=[[-40,40],[-40,40]], coord_sys='GSM', labels=True,
           renderView=None, render=True, show=True,):
     # val='XY', 'XZ', 'YZ'
     import paraview.simple as pvs
     import numpy as np
+    from util import tstr
     from cxtransform import transform
     
     assert isinstance(extend, list or tuple or np.ndarray), \
@@ -728,9 +597,9 @@ def plane(time, val, extend=[[-15,15],[-15,15]], coord_sys='GSE', labels=True,
     exarray[:,c1] = col1
     exarray[:,c2] = col2
 
-    if coord_sys != 'GSE':
+    if coord_sys != 'GSM':
         assert time != None, 'If coord_sys in not GSM then time cannot be None'
-        exarray = transform(exarray, time, 'GSE', coord_sys, 'car', 'car')
+        exarray = transform(exarray, time, 'GSM', coord_sys, 'car', 'car')
 
     plane = pvs.Plane()
     
@@ -743,8 +612,9 @@ def plane(time, val, extend=[[-15,15],[-15,15]], coord_sys='GSE', labels=True,
     
     planeDisplay = pvs.Show(plane, renderView)
     planeDisplay.Representation = 'Surface'
+    planeDisplay.Opacity = 0.5
     
-    pvs.RenameSource('{}-plane {}'.format(val, coord_sys))  
+    pvs.RenameSource('{}-plane {} {}'.format(val, coord_sys, tstr(time, length=5)))  
     
     if not show:
         pvs.Hide()
@@ -857,278 +727,85 @@ if False:
     '''
     pass    
 
-def bowshock(time, model='Fairfield71', Bz = None, Psw = None,
-             mpause_model='Roelof_Sibeck93',
-             coord_sys='GSE',
-             color=[0,1,0,1], representation='Surface',
-             out_dir=tempfile.gettempdir(),
-             renderView=None, render=True, show=True):
-    """Show bowshock suraface"""
+  
+    
+def _plasmapause(self, output, time):
+    
+    """
+    log(n) = a1 * F(L) * G(L) * H(L) = 1.5
+    
+    where,
+    F(L) = a2 - e ** (a3 * (1 -a4 * e ** (-h(L,Lambda) / a5)))
+    
+    G(L) = a6 * L + a7
+    
+    H(L) = (1 + (L / a8) ** (2 * (a9 - 1))) ** (-a9 / (a9 - 1))
+    
+    L = R/cos**2(Lambda)
+    
+    L is the McIlwain L-Shell parameter.
+    
+    h(L, Lambda) is the height above the Earth's surface
+    
+    and Lambda is the geomagnetic latitude 
+    
+    L = R/cos**2(Lambda)
+    
+    constants:
+        a1 = 1.4
+        a2 = 1.53
+        a3 = -0.036
+        a4 = 30.76
+        a5 = 159.9
+        a7 = 6.27
+        
+    also,
+    a6 = -0.87 + 0.12 * e ** (-x**2 / 9)
+    
+    a8 = 0.7 * cos(2 * pi * ((MLT - 21) / 24)) + 4.4
+    
+    a9 = 15.3 * cos(2 * pi * MLT / 24) + 19.7
+    
+    
+    also, also
+    MLT is the magnetic local time measured in HH:MM. MLT=0=24 is midnight
+    and MLT=12 is noon. Spacepy is used to calculate this number. 
+    
+    """
+    
+    import spacepy as sc
+    import numpy as np
+    
+    # constants
+    a1 = 1.4
+    a2 = 1.53
+    a3 = -0.036
+    a4 = 30.76
+    a5 = 159.9
+    a7 = 6.27
+    
+    # still gotta figure out
+    Lambda = 0
+    R = 1
+    L = R/np.cos(Lambda)**2
+    h = L * Lambda
+    
+    F = a2 - np.exp(a3 * (1 - a4 * np.exp(-h / a5)))
+    
 
-    from datetime import datetime
-    import pytz 
-    from util import tstrTimeDelta, tstr, time2datetime
-    from vtk_export import vtk_export
-    from cxtransform import transform
+def plasmapause(time, representation='Surface', renderView=None, render=True,
+                show=True):
     
-    def bowshock_Fairfield71(Bz, Psw,
-                             mpause_model='Roelof_Sibeck93'):
-        """
-        Bow shock surface model from Fairfield 1971 paper. 
-        https://doi.org/10.1029/JA076i028p06700
+    objs_wrapper(time=time, representation=representation, 
+                 renderView=renderView, render=render, show=show, 
+                 obj='Plasmapause')
     
-        The equation of the Bow Shock is given by:
-            
-       
-        r = ...
-    
-        where
-        
-        Parameters
-        ----------
-        Bz : float
-            The interplanetary magnetic field in nano Tesla.
-        Psw : float
-            The solar wind dynamic pressure in nano Pascals. 
-    
-        Returns
-        -------
-        3 nd.array
-            3 spatial coordiante arrays of the surface of the bow shock in GSE 
-            coordinate system.
-    
-        """
-        A = 0.0296
-        B = -0.0381
-        C = -1.280
-        D = 45.644
-        E = -652.10
-        
-        x_max_pause = magnetopause(time=None, Bz=Bz, Psw=Psw, 
-                                   model=mpause_model,
-                                   coord_sys='GSE', return_x_max=True)
-
-        
-        c1 = (A * C - 2 * D)/(A**2 - 4 * B)
-        c2 = (4 * E - C**2)/(A**2 - 4 * B)
-        
-        x_steps = 128
-        x_min = -40
-        bowshock_subs_ratio = 1.3 * x_max_pause
-        x_max = - np.sqrt(c1**2 + c2) - c1
-        shift = x_max - bowshock_subs_ratio
-        x_max = x_max - shift
-        X = np.linspace(x_max,x_min, x_steps)
-        repeat = len(X)
-        X = X.repeat(repeat)
-        
-        m = (A * (X + shift) + C)/2 
-        s = m**2 - B * (X + shift)**2 - D * (X + shift) - E
-        s = np.where(s < 0, 0, s) # to account for negatives under the radical
-        
-    
-        remainder = -(A * (X + shift) + C)/2
-        r = np.sqrt(s) + remainder 
-        
-        r = np.where(r== remainder, 0, r)
-        phi = np.linspace(0, 2 * np.pi, repeat)
-        phi = np.matlib.repmat(phi, 1, repeat).flatten()
-    
-        Y = r * np.cos(phi)
-        Z = r * np.sin(phi)
-        # print('\n\n')
-        print('This is the xmax distance of the bowshock {}'.format(x_max))
-        print('This is the xmax distance of the mpause {}'.format(x_max_pause))
-        points = np.column_stack([X, Y, Z])
-        connectivity = {'HYPERBOLOID TRIANGLE': repeat}
-        print('Created Magnetopause model from Fairfield 1971.')
-        
-        # flag pole for text label in paraview
-        base_coords = np.array([[x_max, 0, 0]])        
-        
-        base_coords = rot_mat(base_coords)[0]
-        top_coords = np.copy(base_coords) 
-        top_coords[1] = top_coords[1] + 45
-        flagpole_coords = [base_coords, top_coords]
-    
-        return points, connectivity, flagpole_coords
-    year_limit = datetime(1995, 1, 1)
-    r, g, b, opacity = color
-    
-    if time == None:
-       assert Bz != None and Psw != None, \
-           'If time is None then neither Psw or Bz can be None.'
-       assert coord_sys == 'GSE', \
-           'If time is None then Coord_sys cannot be None.'
-    
-    if mpause_model == 'Sibeck_Lopez_Roelof91':
-        assert (isinstance(Psw, bool) and Psw == False) \
-            or (isinstance(Bz, bool) and Bz == False), \
-            'if model=Sibeck_Lopez_Roelof Psw or Bz has to be False but not both.'
-        assert not ((isinstance(Psw, bool) and Psw == False) \
-                    and (isinstance(Bz, bool) and Bz == False)), \
-            'when model=Siebck_Lopez_Roelof Both Psw and Bz cannot be False.'
-    
-    if time != None:
-        time_str = tstr(time,5).replace(':','-')
-        if Bz == None or Psw == None:
-            from hapiclient import hapi, hapitime2datetime
-            
-            server     = 'https://cdaweb.gsfc.nasa.gov/hapi';
-            dataset    = 'OMNI_HRO2_1MIN';
-            parameters = 'BZ_GSE,Pressure';
-            opts = {'logging': True, 'usecache': True}
-            start = tstrTimeDelta(time, -30)
-            stop =  tstrTimeDelta(time, +30)
-            data, meta = hapi(server, dataset, parameters, start, stop, **opts)
-            
-            time_arr = hapitime2datetime(data['Time'])
-            data['Pressure'][data['Pressure'] == 99.99] = np.nan
-            data['BZ_GSE'][data['BZ_GSE'] == 9999.99] = np.nan
-            unixZero = datetime(1970,1,1,tzinfo = time_arr[0].tzinfo)
-            t1 = np.empty(time_arr.shape)
-            time_to_interpolate = (time2datetime(time).\
-                                   replace(tzinfo=pytz.UTC) - unixZero).\
-                                   total_seconds()
-            for i in range(len(time_arr)):
-                t1[i] = (time_arr[i] - unixZero).total_seconds()
-        else:
-            print('Ignoring time because Bz and Psw were given')
-    else:
-        time_str = ''
-     
-    if isinstance(Bz, bool) and Bz == False \
-        and mpause_model == 'Sibeck_Lopez_Roelof91':
-        Bz = None
-        Bz_str = ''
-    else:
-        if Bz == None:
-            if hapitime2datetime(start) < year_limit:
-                Bz = 0 
-                print('Current Dataset OMNI_HRO2_1MIN does not go back further')
-                print('than 1995. Using Nominal Value Bz=0')
-            elif all(np.isnan(data['BZ_GSE'])):
-                Bz = 0 # nominal value. check later.
-                print('No values of Bz from OMNI_HRO2_1MIN dataset given.')
-                print('using nominal value Bz=0')
-            else:
-                nans = np.isnan(data['BZ_GSE'])
-                BZ_GSE_OMNI= np.interp(t1, t1[~nans], data['BZ_GSE'][~nans])
-                Bz = np.interp(time_to_interpolate, t1, BZ_GSE_OMNI)
-        Bz_str = 'Bz {:.3g}'.format(Bz)
-    
-    if isinstance(Psw, bool)  and Psw == False \
-        and mpause_model == 'Sibeck_Lopez_Roelof91':
-        Psw = None
-        Psw_str = ''
-    else:
-        if Psw == None:
-            if hapitime2datetime(start) < year_limit:
-                Psw = 2 
-                print('Current Dataset OMNI_HRO2_1MIN does not go back further')
-                print('than 1995. Using Nominal Value Psw=2')
-            elif all(np.isnan(data['Pressure'])):
-                Psw = 2 # nominal value. check later.
-                print('No values of Pressure from OMNI_HRO2_1MIN dataset given.')
-                print('using nominal value Psw=2 (nPa)')
-            else:
-                nans = np.isnan(data['Pressure'])
-                pressure_OMNI = np.interp(t1, t1[~nans], data['Pressure'][~nans])
-                Psw = np.interp(time_to_interpolate, t1, pressure_OMNI)
-        Psw_str = 'Psw {:.3g}'.format(Psw)
-
-    
-    if model == 'Fairfield71':
-        points, connectivity, flagpole_coords = bowshock_Fairfield71(Bz, Psw,
-                                                    mpause_model=mpause_model)
-        
-    
-    
-    
-    # Although Fairfield 1971 state that the abberation
-    # is 4 degrees later Fairfield revised the number to be 4.82 degrees 
-    # according to Tipsod Fortran code notes. 
-    if model == 'Fairfield71':
-        points = rot_mat(points, angle=-4.82)
-        # deg = np.deg2rad(-4.82)
-        # a = 0#0.3131
-        # h, k = 0,0#-a*np.sin(deg), a*np.cos(deg)
-
-    else:
-        points = rot_mat(points)
-    
-    if coord_sys != 'GSE':
-        points = transform(points, time, 'GSE', coord_sys, 'car', 'car')
-        Bz = transform([0,0,Bz], time, 'GSE', coord_sys, 'car', 'car')[0]
-
-    
-    filename = 'Bowshock_{}_w-{}_{}_{}_{}_{}'\
-        .format(model, mpause_model, Bz_str, Psw_str, coord_sys, time_str)\
-        .replace(' ', '')
-    mpause_model = mpause_model.replace('_', " ")
-    flagpole_text = "bshock {} {} \n{} {}\n{} {}"\
-        .format(model, mpause_model, Bz_str, Psw_str, coord_sys, time_str)
-        
-    fnameVTK = os.path.join(out_dir, filename + '.vtk') 
-    vtk_export(out_filename =fnameVTK,
-                   points = points, dataset = 'POLYDATA',
-                   connectivity=connectivity,
-                   title=filename, ftype='ASCII')    
-    
-    import paraview.simple as pvs
-    
-    bowshockVTK = pvs.LegacyVTKReader(FileNames=[fnameVTK])
-    
-    if not renderView:
-        renderView = pvs.GetActiveViewOrCreate('RenderView')
-    
-    bowshockDisplay = pvs.Show(bowshockVTK, renderView)
-    bowshockDisplay.Representation = representation
-    bowshockDisplay.Opacity = opacity
-    bowshockDisplay.DiffuseColor = [r, g, b]
-    
-    renderView.ResetCamera()
-    # taken out for demo purposes
-    # text = pvs.Text()
-    # textDisplay = pvs.Show(text, renderView)
-    # textDisplay.FontSize = 12
-    # textDisplay.Color = [r, g, b]
-    # text.Text = flagpole_text
-    # textDisplay.TextPropMode = 'Flagpole Actor'
-    # textDisplay.TopPosition = flagpole_coords[1]
-    # textDisplay.BasePosition = flagpole_coords[0]
-    # renderView.Update()
-    # pvs.RenameSource(filename, bowshockVTK)
-    # pvs.RenameSource('TEXT - ' + flagpole_text.strip('\n'))
-    
-    if not show:
-        pvs.Hide(bowshockVTK, renderView)
-        # pvs.Hide(text, renderView)
-    if render:
-        pvs.RenderAllViews()
-    
-    return bowshockDisplay, renderView, bowshockVTK
-                            
-
-           
-    
-def plasmapause(time):
-    pass
-
-
-def neutralsheet(time, psi=None, 
-                 Rh=8, G=10, Lw=10, d=4,
-                 xlims = (-40,-10), ylims = (-18,18),
-                 coord_sys='GSM',
-                 model='tsyganenko95',
-                 color = [1,0,0,0.5],
-                 representation='Surface With Edges',
-                 return_sheet=False,
-                 renderView=None,
-                 render=True,
-                 show=True,
-                 out_dir=tempfile.gettempdir(),
-                 debug=False):
+def _neutralsheet(self, output, time, psi, 
+                 Rh, G, Lw, d,
+                 xlims, ylims,
+                 coord_sys,
+                 model,
+                 return_sheet):
 
     """
     Show neutral sheet surface.
@@ -1162,18 +839,10 @@ def neutralsheet(time, psi=None,
     -------
     
     """
-    
     import numpy as np
     import numpy.matlib
-    import cxtransform as cx
-    from vtk_export import vtk_export
-    from util import tstr
-    
-    valid_rep = ['Surface', '3D Glyphs', 'Feature Edges', 
-                   'Outline' 'Point Gaussian', 'Points', 'Surface With Edges',
-                   'Wireframe', 'Volume']
-    assert representation in valid_rep,\
-    """representation must be one of the following {}""".format(valid_rep)
+    from magnetovis import cxtransform as cx
+    import paraview.simple as pvs
     
     # retrieving psi value based on time.
     if psi == None:
@@ -1182,119 +851,109 @@ def neutralsheet(time, psi=None,
         dipole = cx.MAGtoGSM(np.array([0., 0., 1.]), time, 'car', 'sph') # [radius, latitude,longitude]
         psi = 90 - dipole[1]
         psi = np.deg2rad(psi)
-        time_str = tstr(time,5).replace(':','-')
-    else:
-        time_str = 'None'
-    
-    sheet_file = \
-            "Neut_Sh_{}_psi{}_{}_{}Rh{}G{}Lw{}d{}x{},{}y{},{}.vtk"\
-                        .format(model, np.rad2deg(psi), time_str, coord_sys, Rh, G, Lw, d, 
-                                xlims[0], xlims[1], ylims[0], ylims[1])
-    flagpole_text = 'Neut_Sh {} psi{} {} \n{} Rh{} G{} Lw{} d{}'\
-        .format(model, np.rad2deg(psi), time_str, coord_sys, Rh, G, Lw, d)
-    fileVTK = os.path.join(out_dir, sheet_file +'.vtk') 
-    
-    if not os.path.exists(fileVTK) or return_sheet:   
-        
-        dx = 1
-        dy = 1
-        X = np.arange(xlims[0], xlims[1], dx)
-        Y = np.arange(ylims[0], ylims[1], dy)
-        Ny = len(Y)
-        Nx = len(X)
-        Nz = int(len(X) / Nx / Ny)       
-        
-        X = np.matlib.repmat(X,1 , Ny).flatten()
-        Y = np.repeat(Y, Nx)
-        Nz = int(len(X) / Nx / Ny)
 
-        # Tsyganenko 1995 eq.
-        z1 = 0.5 * np.tan(psi) \
-            * (np.sqrt((X - Rh * np.cos(psi))**2 + (d * np.cos(psi))**2)
-            -  np.sqrt((X + Rh * np.cos(psi))**2 + (d * np.cos(psi))**2))
-            
-        z2 = - G * np.sin(psi) * Y**4/(Y**4 + Lw**4)
-        Z = z1 + z2
-        points = np.column_stack([X, Y, Z])
-        
-        if return_sheet:
-            connectivity = {'DIMENSIONS': (Nx, Ny, Nz + 2)}
-            return points, connectivity, psi 
-        else:
-            connectivity = {'DIMENSIONS': (Nx, Ny, Nz)}
-        
-        print('created Tsyganenko 1995 currentsheet model')
-        
-        if coord_sys != 'GSM':
-            points = cx.transform(points, time, 'GSM', 
-                                  coord_sys, 'car', 'car')
-        
-        vtk_export(out_filename= fileVTK, 
-                   points = np.column_stack([X, Y, Z]),
-                   dataset = 'STRUCTURED_GRID',
-                   connectivity=connectivity,
-                   point_data = None,
-                   title = sheet_file.replace('.vtk',''),
-                   ftype='ASCII')
-    
-    import paraview.simple as pvs
-    
-    r, g, b, opacity = color
-    neutralShVTK = pvs.LegacyVTKReader(FileNames=[fileVTK])
-    if not renderView:
-        renderView = pvs.GetActiveViewOrCreate('RenderView')
-    
-    neutralSheetDisplay = pvs.Show(neutralShVTK, renderView)
-    neutralSheetDisplay.Representation = representation
-    neutralSheetDisplay.Opacity = opacity
-    neutralSheetDisplay.DiffuseColor = [r, g, b]
-    renderView.ResetCamera()
-    pvs.RenameSource(sheet_file, neutralShVTK)
-    
-    if render:
-        pvs.Render()
-    if not show:
-        pvs.Hide(neutralShVTK, renderView)
-    
-    # text = pvs.Text()
-    # textDisplay = pvs.Show(text, renderView)
-    # textDisplay.FontSize = 12
-    # textDisplay.Color = [r, g, b]
-    # text.Text = flagpole_text
 
-#/Users/Angel/github_clones/tmp2/magnetovis/magnetovis/objects2.py
-    # textDisplay.BasePosition = top
-    # base = np.copy(top)
-    # base[2] += 5
-    # pvs.RenameSource('text ' + flagpole_text.strip('\n'))
-    renderView.Update()
+    dx = 100
+    dy = 100
+    X = np.linspace(xlims[0], xlims[1], dx)
+    Y = np.linspace(ylims[0], ylims[1], dy)
+    Ny = 100
+    Nx = 100    
     
-    if render:
-        pvs.Render()
-    if not show:
-        pvs.Hide(neutralShVTK, renderView)
+    X = np.matlib.repmat(X,1 , Ny).flatten()
+    Y = np.repeat(Y, Nx)
+
+    # Tsyganenko 1995 eq.
+    z1 = 0.5 * np.tan(psi) \
+        * (np.sqrt((X - Rh * np.cos(psi))**2 + (d * np.cos(psi))**2)
+        -  np.sqrt((X + Rh * np.cos(psi))**2 + (d * np.cos(psi))**2))
+        
+    z2 = - G * np.sin(psi) * Y**4/(Y**4 + Lw**4)
+    Z = z1 + z2
+    points = np.column_stack([X, Y, Z])
     
-    return neutralSheetDisplay, renderView, neutralShVTK
+    if return_sheet:
+        return points, psi 
     
+    print('created Tsyganenko 1995 currentsheet model')
+    
+    if coord_sys != 'GSM':
+        points = cx.transform(points, time, 'GSM', 
+                              coord_sys, 'car', 'car')
+    
+
+    ############################################################
+    ####### start of the code to use programmable source #######
+    ############################################################
+    import vtk
+    if False:
+        # this is never meant to run. it is only to get rid of error message
+        # that output is not defined. output is defined when running
+        # this script in the programmable source text box. 
+        output = ''
+    # communication between "script" and "script (RequestInformation)"
+    executive = self.GetExecutive()
+    outInfo = executive.GetOutputInformation(0)
+    exts = [executive.UPDATE_EXTENT().Get(outInfo, i) for i in range(6)]
+    dims = [exts[1]+1, exts[3]+1, exts[5]+1]
+    
+    # setting the sgrid exent
+    output.SetExtent(exts)
+    
+    # setting up the points and allocate the number of points
+    pts = vtk.vtkPoints()
+    pts.Allocate(dims[0] * dims[1] * dims[2])
+    
+    # color sections
+    lut = pvs.GetColorTransferFunction('Magnetosphere Surface')
+    value = int(len(lut.Annotations)/2)
+    colors = vtk.vtkUnsignedCharArray()
+    colors.SetNumberOfComponents(1)
+    colors.SetName("Magnetosphere Surface")
+    
+    # insert points into vtkPoints
+    i = 0
+    for point in points:
+        pts.InsertPoint(i, point[0], point[1], point[2])
+        i += 1
+        colors.InsertNextTuple([value])
+
+    output.SetPoints(pts)
+    output.GetPointData().AddArray(colors)
 
 def plasmasheet(time, psi=None, 
                  Rh=8, G=10, Lw=10, d=4,
                  xlims = (-40,0), ylims = (-18,18),
                  coord_sys='GSM',
                  model='tsyganenko95',
-                 color = [1,0,0,0.5],
-                 representation='Surface With Edges',
+                 color = [.6,.3,.2,0.5],
+                 representation='Surface',
                  return_sheet=False,
                  renderView=None,
                  render=True,
-                 show=True,
-                 out_dir=tempfile.gettempdir(),
-                 debug=False):
+                 show=True):
+    
+    objs_wrapper(time=time, psi=psi, Rh=Rh, G=G, Lw=Lw, d=d, xlims=xlims,
+                 ylims=ylims, coord_sys=coord_sys, model=model, color=color,
+                 representation=representation, return_sheet=return_sheet,
+                 renderView=renderView, render=render, show=show, 
+                 obj='Plasmasheet')
+    
+
+def _plasmasheet(self, output, time, psi,
+                 Rh, G, Lw, d,
+                 xlims, ylims,
+                 coord_sys,
+                 model,
+                 return_sheet):
+    
     """Show plasma sheet volume"""    
     
-    from util import tstr
-    import cxtransform as cx
-    from vtk_export import vtk_export
+    import numpy as np
+    import numpy.matlib
+    from magnetovis import cxtransform as cx
+    import paraview.simple as pvs
+    from magnetovis.objects2 import _neutralsheet
     
     if psi == None:
         assert time != None, \
@@ -1302,104 +961,245 @@ def plasmasheet(time, psi=None,
         dipole = cx.MAGtoGSM(np.array([0., 0., 1.]), time, 'car', 'sph') # [radius, latitude,longitude]
         psi = 90 - dipole[1]
         psi = np.deg2rad(psi)
-        time_str = tstr(time,5).replace(':','-')
-    else:
-        time_str = None
+
     psi_deg = np.copy(np.rad2deg(psi))
     psi_deg = np.around(psi_deg, decimals=3)
-    sheet_file = \
-            "Plas_Sh_{}_psi{}_time{}_{}_Rh{}G{}Lw{}d{}x{},{}y{},{}"\
-                        .format(model, psi_deg, time_str, coord_sys, Rh, G, Lw, d, 
-                                xlims[0], xlims[1], ylims[0], ylims[1])
-    flagpole_text = 'Neut_Sh {} \npsi{} {} \n{} Rh{} G{} Lw{} d{}'\
-        .format(model, psi_deg, time_str, coord_sys, Rh, G, Lw, d)
-    fileVTK = os.path.join(out_dir, sheet_file + '.vtk') 
-    if True:# not os.path.exists(fileVTK):
-    
-        sheet, connectivity, psi = neutralsheet(time=time, psi=psi, Rh=Rh, G=G, 
-                                           Lw=Lw, d=d, xlims=xlims, ylims=ylims, 
-                                           coord_sys=coord_sys, model=model, 
-                                           color=color, 
-                                           representation=representation, 
-                                           return_sheet=True)
-        
-        low_sheet = np.copy(sheet)
-        low_sheet[:,2] = sheet[:,2]-3
-        high_sheet = np.copy(sheet)
-        high_sheet[:,2] = sheet[:,2]+3
-        points = np.concatenate((low_sheet, sheet, high_sheet))
-        
-        print('created Tsyganenko 1995 current sheet model with 3 Re width' 
-              +' above and below')
-        
-        if coord_sys != 'GSM':
-            points = cx.transform(points, time, 'GSM', 
-                                  coord_sys, 'car', 'car')
-        
-        vtk_export(out_filename= fileVTK, 
-                   points = points,
-                   dataset = 'STRUCTURED_GRID',
-                   connectivity=connectivity,
-                   point_data = None,
-                   title = sheet_file.replace('.vtk',''),
-                   ftype='ASCII')
 
-    import paraview.simple as pvs
+    sheet, psi = _neutralsheet(self=False, output=False, time=time, psi=psi, Rh=Rh, G=G, 
+                              Lw=Lw, d=d, xlims=xlims, ylims=ylims, 
+                              coord_sys=coord_sys, model=model, 
+                              return_sheet=True)
     
-    r, g, b, opacity = color
-    plasmaShVTK = pvs.LegacyVTKReader(FileNames=[fileVTK])
-    if not renderView:
-        renderView = pvs.GetActiveViewOrCreate('RenderView')
+    low_sheet = np.copy(sheet)
+    low_sheet[:,2] = sheet[:,2]-3
+    high_sheet = np.copy(sheet)
+    high_sheet[:,2] = sheet[:,2]+3
+    points = np.concatenate((low_sheet, sheet, high_sheet))
     
-    plasmaSheetDisplay = pvs.Show(plasmaShVTK, renderView)
-    plasmaSheetDisplay.Representation = representation
-    plasmaSheetDisplay.Opacity = opacity
-    plasmaSheetDisplay.DiffuseColor = [r, g, b]
-    renderView.ResetCamera()
-    pvs.RenameSource(sheet_file, plasmaShVTK)
+    print('created Tsyganenko 1995 current sheet model with 3 Re width' 
+          +' above and below')
     
-    if render:
-        pvs.Render()
-    if not show:
-        pvs.Hide(plasmaShVTK, renderView)
+    if coord_sys != 'GSM':
+        points = cx.transform(points, time, 'GSM', 
+                              coord_sys, 'car', 'car')
     
-    text = pvs.Text()
-    textDisplay = pvs.Show(text, renderView)
-    textDisplay.FontSize = 16
-    textDisplay.Color = [r, g, b]
-    text.Text = flagpole_text
-    textDisplay.TextPropMode = 'Flagpole Actor'
-    base = np.copy(points[0,0:3])
-    base[2] += 6
-    textDisplay.BasePosition = base
-    top = np.copy(base)
-    top[2] += 5
-    textDisplay.TopPosition = top
-    textDisplay.Bold = 1
+    ############################################################
+    ####### start of the code to use programmable source #######
+    ############################################################
+    import vtk
+    if False:
+        # this is never meant to run. it is only to get rid of error message
+        # that output is not defined. output is defined when running
+        # this script in the programmable source text box. 
+        output = ''
+    # communication between "script" and "script (RequestInformation)"
+    executive = self.GetExecutive()
+    outInfo = executive.GetOutputInformation(0)
+    exts = [executive.UPDATE_EXTENT().Get(outInfo, i) for i in range(6)]
+    dims = [exts[1]+1, exts[3]+1, exts[5]+1]
     
-    pvs.RenameSource('text ' + flagpole_text.strip('\n'))
-    renderView.Update()
+    # setting the sgrid exent
+    output.SetExtent(exts)
     
-    if render:
-        pvs.Render()
-    if not show:
-        pvs.Hide(plasmaShVTK, renderView)
+    # setting up the points and allocate the number of points
+    pts = vtk.vtkPoints()
+    pts.Allocate(dims[0] * dims[1] * dims[2])
     
-    return plasmaSheetDisplay, renderView, plasmaShVTK
+    # color sections
+    lut = pvs.GetColorTransferFunction('Magnetosphere Surface')
+    value = int(len(lut.Annotations)/2)
+    colors = vtk.vtkUnsignedCharArray()
+    colors.SetNumberOfComponents(1)
+    colors.SetName("Magnetosphere Surface")
+    
+    # insert points into vtkPoints
+    i = 0
+    for point in points:
+        pts.InsertPoint(i, point[0], point[1], point[2])
+        i += 1
+        colors.InsertNextTuple([value])
+
+    output.SetPoints(pts)
+    output.GetPointData().AddArray(colors)
         
 
 def objs_wrapper(**kwargs):
 
     import paraview.simple as pvs
+    import re
+    import cxtransform as cx
+    from util import tstr
+    
+    valid_rep = ['Surface', '3D Glyphs', 'Feature Edges', 
+                   'Outline' 'Point Gaussian', 'Points', 'Surface With Edges',
+                   'Wireframe', 'Volume']
+    assert kwargs['representation'] in valid_rep,\
+    """representation must be one of the following {}""".format(valid_rep)
+    
+    path = os.path.join(os.getcwd() + "/magnetovis/objects2.py")    
+    programmableSource = pvs.ProgrammableSource()
+    
+    mag_surfaces = ['Magnetopause','Bowshock','Neutralsheet', 'Plasmasheet']
+    
+    if kwargs['obj'] == 'axis':
+        x_dim = 300
+        y_dim = 300
+        z_dim = 1
+        
+        scalar_data = kwargs['val']
+        
+        programmableSource.OutputDataSetType = 'vtkStructuredGrid'
+        programmableSource.ScriptRequestInformation = """
+        executive = self.GetExecutive()
+        outInfo = executive.GetOutputInformation(0)
+        dims = [{}, {}, {}] # x-dims, y-dims, z-dims
+        outInfo.Set(executive.WHOLE_EXTENT(), 0, dims[0]-1 , 0, dims[1]-1 , 0, dims[2]-1)
+        """.format(x_dim, y_dim, z_dim)
+        
+        programmableSource.Script = "kwargs="+str(kwargs)+";execfile('{}',globals(),locals())".format(path)
+        
+        if not kwargs['renderView']:
+            renderView = pvs.GetActiveViewOrCreate('RenderView')
+            
+        
+        programmableSourceDisplay = pvs.Show(programmableSource, renderView)
+        programmableSourceDisplay.Representation = kwargs['representation']
+        if kwargs['val'] == 'X':
+            diffuse_color = [1,0,0]
+        elif kwargs['val'] == 'Y':
+            diffuse_color = [1,1,0.5]
+        elif kwargs['val'] == 'Z':
+            diffuse_color = [0,1,0]
+
+        programmableSourceDisplay.DiffuseColor = diffuse_color
+        
+        
+        if not kwargs['show']:
+            pvs.Hide(programmableSource, renderView)
+            
+        if kwargs['render']:
+            pvs.Render()
+            renderView.Update()
+            
+        title = "{}-axis {} {}".format(kwargs['val'], 
+                                                  kwargs['coord_sys'],
+                                                  tstr(kwargs['time'],5))
+        
+        renderView = pvs.GetActiveViewOrCreate('RenderView')
+        programmableSourceDisplay = pvs.Show(programmableSource, renderView)
+        programmableSourceDisplay.Representation = kwargs['representation']
+    
+    if kwargs['obj'] in mag_surfaces:
+        if kwargs['obj'] == "Plasmasheet":
+            z_dim = 3
+        else:
+            z_dim = 1
+        x_dim = 200 # theta_array = np.linspace(0, last_theta, 100)
+        y_dim = 50 # phi_array = np.linspace(0, last_phi, 50) # 50 old
+        scalar_data = 'Magnetosphere Surface'
+            
+        programmableSource.OutputDataSetType = 'vtkStructuredGrid'
+        programmableSource.ScriptRequestInformation = """
+        executive = self.GetExecutive()
+        outInfo = executive.GetOutputInformation(0)
+        dims = [{}, {}, {}] # x-dims, y-dims, z-dims
+        outInfo.Set(executive.WHOLE_EXTENT(), 0, dims[0]-1 , 0, dims[1]-1 , 0, dims[2]-1)
+        """.format(x_dim, y_dim, z_dim)
+        
+        programmableSource.Script = "kwargs="+str(kwargs)+";execfile('{}',globals(),locals())".format(path)
+        
+        if not kwargs['renderView']:
+            renderView = pvs.GetActiveViewOrCreate('RenderView')
+            programmableSourceDisplay = pvs.Show(programmableSource, renderView)
+            programmableSourceDisplay.Representation = kwargs['representation']
+        
+        if not kwargs['show']:
+            pvs.Hide(programmableSource, renderView)
+            
+        if kwargs['render']:
+            pvs.Render()
+            renderView.Update()
+        
+        if not kwargs['time']:
+            kwargs['time'] = ''
+            
+        if kwargs['obj'] == 'Magnetopause':
+            
+            
+            time_str, Bz_str, Psw_str = \
+                _magnetopause(self='', output='', time=kwargs['time'],
+                              Bz=kwargs['Bz'], Psw=kwargs['Psw'],
+                              model=kwargs['model'],
+                              coord_sys=kwargs['coord_sys'], 
+                              return_x_max=False, return_title=True)
+            
+            title = "{} {} {} {} Bz={} Psw={}".format(
+                kwargs['obj'], kwargs['model'], kwargs['coord_sys'], 
+                time_str, Bz_str, Psw_str)
+        
+        elif kwargs['obj'] == 'Bowshock':
+            time_str, Bz_str, Psw_str = \
+                _bowshock(self='', output='', time=kwargs['time'], Bz=kwargs['Bz'],
+                          Psw=kwargs['Psw'], model=kwargs['model'], 
+                          mpause_model=kwargs['mpause_model'], 
+                          coord_sys=kwargs['coord_sys'], return_title=True)
+            
+            title = "{} {} {} {} {} {} mpause_model={}".format(
+                kwargs['obj'], kwargs['model'], kwargs['coord_sys'], 
+                time_str, Bz_str, Psw_str, kwargs['mpause_model'])
+            
+        elif kwargs['obj'] == 'Neutralsheet' or kwargs['obj'] == 'Plasmasheet':
+            if kwargs['psi'] == None:
+                dipole = cx.MAGtoGSM(np.array([0., 0., 1.]), kwargs['time'], 'car', 'sph') # [radius, latitude,longitude]
+                kwargs['psi'] = 90 - dipole[1]
+                time_str = ''
+            else:
+                time_str = tstr(kwargs['time'], 5)
+            title = '{} {} {} {} psi={:.3g} Rh={:.3g} G={:.3g} Lw={:.3g} d={:.3g}'\
+                .format(kwargs['obj'], kwargs['model'], kwargs['coord_sys'],
+                        tstr(kwargs['time'],length=5), kwargs['psi'], kwargs['Rh'], 
+                        kwargs['G'], kwargs['Lw'], kwargs['d'])\
+                    .replace('  ', ' ')
+        regionsLUT = pvs.GetColorTransferFunction(scalar_data)
+        regionsLUT.InterpretValuesAsCategories = 1
+        regionsLUT.AnnotationsInitialized = 1
+        
+        index_colored_list = kwargs['color'][0:3]
+        regionsLUT.IndexedColors = np.concatenate((regionsLUT.IndexedColors,index_colored_list))
+
+        annotations = list(regionsLUT.Annotations)
+        annotations.append(str(int(len(regionsLUT.Annotations)/2)))
+        annotations.append(kwargs['obj'])
+        
+        regionsLUT.Annotations = annotations   
+        
+        renderView = pvs.GetActiveViewOrCreate('RenderView')
+        programmableSourceDisplay = pvs.Show(programmableSource, renderView)
+        programmableSourceDisplay.Representation = kwargs['representation']
+        
+        pvs.ColorBy(programmableSourceDisplay, ('POINTS', scalar_data))
+        programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
+    
     
     if kwargs['obj'] == 'satellite':
-        scalar_data = 'Spacecraft Region ' + kwargs['satellite_id']
-        
-        # perhaps need
-        # programmableSourceDisplay.RescaleTransferFunctionToDataRange(True, False)
         
         from hapiclient import hapi
-    
+        
+        scalar_data = kwargs['satellite_id'] +  ' Spacecraft Region'    
+        programmableSource.Script = "kwargs="+str(kwargs)+";execfile('{}',globals(),locals())".format(path)
+        
+        if not kwargs['renderView']:
+            renderView = pvs.GetActiveViewOrCreate('RenderView')
+            programmableSourceDisplay = pvs.Show(programmableSource, renderView)
+            programmableSourceDisplay.Representation = kwargs['representation']
+        
+        if not kwargs['show']:
+            pvs.Hide(programmableSource, renderView)
+            
+        if kwargs['render']:
+            pvs.Render()
+            renderView.Update()
+        
         server     = 'http://hapi-server.org/servers/SSCWeb/hapi';
         opts       = {'logging': True, 'usecache': True}
         parameters = "X_{},Y_{},Z_{},Spacecraft_Region"\
@@ -1407,12 +1207,24 @@ def objs_wrapper(**kwargs):
         data, meta = hapi(server, kwargs["satellite_id"], parameters, 
                           kwargs["time_o"], kwargs["time_f"], **opts)
         
+        if re.search('.*(?=:00.000Z)|.*(?=.000Z)', kwargs['time_o']):
+                kwargs['time_o'] = re.search\
+                    ('.*(?=:00.000Z)|.*(?=.000Z)', kwargs['time_o']).group()+'Z'
+        if re.search('.*(?=:00.000Z)|.*(?=.000Z)', kwargs['time_f']):
+            kwargs['time_f'] = re.search\
+                ('.*(?=:00.000Z)|.*(?=.000Z)', kwargs['time_f']).group()+'Z'
+        
+        title = '{} line {} {} to {}'.format(kwargs['satellite_id'],
+                                            kwargs['coord_sys'],
+                                            kwargs['time_o'],
+                                            kwargs['time_f'])
+        
+        
         unique_regions = np.unique(data['Spacecraft_Region'])
         
         regionsLUT = pvs.GetColorTransferFunction(scalar_data)
         regionsLUT.InterpretValuesAsCategories = 1
         regionsLUT.AnnotationsInitialized = 1
-        
         
         annotations = []
         index_colored_list = []
@@ -1426,188 +1238,38 @@ def objs_wrapper(**kwargs):
 
         regionsLUT.Annotations = annotations
         index_colored_list = np.array(index_colored_list).flatten()
-    
-    
-    
-    
-    path = os.path.join(os.getcwd() + "/magnetovis/objects2.py")    
-    programmableSource = pvs.ProgrammableSource()
-
-    programmableSource.Script = "kwargs="+str(kwargs)+";execfile('{}',globals(),locals())".format(path)
-    
-    renderView = pvs.GetActiveViewOrCreate('RenderView')
-    programmableSourceDisplay = pvs.Show(programmableSource, renderView)
-    programmableSourceDisplay.Representation = kwargs['representation']
-    
-    if kwargs['tube_radius'] != None:
-        tube = pvs.Tube(Input=programmableSource)
-        tube.Scalars = ['POINTS', scalar_data]
-        tube.Radius = kwargs['tube_radius']
         
-        spacecraftRegionLUT = pvs.GetColorTransferFunction(scalar_data)
-        spacecraftRegionLUT.InterpretValuesAsCategories = 1
-        spacecraftRegionLUT.AnnotationsInitialized = 1
-        spacecraftRegionLUT.Annotations = annotations
-        spacecraftRegionLUT.IndexedColors = index_colored_list
-        
-        tubeDisplay = pvs.Show(tube, renderView)
-        tubeDisplay.Representation = 'Surface'
-        tubeDisplay.ColorArrayName = ['POINTS', 'Spacecraft Region geotail']
-        tubeDisplay.LookupTable = spacecraftRegionLUT
-        tubeDisplay.OpacityArray = ['POINTS', scalar_data]
-        
-        pvs.Hide(programmableSource, renderView)
-        tubeDisplay.SetScalarBarVisibility(renderView, True)
-        renderView.Update()
-        
-    if kwargs['obj'] != 'satellite':
-        
-        if kwargs['obj'] == 'magnetopause': 
-            x_dim = 100
-            y_dim = 50
+        if kwargs['tube_radius'] != None:
+            tube = pvs.Tube(Input=programmableSource)
+            tube.Scalars = ['POINTS', scalar_data]
+            tube.Radius = kwargs['tube_radius']
             
-        programmableSource.OutputDataSetType = 'vtkStructuredGrid'
-        programmableSource.ScriptRequestInformation = """
-        executive = self.GetExecutive()
-        outInfo = executive.GetOutputInformation(0)
-        dims = [{}, {}, 1] # x-dims, y-dims, z-dims
-        outInfo.Set(executive.WHOLE_EXTENT(), 0, dims[0]-1 , 0, dims[1]-1 , 0, dims[2]-1)
-        """.format(x_dim, y_dim)
-        
-        scalar_data = 'magnetosphere surface'
-        
-        regionsLUT = pvs.GetColorTransferFunction('magnetosphere surface')
-        regionsLUT.InterpretValuesAsCategories = 1
-        regionsLUT.AnnotationsInitialized = 1
-        num_prev_annotations = int(len(regionsLUT.Annotations)/2)
-        
-        index_colored_list = kwargs['color']
-        # for i in range(x_dim*y_dim):
-            # index_colored_list.append(kwargs['color'])
+            spacecraftRegionLUT = pvs.GetColorTransferFunction(scalar_data)
+            spacecraftRegionLUT.InterpretValuesAsCategories = 1
+            spacecraftRegionLUT.AnnotationsInitialized = 1
+            spacecraftRegionLUT.Annotations = annotations
+            spacecraftRegionLUT.IndexedColors = index_colored_list
             
-        # index_colored_list(np.array(index_colored_list).flatten())
-        annotations = list(regionsLUT.Annotations)
-        annotations.append(str(num_prev_annotations))
-        annotations.append(kwargs['obj'])
-        
-        # regionsLUT.Annotations.append(str(num_prev_annotations))
-        regionsLUT.Annotations = annotations
-        
-    
-    print('\n\n made it passed the script function \n\n')
-        
-    
-    regionsLUT.IndexedColors = index_colored_list         
-    programmableSourceDisplay.LineWidth = 15.0
-        
-    pvs.ColorBy(programmableSourceDisplay, ('POINTS', scalar_data))
-    programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
-    
-    
-    
-        
-    if not kwargs['renderView']:
-        renderView = pvs.GetActiveViewOrCreate('RenderView')
-        programmableSourceDisplay = pvs.Show(programmableSource, renderView)
-        programmableSourceDisplay.Representation = kwargs['representation']
-        
-        if not kwargs['show']:
+            tubeDisplay = pvs.Show(tube, renderView)
+            tubeDisplay.Representation = kwargs['representation']
+            tubeDisplay.ColorArrayName = ['POINTS', scalar_data]
+            tubeDisplay.LookupTable = spacecraftRegionLUT
+            tubeDisplay.OpacityArray = ['POINTS', scalar_data]
+            
             pvs.Hide(programmableSource, renderView)
+            tubeDisplay.SetScalarBarVisibility(renderView, True)
+            renderView.Update()
             
-    if kwargs['render']:
-        pvs.Render()
-        renderView.Update()
-            
-        # renderView.ResetCamera()
-    if False:
-        
-        regionsLUT = pvs.GetColorTransferFunction('magneto regions')  
-        pvs.ColorBy(programmableSourceDisplay, ('POINTS', 'magneto regions'))
-        programmableSourceDisplay.RescaleTransferFunctionToDataRange(True, False)
-        programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
-        regionsLUT = pvs.GetColorTransferFunction('magneto regions')
-        # regionsPWF = pvs.GetOpacityTransferFunction('magneto regions')
-        
-        # Properties modified on regionsLUT
-        regionsLUT.InterpretValuesAsCategories = 1
-        regionsLUT.AnnotationsInitialized = 1
-        anno_list = []
-        import random
-        index_color_list = []
-        for i in range(kwargs['n']):
-            anno_list.append(str(i))
-            anno_list.append('magneto regions'+ str(i))
-            for j in range(3):
-                index_color_list.append(random.randrange(0,10,2)/10.)
                 
-        regionsLUT.Annotations = anno_list 
-        
-        regionsLUT.IndexedColors = index_color_list 
-        regionsLUT.IndexedOpacities = [1.0, 1.0, 1.0, 1.0]
-    
-    print('here is the end')
-    # renderView.Update()
- 
-    
-def _lines(self , n):
+            pvs.RenameSource(title.replace('line','tube'), tube)
+    pvs.RenameSource(title, programmableSource)
+
+    renderView.ResetCamera()
+
+def _satellite(self, time_o, time_f, satellite_id, coord_sys, region_colors):
     
     import vtk
-    
-    pdo = self.GetPolyDataOutput()
-    pdo.Allocate(n,1)
-    
-    # color section
-    colors = vtk.vtkUnsignedCharArray();
-    # the number of components in the tuple to be inserted
-    # must be declared first
-    colors.SetNumberOfComponents(1);
-    colors.SetName("magneto regions");
-    
-    #This will store the points
-    newPts = vtk.vtkPoints()
-    # the first number is the id of point
-    # next three numbers are the x,y,z
-    for i in range(0, n):
-        newPts.InsertPoint(2*i,0,0,i)
-        newPts.InsertPoint(2*i+1,1,0,i)
-        
-    #Add the points to the vtkPolyData object
-    pdo.SetPoints(newPts)
-    
-    for i in range(n):
-        aPolyLine = vtk.vtkPolyLine()
-        aPolyLine.GetPointIds().SetNumberOfIds(2)
-        aPolyLine.GetPointIds().SetId(0, 2*i)
-        aPolyLine.GetPointIds().SetId(1, 2*i+1)
-        pdo.InsertNextCell(aPolyLine.GetCellType(), aPolyLine.GetPointIds())
-        colors.InsertNextTuple([i])
-        colors.InsertNextTuple([i])
-    
-    pdo.GetPointData().AddArray(colors)
-
-
-
-
-def _satellite(self, time_o, time_f, satellite_id, 
-              coord_sys='GSM',
-              color=[1,0,0,1],
-              representation='Surface',
-              tube_radius=None, 
-              shader_preset=None,
-              region_colors=None,
-              out_dir=tempfile.gettempdir(),
-              renderView=None,
-              render=True,
-              show=True):
-    
-    import vtk
-    import numpy as np
-    valid_rep = ['Surface', '3D Glyphs', 'Feature Edges', 
-                   'Outline', 'Point Gaussian', 'Points', 'Surface With Edges',
-                   'Wireframe', 'Volume']
-    assert representation in valid_rep,\
-    "representation must be one of the following\n{}".format(valid_rep)
-    
+    import numpy as np    
     from hapiclient import hapi
     
     server     = 'http://hapi-server.org/servers/SSCWeb/hapi';
@@ -1631,7 +1293,7 @@ def _satellite(self, time_o, time_f, satellite_id,
     
     colors = vtk.vtkUnsignedCharArray()
     colors.SetNumberOfComponents(1)
-    colors.SetName('Spacecraft Region ' + satellite_id)
+    colors.SetName( satellite_id + ' Spacecraft Region')
     region_dict = {}
     unique_regions = np.unique(data['Spacecraft_Region'])
 
@@ -1645,20 +1307,17 @@ def _satellite(self, time_o, time_f, satellite_id,
             colors.InsertNextTuple([region_dict[region]])
             
     pdo.GetPointData().AddArray(colors)
-    print('\n\nhere is the end of the _pro_satellite function\n\n')
     
-def _magnetopause(self, output, time, Bz=None, Psw=None, model='Shue97', coord_sys='GSM',
-                 color=[0,1,0,0.5], representation='Surface',
-                 out_dir=tempfile.gettempdir(),
-                 renderView=None, render=True, show=True,
-                 return_x_max = False, Num_prev_surfaces=0):
+def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
+                  return_title=False):
     
     import numpy as np
     import numpy.matlib
-    from datetime import datetime
+    from datetime import datetime, timedelta
     import pytz 
-    from magnetovis.util import tstrTimeDelta, tstr, time2datetime
+    from magnetovis.util import tstr, time2datetime
     from magnetovis.cxtransform import transform, rot_mat
+    import paraview.simple as pvs
 
     print('\n\n this is the start of the mpause function\n\n')
     def mpause_Shue97(Bz, Psw, return_x_max = False):
@@ -1702,8 +1361,6 @@ def _magnetopause(self, output, time, Bz=None, Psw=None, model='Shue97', coord_s
         
         alpha = (0.58 - 0.010 * Bz) * (1 + 0.010 * Psw)  #  Eqn 14 of Shue et al. 1997
         
-        # phi_step = 1
-        # theta_step = 1
         last_phi = 360
         stopping_constant = 40/(2**alpha * r_0)
         theta_finder_array = np.arange(np.pi/2 , np.pi, 0.01)
@@ -1715,10 +1372,8 @@ def _magnetopause(self, output, time, Bz=None, Psw=None, model='Shue97', coord_s
             else:
                 break
         last_theta = np.rad2deg(last_theta)
-        # theta_array = np.arange(0, last_theta, theta_step)
         theta_array = np.linspace(0, last_theta, 100)
-        # phi_array = np.arange(0, last_phi, phi_step)
-        phi_array = np.linspace(0, last_phi, 50)
+        phi_array = np.linspace(0, last_phi, 100)
         phi_repeat = len(theta_array)
         theta_repeat = len(phi_array)
         theta_array = np.repeat(theta_array, theta_repeat)    
@@ -1734,7 +1389,6 @@ def _magnetopause(self, output, time, Bz=None, Psw=None, model='Shue97', coord_s
         points = np.column_stack([X, Y, Z])
 
         print('Created Magnetopause model from Shue et al. 1997.')
-        print(np.shape(points))
         return points
     
     def mpause_Roelof_Sibeck93(Bz, Psw, return_x_max = False):
@@ -1833,7 +1487,7 @@ def _magnetopause(self, output, time, Bz=None, Psw=None, model='Shue97', coord_s
         if return_x_max:
             return x_max
     
-        steps = 50 # y_dim
+        steps = 100 # y_dim
         x_repeats = 100 # x_dim
     
         X = np.linspace(x_max, x_min ,steps)
@@ -1940,7 +1594,7 @@ def _magnetopause(self, output, time, Bz=None, Psw=None, model='Shue97', coord_s
         if return_x_max:
             return x_max
     
-        steps = 50
+        steps = 100
         x_repeats = 100
 
         X = np.linspace(x_max, x_min ,steps)
@@ -1963,41 +1617,35 @@ def _magnetopause(self, output, time, Bz=None, Psw=None, model='Shue97', coord_s
         return points
     
     
-    r, g, b, opacity = color
     year_limit = datetime(1995, 1, 1)
-    
-    valid_rep = ['Surface', '3D Glyphs', 'Feature Edges', 
-                   'Outline' 'Point Gaussian', 'Points', 'Surface With Edges',
-                   'Wireframe', 'Volume']
-    assert representation in valid_rep,\
-    """representation must be one of the following {}""".format(valid_rep)
     
     if not return_x_max:
         if time == None:
            assert Bz != None and Psw != None, 'If time is None then  '+\
                'neither Psw or Bz can be None.'
-           assert coord_sys == 'GSE', 'If time is None then Coord_sys cannot ' +\
+           assert coord_sys != None, 'If time is None then Coord_sys cannot ' +\
                'be None.'
         
         if model == 'Sibeck_Lopez_Roelof91':
             assert (isinstance(Psw,bool) and Psw == False) \
                 or (isinstance(Bz, bool) and  Bz == False), \
                     'If model=Sibeck_Lopez_Roelof91 Psw or Bz has to be False but not both.'
-            assert not (isinstance(Psw,bool) and Psw == 999 \
+            ## TODO: recheck this 999 should not be there anymore
+            assert not (isinstance(Psw,bool) and Psw == False \
                         and Bz == False and isinstance(Bz, bool)),\
                 'when model=Siebck_Lopez_Roelof Both Psw and Bz cannot be False.'
         
         
         if time != None:
-            time_str = tstr(time,5).replace(':','-')
+            time_str = ""+tstr(time,5)
             if Bz == None or Psw == None:
                 from hapiclient import hapi, hapitime2datetime
                 server     = 'https://cdaweb.gsfc.nasa.gov/hapi';
                 dataset    = 'OMNI_HRO2_1MIN';
                 parameters = 'BZ_GSE,Pressure';
                 opts = {'logging': True, 'usecache': True}
-                start = tstrTimeDelta(time, -30)
-                stop =  tstrTimeDelta(time, +30)
+                start = tstr(time2datetime(time) + timedelta(minutes=-30)) 
+                stop =  tstr(time2datetime(time) + timedelta(minutes= 30))
                 data, meta = hapi(server, dataset, parameters, start, stop, **opts)
                 time_arr = hapitime2datetime(data['Time'])
                 data['Pressure'][data['Pressure'] == 99.99] = np.nan
@@ -2035,7 +1683,7 @@ def _magnetopause(self, output, time, Bz=None, Psw=None, model='Shue97', coord_s
                     BZ_GSE_OMNI= np.interp(t1, t1[~nans], data['BZ_GSE'][~nans])
                     Bz = np.interp(time_to_interpolate, t1, BZ_GSE_OMNI)
                 
-            Bz_str = 'Bz {:.3g}'.format(Bz)
+            Bz_str = 'Bz={:.3g}'.format(Bz)
         
         if Psw == False and isinstance(Psw, bool) \
             and model == 'Sibeck_Lopez_Roelof91':
@@ -2057,7 +1705,10 @@ def _magnetopause(self, output, time, Bz=None, Psw=None, model='Shue97', coord_s
                     nans = np.isnan(data['Pressure'])
                     pressure_OMNI = np.interp(t1, t1[~nans], data['Pressure'][~nans])
                     Psw = np.interp(time_to_interpolate, t1, pressure_OMNI)
-            Psw_str = 'Psw {:.3g}'.format(Psw)
+            Psw_str = 'Psw={:.3g}'.format(Psw)
+            
+    if return_title:
+        return (time_str, Bz_str, Psw_str)
     
     if model == "Shue97":
         if return_x_max:
@@ -2068,7 +1719,6 @@ def _magnetopause(self, output, time, Bz=None, Psw=None, model='Shue97', coord_s
             return mpause_Roelof_Sibeck93(Bz,Psw, return_x_max)
         points = mpause_Roelof_Sibeck93(Bz, Psw)
     elif model == 'Sibeck_Lopez_Roelof91':
-        print('\n\nThis is sibeck 91\n\n')
         if return_x_max:
             return mpause_Sibeck_Lopez_Roelof1991(Bz=Bz, Psw=Psw, 
                                                   return_x_max=return_x_max)
@@ -2102,40 +1752,278 @@ def _magnetopause(self, output, time, Bz=None, Psw=None, model='Shue97', coord_s
     pts.Allocate(dims[0] * dims[1] * dims[2])
     
     # color sections
+    lut = pvs.GetColorTransferFunction('Magnetosphere Surface')
+    value = int(len(lut.Annotations)/2)
     colors = vtk.vtkUnsignedCharArray()
     colors.SetNumberOfComponents(1)
-    colors.SetName("magnetosphere surface")
+    colors.SetName("Magnetosphere Surface")
     
     # insert points into vtkPoints
     i = 0
     for point in points:
         pts.InsertPoint(i, point[0], point[1], point[2])
         i += 1
-        colors.InsertNextTuple([0])
+        colors.InsertNextTuple([value])
 
     output.SetPoints(pts)
     output.GetPointData().AddArray(colors)
     
-    
+def _bowshock(self, output, time, model, Bz, Psw, mpause_model, 
+              coord_sys, return_title=False):
+    """Show bowshock suraface"""
 
-def magnetopause(time, Bz=None, Psw=None, model='Shue97', coord_sys='GSM',
+    from datetime import datetime, timedelta
+    import pytz 
+    from magnetovis.util import tstr, time2datetime
+    from magnetovis.cxtransform import transform
+    from magnetovis.objects2 import _magnetopause
+    from magnetovis.objects2 import rot_mat
+    import numpy as np
+    import paraview.simple as pvs
+
+    
+    def bowshock_Fairfield71(Bz, Psw,
+                             mpause_model='Roelof_Sibeck93'):
+        """
+        Bow shock surface model from Fairfield 1971 paper. 
+        https://doi.org/10.1029/JA076i028p06700
+    
+        The equation of the Bow Shock is given by:
+            
+       
+        r = ...
+    
+        where
+        
+        Parameters
+        ----------
+        Bz : float
+            The interplanetary magnetic field in nano Tesla.
+        Psw : float
+            The solar wind dynamic pressure in nano Pascals. 
+    
+        Returns
+        -------
+        3 nd.array
+            3 spatial coordiante arrays of the surface of the bow shock in GSE 
+            coordinate system.
+    
+        """
+        A = 0.0296
+        B = -0.0381
+        C = -1.280
+        D = 45.644
+        E = -652.10
+        
+        x_max_pause = _magnetopause(self=None, output=None, time=None, Bz=Bz, Psw=Psw, 
+                                   model=mpause_model,
+                                   coord_sys='GSE', return_x_max=True, return_title=False)
+
+        
+        c1 = (A * C - 2 * D)/(A**2 - 4 * B)
+        c2 = (4 * E - C**2)/(A**2 - 4 * B)
+        
+        steps = 100
+        x_repeats = 100
+        x_min = -40
+        bowshock_subs_ratio = 1.3 * x_max_pause
+        x_max = - np.sqrt(c1**2 + c2) - c1
+        shift = x_max - bowshock_subs_ratio
+        x_max = x_max - shift
+        X = np.linspace(x_max,x_min, steps)
+        X = X.repeat(x_repeats) # 5,000
+        
+        m = (A * (X + shift) + C)/2 
+        s = m**2 - B * (X + shift)**2 - D * (X + shift) - E
+        s = np.where(s < 0, 0, s) # to account for negatives under the radical
+        
+    
+        remainder = -(A * (X + shift) + C)/2
+        r = np.sqrt(s) + remainder # 5,000
+        
+        r = np.where(r== remainder, 0, r)
+        phi = np.linspace(0, 2 * np.pi, x_repeats)
+        phi = np.matlib.repmat(phi, 1, steps).flatten()
+    
+        Y = r * np.cos(phi)
+        Z = r * np.sin(phi)
+        
+        points = np.column_stack([X, Y, Z])
+        print('Created Magnetopause model from Fairfield 1971.')
+ 
+    
+        return points
+    year_limit = datetime(1995, 1, 1)
+    
+    if time == None:
+       assert Bz != None and Psw != None, \
+           'If time is None then neither Psw or Bz can be None.'
+       assert coord_sys == 'GSE', \
+           'If time is None then Coord_sys cannot be None.'
+    
+    if mpause_model == 'Sibeck_Lopez_Roelof91':
+        assert (isinstance(Psw, bool) and Psw == False) \
+            or (isinstance(Bz, bool) and Bz == False), \
+            'if model=Sibeck_Lopez_Roelof Psw or Bz has to be False but not both.'
+        assert not ((isinstance(Psw, bool) and Psw == False) \
+                    and (isinstance(Bz, bool) and Bz == False)), \
+            'when model=Siebck_Lopez_Roelof Both Psw and Bz cannot be False.'
+    
+    if time != None:
+        time_str = tstr(time,5)
+        if Bz == None or Psw == None:
+            from hapiclient import hapi, hapitime2datetime
+            
+            server     = 'https://cdaweb.gsfc.nasa.gov/hapi';
+            dataset    = 'OMNI_HRO2_1MIN';
+            parameters = 'BZ_GSE,Pressure';
+            opts = {'logging': True, 'usecache': True}
+            start = tstr(time2datetime(time) + timedelta(minutes=-30)) 
+            stop =  tstr(time2datetime(time) + timedelta(minutes= 30)) 
+            data, meta = hapi(server, dataset, parameters, start, stop, **opts)
+            
+            time_arr = hapitime2datetime(data['Time'])
+            data['Pressure'][data['Pressure'] == 99.99] = np.nan
+            data['BZ_GSE'][data['BZ_GSE'] == 9999.99] = np.nan
+            unixZero = datetime(1970,1,1,tzinfo = time_arr[0].tzinfo)
+            t1 = np.empty(time_arr.shape)
+            time_to_interpolate = (time2datetime(time).\
+                                   replace(tzinfo=pytz.UTC) - unixZero).\
+                                   total_seconds()
+            for i in range(len(time_arr)):
+                t1[i] = (time_arr[i] - unixZero).total_seconds()
+        else:
+            print('Ignoring time because Bz and Psw were given')
+    else:
+        time_str = ''
+     
+    if isinstance(Bz, bool) and Bz == False \
+        and mpause_model == 'Sibeck_Lopez_Roelof91':
+        Bz = None
+        Bz_str = ''
+    else:
+        if Bz == None:
+            if hapitime2datetime(start) < year_limit:
+                Bz = 0 
+                print('Current Dataset OMNI_HRO2_1MIN does not go back further')
+                print('than 1995. Using Nominal Value Bz=0')
+            elif all(np.isnan(data['BZ_GSE'])):
+                Bz = 0 # nominal value. check later.
+                print('No values of Bz from OMNI_HRO2_1MIN dataset given.')
+                print('using nominal value Bz=0')
+            else:
+                nans = np.isnan(data['BZ_GSE'])
+                BZ_GSE_OMNI= np.interp(t1, t1[~nans], data['BZ_GSE'][~nans])
+                Bz = np.interp(time_to_interpolate, t1, BZ_GSE_OMNI)
+        Bz_str = 'Bz={:.3g}'.format(Bz)
+    
+    if isinstance(Psw, bool)  and Psw == False \
+        and mpause_model == 'Sibeck_Lopez_Roelof91':
+        Psw = None
+        Psw_str = ''
+    else:
+        if Psw == None:
+            if hapitime2datetime(start) < year_limit:
+                Psw = 2 
+                print('Current Dataset OMNI_HRO2_1MIN does not go back further')
+                print('than 1995. Using Nominal Value Psw=2')
+            elif all(np.isnan(data['Pressure'])):
+                Psw = 2 # nominal value. check later.
+                print('No values of Pressure from OMNI_HRO2_1MIN dataset given.')
+                print('using nominal value Psw=2 (nPa)')
+            else:
+                nans = np.isnan(data['Pressure'])
+                pressure_OMNI = np.interp(t1, t1[~nans], data['Pressure'][~nans])
+                Psw = np.interp(time_to_interpolate, t1, pressure_OMNI)
+        Psw_str = 'Psw={:.3g}'.format(Psw)
+
+    if return_title:
+        return (time_str, Bz_str, Psw_str)
+    
+    if model == 'Fairfield71':
+        points = bowshock_Fairfield71(Bz, Psw, mpause_model=mpause_model)
+        
+    
+    
+    
+    # Although Fairfield 1971 state that the abberation
+    # is 4 degrees later Fairfield revised the number to be 4.82 degrees 
+    # according to Tipsod Fortran code notes. 
+    if model == 'Fairfield71':
+        points = rot_mat(points, angle=-4.82)
+        # deg = np.deg2rad(-4.82)
+        # a = 0#0.3131
+        # h, k = 0,0#-a*np.sin(deg), a*np.cos(deg)
+
+    else:
+        points = rot_mat(points)
+    
+    if coord_sys != 'GSE':
+        points = transform(points, time, 'GSE', coord_sys, 'car', 'car')
+        Bz = transform([0,0,Bz], time, 'GSE', coord_sys, 'car', 'car')[0]
+
+    ############################################################
+    ####### start of the code to use programmable source #######
+    ############################################################
+    import vtk
+    if False:
+        # this is never meant to run. it is only to get rid of error message
+        # that output is not defined. output is defined when running
+        # this script in the programmable source text box. 
+        output = ''
+    # communication between "script" and "script (RequestInformation)"
+    executive = self.GetExecutive()
+    outInfo = executive.GetOutputInformation(0)
+    exts = [executive.UPDATE_EXTENT().Get(outInfo, i) for i in range(6)]
+    dims = [exts[1]+1, exts[3]+1, exts[5]+1]
+    
+    # setting the sgrid exent
+    output.SetExtent(exts)
+    
+    # setting up the points and allocate the number of points
+    pts = vtk.vtkPoints()
+    pts.Allocate(dims[0] * dims[1] * dims[2])
+    
+    # color sections
+    lut = pvs.GetColorTransferFunction('Magnetosphere Surface')
+    value = int(len(lut.Annotations)/2)
+    colors = vtk.vtkUnsignedCharArray()
+    colors.SetNumberOfComponents(1)
+    colors.SetName("Magnetosphere Surface")
+    
+    # insert points into vtkPoints
+    i = 0
+    for point in points:
+        pts.InsertPoint(i, point[0], point[1], point[2])
+        i += 1
+        colors.InsertNextTuple([value])
+
+    output.SetPoints(pts)
+    output.GetPointData().AddArray(colors)
+
+def magnetopause(time=None, Bz=None, Psw=None, model='Shue97', coord_sys='GSM',
                  color=[0,1,0,0.5], representation='Surface',
                  out_dir=tempfile.gettempdir(),
                  renderView=None, render=True, show=True,
                  return_x_max = False):
-    print('\n\nthis is right before objs_wrapper function\n\n')
     objs_wrapper(time=time, Bz=Bz, Psw=Psw, model=model, coord_sys=coord_sys,
                  color=color, representation=representation,
                  out_dir=out_dir, renderView=renderView, render=render,
-                 show=show, return_x_max=return_x_max, obj='magnetopause')
+                 show=show, return_x_max=return_x_max, obj='Magnetopause')
     
-def lines(n=5):
-    objs_wrapper(n=n, obj='lines')
+def bowshock(time=None, model='Fairfield71', Bz = None, Psw = None,
+             mpause_model='Roelof_Sibeck93',
+             coord_sys='GSM',
+             color=[0,1,0,1], representation='Surface',
+             renderView=None, render=True, show=True):
     
-def sgrid_simple(color):
-    objs_wrapper(color='red', obj='sgrid_simple')
+    objs_wrapper(time=time, Bz=Bz, Psw=Psw, model=model, 
+                 mpause_model=mpause_model, coord_sys=coord_sys,
+                 color=color, representation=representation, 
+                 renderView=renderView, render=render,
+                 show=show, obj='Bowshock')
     
-def pro_satellite(time_o='', time_f='', satellite_id='', 
+def satellite(time_o='', time_f='', satellite_id='', 
               coord_sys='GSM',
               color=[1,0,0,1],
               representation='Surface',
@@ -2160,51 +2048,105 @@ def pro_satellite(time_o='', time_f='', satellite_id='',
               show=show, obj = 'satellite')
     
 
-def _sgrid_simple(self, output, color):
+def axis(time, val, coord_sys='GSM', lims=[-20,20], tick_spacing=1, 
+         label=True, representation = 'Surface', 
+         renderView=None,render=True,show=True, debug=False):
+
+    objs_wrapper(time=time, val=val, coord_sys=coord_sys, 
+                 lims=lims, tick_spacing=tick_spacing,
+                 label=label, representation=representation, 
+                 renderView=renderView, render=render, show=show,
+                 debug=debug, obj='axis')
+    
+def _axis(self, output, time, val, coord_sys, lims,
+          tick_spacing, label):
+    
+    import numpy as np
+    import numpy.matlib
+    from magnetovis.objects2 import rot_mat
+    from magnetovis.cxtransform import transform
+    
+    X = np.linspace(lims[0],lims[1], 300)
+    X = X.repeat(300)
+    
+    r = 0.25
+    
+    theta = np.linspace(0,2*np.pi, 300)
+    theta = np.matlib.repmat(theta, 1, 300).flatten()
+    
+    Y = r * np.cos(theta)
+    Z = r * np.sin(theta)
+    
+    Y[np.floor(X)%2==0] *= .8
+    Z[np.floor(X)%2==0] *= .8
+
+    
+    points = np.column_stack([X, Y, Z])
+    if val == "Y":
+        points = rot_mat(points, angle=90, translate=False, axis='Z')
+    elif val == "Z":
+        points = rot_mat(points, angle=90, translate=False, axis="Y")
+        
+    if coord_sys != 'GSM':
+        points = transform(points, time, 'GSM', coord_sys, 'car', 'car')
+    
+    ############################################################
+    ####### start of the code to use programmable source #######
+    ############################################################
     import vtk
     if False:
-        # this is never meant to get run. it is only to get rid of the
-        # error message that output is not defined.
-        # output is not defined here but when it is run in programmable 
-        # script it is defined. 
+        # this is never meant to run. it is only to get rid of error message
+        # that output is not defined. output is defined when running
+        # this script in the programmable source text box. 
         output = ''
     # communication between "script" and "script (RequestInformation)"
     executive = self.GetExecutive()
     outInfo = executive.GetOutputInformation(0)
     exts = [executive.UPDATE_EXTENT().Get(outInfo, i) for i in range(6)]
-    dims=[exts[1]+1, exts[3]+1, exts[5]+1]
+    dims = [exts[1]+1, exts[3]+1, exts[5]+1]
     
-    # setting sgrid extents
+    # setting the sgrid exent
     output.SetExtent(exts)
     
     # setting up the points and allocate the number of points
-    points = vtk.vtkPoints()
-    points.Allocate(dims[0] * dims[1] * dims[2])
+    pts = vtk.vtkPoints()
+    pts.Allocate(dims[0] * dims[1] * dims[2])
     
-    if color == 'red':
-        c = 1
-    else:
-        c = 0
+    # color sections
+    # lut = pvs.GetColorTransferFunction('Magnetosphere Surface')
+    # value = int(len(lut.Annotations)/2)
+    # colors = vtk.vtkUnsignedCharArray()
+    # colors.SetNumberOfComponents(1)
+    # colors.SetName("Magnetosphere Surface")
     
-    # insert points int point vtk
-    points.InsertPoint(0,0,0,c)
-    points.InsertPoint(1,1,0,c)
-    points.InsertPoint(2,0,1,c)
-    points.InsertPoint(3,1,1,c)
+    # insert points into vtkPoints
+    i = 0
+    for point in points:
+        pts.InsertPoint(i, point[0], point[1], point[2])
+        i += 1
+        # colors.InsertNextTuple([value])
+
+    output.SetPoints(pts)
+    # output.GetPointData().AddArray(colors)
     
-    # color section
-    colors = vtk.vtkUnsignedCharArray();
-    # the number of components in the tuple to be inserted
-    # must be declared first
-    colors.SetNumberOfComponents(1);
-    colors.SetName("magneto regions");
-    colors.InsertNextTuple([c])
-    colors.InsertNextTuple([c])
-    colors.InsertNextTuple([c])
-    colors.InsertNextTuple([c])
-    
-    output.SetPoints(points)
-    self.GetStructuredGridOutput().GetPointData().AddArray(colors)
+
+def neutralsheet(time=None, psi=None, 
+                 Rh=8, G=10, Lw=10, d=4,
+                 xlims = (-40,-10), ylims = (-18,18),
+                 coord_sys='GSM',
+                 model='tsyganenko95',
+                 color = [1,0,0,0.5],
+                 representation='Surface',
+                 return_sheet=False,
+                 renderView=None,
+                 render=True,
+                 show=True,
+                 debug=False):
+    objs_wrapper(time=time, psi=psi, Rh=Rh, G=G, Lw=Lw, d=d, xlims=xlims,
+                 ylims=ylims, coord_sys=coord_sys, model=model, color=color,
+                 representation=representation, return_sheet=return_sheet,
+                 renderView=renderView, render=render, show=show, debug=debug,
+                 obj='Neutralsheet')
     
 # used to execute code inside of the programmable source script box.
 if False:
@@ -2214,33 +2156,59 @@ if False:
     self = ''
     output = ''
 
-print('\n\nthis code should run twice\n\n')   
-if "kwargs" in vars(): 
-    print('\n\nthis is that start of the kwargs if-else block\n\n')
-    if kwargs['obj'] == 'lines':
-        _lines(self, kwargs['n'])
-        
-    if kwargs['obj'] == 'sgrid_simple':
-        _sgrid_simple(self, output, kwargs['color'])
-        
+if "kwargs" in vars():         
         
     if kwargs['obj'] == 'satellite':
-        _satellite(self, kwargs['time_o'], kwargs['time_f'],
-                       kwargs['satellite_id'],
-                       kwargs['coord_sys'], kwargs['color'], 
-                       kwargs['representation'], kwargs['tube_radius'],
-                       kwargs['shader_preset'], kwargs['region_colors'],
-                       kwargs['out_dir'], kwargs['renderView'],
-                       kwargs['render'], kwargs['show'])
+        _satellite(self, time_o=kwargs['time_o'], time_f=kwargs['time_f'],
+                       satellite_id=kwargs['satellite_id'],
+                       coord_sys=kwargs['coord_sys'],
+                       region_colors=kwargs['region_colors'])
     
-    if kwargs['obj'] == 'magnetopause':
-        print('\n\nHere is the bottom of the code\n\n')
+    elif kwargs['obj'] == 'Magnetopause':
         _magnetopause(self, output, time=kwargs['time'], Bz=kwargs['Bz'], 
                       Psw=kwargs['Psw'], model=kwargs['model'],
-                      coord_sys=kwargs['coord_sys'], color=kwargs['color'],
-                      out_dir=kwargs['out_dir'], renderView=kwargs['renderView'],
-                      render=kwargs['render'], show=kwargs['show'],
+                      coord_sys=kwargs['coord_sys'],
                       return_x_max=kwargs['return_x_max'])
+    
+    elif kwargs['obj'] == 'Bowshock':
+        _bowshock(self, output, time=kwargs['time'], Bz=kwargs['Bz'], 
+                      Psw=kwargs['Psw'], model=kwargs['model'], 
+                      mpause_model=kwargs['mpause_model'],
+                      coord_sys=kwargs['coord_sys'])
+    
+    elif kwargs['obj'] == 'Neutralsheet':
+        _neutralsheet(self, output, time=kwargs['time'], psi=kwargs['psi'], 
+                      Rh=kwargs['Rh'], G=kwargs['G'], Lw=kwargs['Lw'], 
+                      d=kwargs['d'], xlims=kwargs['xlims'], 
+                      ylims=kwargs['ylims'], coord_sys=kwargs['coord_sys'],
+                      model=kwargs['model'],
+                      return_sheet=kwargs['return_sheet'])
+        
+    elif kwargs['obj'] == 'Plasmasheet':
+        _plasmasheet(self, output, time=kwargs['time'], psi=kwargs['psi'], 
+                      Rh=kwargs['Rh'], G=kwargs['G'], Lw=kwargs['Lw'], 
+                      d=kwargs['d'], xlims=kwargs['xlims'], 
+                      ylims=kwargs['ylims'], coord_sys=kwargs['coord_sys'],
+                      model=kwargs['model'],
+                      return_sheet=kwargs['return_sheet'])
+    
+    elif kwargs['obj'] == 'axis':
+        _axis(self, output, time = kwargs['time'], val=kwargs['val'],
+              coord_sys=kwargs['coord_sys'], lims=kwargs['lims'],
+              tick_spacing=kwargs['label'], label=kwargs['label'])
+    
+    elif kwargs['obj'] == 'plasmapause':
+        _plasmapause(self, output, time=kwargs['time'])
+        
         
     
-        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
