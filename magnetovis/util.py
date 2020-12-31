@@ -95,7 +95,7 @@ def install_paraview(paraview_version, install_path='/tmp/'):
 
 
     def extract(fullpath, install_path):
-        cmd_list = ['tar', 'zxvf', fullpath, '--directory', install_path]
+        cmd_list = ['tar', 'zxf', '--checkpoint', 10000, '--checkpoint-action="echo=Extracted file %u/124000"',fullpath, '--directory', install_path]
         print('Executing ' + ' '.join(cmd_list))
         import subprocess
         subprocess.run(cmd_list)
@@ -127,15 +127,11 @@ def install_paraview(paraview_version, install_path='/tmp/'):
                 
 def compatability_check(debug=False):
 
+    import os
     import glob
+    import site
     import warnings
     import subprocess
-    import site
-
-    if sys.maxunicode > 65535:
-        print('UCS4 build')
-    else:
-        print('UCS2 build')
         
     debug = True
     if debug:
@@ -179,7 +175,6 @@ def compatability_check(debug=False):
                 print("Using " + use)
 
     elif sys.platform.startswith("linux"):
-        import os
 
         if sys.version_info[0] < 3:
             from backports import configparser

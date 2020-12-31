@@ -4,13 +4,10 @@ from setuptools import setup, find_packages
 
 install_requires = [
                         "numpy",
-                        "spacepy",
-                        "clint",
-                        "requests"
+                        "spacepy"
                     ]
 
 if sys.version_info[0] < 3:
-    from setuptools.command.build_ext import build_ext
     if sys.maxunicode > 65535:
         print('UCS4 build')
     else:
