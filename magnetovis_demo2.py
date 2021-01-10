@@ -1,4 +1,4 @@
-from magnetovis import objects2, objects
+from magnetovis import objects2
 import paraview.simple as pvs
 """
 This script shows a demonstration of magnetovis if ran with: demo = True
@@ -14,14 +14,28 @@ demo_time = [2005, 1, 1, 0, 0]
 demo_coord = 'GSM'
 
 
-demo = True
+demo = False
 axis = False
-mpause = False
-bowshock = False
+mpause = True
+bowshock = True
 satellite_path = False
 neutralsheet = False
 plasmasheet = False
 plasmapause = False
+
+if mpause:
+    objects2.magnetopause(time=demo_time,
+                          model='Roelof_Sibeck93', coord_sys='GSE', 
+                          color=[.5,.5,0.3,0.5],
+                          representation='Surface')
+    objects2.magnetopause(time=demo_time,
+                          model='Sibeck_Lopez_Roelof91', Bz=False, coord_sys='GSE', 
+                          color=[.5,.5,0.3,0.5],
+                          representation='Surface')
+    objects2.magnetopause(time=demo_time,
+                          model='Shue97', coord_sys='GSE', 
+                          color=[.5,.5,0.3,0.5],
+                          representation='Surface')
 
 if plasmapause:
     objects2.plasmapause('')
@@ -79,11 +93,7 @@ if plasmasheet:
 if neutralsheet:
     objects2.neutralsheet(time = demo_time)
 
-if mpause:
-    objects2.magnetopause(time=demo_time,
-                          model='Shue97', coord_sys='GSE', 
-                          color=[.5,.5,0.3,0.5],
-                          representation='Surface')
+
 if bowshock:
     objects2.bowshock(time=demo_time, color=[0,0,1,.5])
     
