@@ -732,6 +732,8 @@ if False:
 def _plasmapause(self, output, time):
     
     """
+    coordinate system is in Spherical SM coordinates with angle in radians
+    
     log(n) = a1 * F(L) * G(L) * H(L) = 1.5
     
     where,
@@ -741,15 +743,15 @@ def _plasmapause(self, output, time):
     
     H(L) = (1 + (L / a8) ** (2 * (a9 - 1))) ** (-a9 / (a9 - 1))
     
-    L = R/cos**2(Lambda)
+    L = R/cos**2(Lambda) # used by SSCWEB
     
     L is the McIlwain L-Shell parameter.
     
     h(L, Lambda) is the height above the Earth's surface
     
-    and Lambda is the geomagnetic latitude 
+    h = 6371.2*(1.-R)  # according to SSCWEB
     
-    L = R/cos**2(Lambda)
+    and Lambda is the geomagnetic latitude 
     
     constants:
         a1 = 1.4
@@ -768,13 +770,21 @@ def _plasmapause(self, output, time):
     
     
     also, also
-    MLT is the magnetic local time measured in HH:MM. MLT=0=24 is midnight
-    and MLT=12 is noon. Spacepy is used to calculate this number. 
+    MLT = (PHI*RAD/15.) - 12.
+    x = MLT
+    MLT is the magnetic local time measured in HH MLT=0=24 is midnight
+    and MLT=12 is noon. 
+    MLT domain is [0,24)
+    x domain is [-12,12]
+    
+    PHI is the longitude 
+    THETA is the latitude
     
     """
     
     import spacepy as sc
     import numpy as np
+    import numpy.matlib
     
     # constants
     a1 = 1.4
@@ -784,13 +794,31 @@ def _plasmapause(self, output, time):
     a5 = 159.9
     a7 = 6.27
     
-    # still gotta figure out
-    Lambda = 0
-    R = 1
-    L = R/np.cos(Lambda)**2
-    h = L * Lambda
+    # obtained from SSCWEB fortran
+    Re = 6371 # radius of Earth in km according to fortran SSCWEB
+    R = np.linspace(1.05* Re,6, 10).repeat(10)
+    THETA = 0
+    PHI = np.linspace(0,2*np.pi,10)
+    PHI = np.matlib.repmat(PHI, 1, 10).flatten()
+    RAD = 180/np.pi
+    MLT = (PHI*RAD/15.) - 12.
+    x = MLT 
+    MLT[MLT>=24] = MLT[MLT>=24] - 24
+    MLT[MLT<0] = MLT[MLT<0] + 24
+    x[x>12] = x[x>12] - 24
+    x[x<12] = x[x<12] + 24
     
-    F = a2 - np.exp(a3 * (1 - a4 * np.exp(-h / a5)))
+    a6 = -0.87 + 0.12 * np.exp(-x**2/9.)
+    a8 = 0.7 * np.cos(2*np.pi* (MLT-21.)/24.) + 4.4
+    a9 = 15.3 * np.cos(2*np.pi*MLT/24.) + 19.7
+    
+    F = a2 - np.exp(a3 * (1.-a4 * np.exp(Re*(1.-R)/a5)))
+    
+    L2LAM = (np.cos(THETA))**2
+    
+    G = (a6*R/L2LAM) + a7
+    # L = R/np.cos(Lambda)**2
+    
     
 
 def plasmapause(time, representation='Surface', renderView=None, render=True,
@@ -923,7 +951,7 @@ def _neutralsheet(self, output, time, psi,
 
 def plasmasheet(time, psi=None, 
                  Rh=8, G=10, Lw=10, d=4,
-                 xlims = (-40,0), ylims = (-18,18),
+                 xlims = (-40,-5), ylims = (-18,18),
                  coord_sys='GSM',
                  model='tsyganenko95',
                  color = [.6,.3,.2,0.5],
@@ -1093,9 +1121,9 @@ def objs_wrapper(**kwargs):
         if kwargs['obj'] == "Plasmasheet":
             z_dim = 3
         else:
-            z_dim = 1
-        x_dim = 200 # theta_array = np.linspace(0, last_theta, 100)
-        y_dim = 50 # phi_array = np.linspace(0, last_phi, 50) # 50 old
+            x_dim = 1
+        y_dim = 101 # theta_array = np.linspace(0, last_theta, 100)
+        z_dim = 101 # phi_array = np.linspace(0, last_phi, 50) # 50 old
         scalar_data = 'Magnetosphere Surface'
             
         programmableSource.OutputDataSetType = 'vtkStructuredGrid'
@@ -1319,7 +1347,6 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
     from magnetovis.cxtransform import transform, rot_mat
     import paraview.simple as pvs
 
-    print('\n\n this is the start of the mpause function\n\n')
     def mpause_Shue97(Bz, Psw, return_x_max = False):
         """
         Magntopause positions from Shue et al. 1997.  
@@ -1364,7 +1391,6 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
         last_phi = 360
         stopping_constant = 40/(2**alpha * r_0)
         theta_finder_array = np.arange(np.pi/2 , np.pi, 0.01)
-        
         for theta in theta_finder_array: 
             stopping_value = np.cos(theta)/((1 + np.cos(theta))**alpha)
             if abs(stopping_value) < stopping_constant:
@@ -1372,14 +1398,17 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
             else:
                 break
         last_theta = np.rad2deg(last_theta)
-        theta_array = np.linspace(0, last_theta, 100)
-        phi_array = np.linspace(0, last_phi, 100)
-        phi_repeat = len(theta_array)
-        theta_repeat = len(phi_array)
-        theta_array = np.repeat(theta_array, theta_repeat)    
-        phi_array = np.matlib.repmat(phi_array, 1, phi_repeat).flatten()
+        theta_array = [[0]]
+        all_theta_values = np.flipud(np.linspace(last_theta,0,50))
+        for theta in all_theta_values:
+            theta_array = np.pad(theta_array,((1,1),(1,1)),'constant', 
+                                 constant_values=((theta,theta),(theta,theta)))
+        theta_array = theta_array.flatten()
+        m = np.linspace(1,-1,2*len(all_theta_values)+1,endpoint=True)
+        u = np.matlib.repmat(m,1,len(m)).flatten()
+        v = np.repeat(m,len(m))
+        phi_array = np.arctan2(v,u)
         theta_array = np.radians(theta_array)
-        phi_array = np.radians(phi_array)
         
         r_array = r_0*( (2/(1+np.cos(theta_array)))**alpha)
         
@@ -1487,18 +1516,21 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
         if return_x_max:
             return x_max
     
-        steps = 100 # y_dim
-        x_repeats = 100 # x_dim
-    
-        X = np.linspace(x_max, x_min ,steps)
-        X = X.repeat(x_repeats)
+        X = [[x_max]]
+        all_x_values = np.flipud(np.linspace(x_min,x_max,50))
+        
+        for x in all_x_values:
+            X = np.pad(X,((1,1),(1,1)),'constant',constant_values=((x,x),(x,x)))
+        X = X.flatten()
         
         r = -s1 * X **2 - s2 * X - s3
         r[r<0] = 0
         r = np.sqrt(r)
         
-        phi = np.linspace(0, 2 * np.pi, x_repeats)
-        phi = np.matlib.repmat(phi, 1, steps).flatten()
+        m = np.linspace(1,-1,2*len(all_x_values)+1,endpoint=True)
+        u = np.matlib.repmat(m,1,len(m)).flatten()
+        v = np.repeat(m,len(m))
+        phi = np.arctan2(v,u)
         
         Y = r * np.cos(phi)
         Z = r * np.sin(phi)
@@ -1593,19 +1625,23 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
         # distance to magnetopause distance ratio
         if return_x_max:
             return x_max
-    
-        steps = 100
-        x_repeats = 100
+        
 
-        X = np.linspace(x_max, x_min ,steps)
-        X = X.repeat(x_repeats)
+        X = [[x_max]]
+        all_x_values = np.flipud(np.linspace(x_min,x_max,50))
+        
+        for x in all_x_values:
+            X = np.pad(X,((1,1),(1,1)),'constant',constant_values=((x,x),(x,x)))
+        X = X.flatten()
         
         r = -s1 * X **2 - s2 * rho * X - s3 * rho ** 2
         r[r<0] = 0
         r = np.sqrt(r)
         
-        phi = np.linspace(0, 2 * np.pi, x_repeats)
-        phi = np.matlib.repmat(phi, 1, steps).flatten()
+        m = np.linspace(1,-1,2*len(all_x_values)+1,endpoint=True)
+        u = np.matlib.repmat(m,1,len(m)).flatten()
+        v = np.repeat(m,len(m))
+        phi = np.arctan2(v,u)
         
         Y = r * np.cos(phi)
         Z = r * np.sin(phi)
@@ -1823,18 +1859,20 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model,
         c1 = (A * C - 2 * D)/(A**2 - 4 * B)
         c2 = (4 * E - C**2)/(A**2 - 4 * B)
         
-        steps = 100
-        x_repeats = 100
         x_min = -40
         bowshock_subs_ratio = 1.3 * x_max_pause
         x_max = - np.sqrt(c1**2 + c2) - c1
         shift = x_max - bowshock_subs_ratio
         x_max = x_max - shift
-        X = np.linspace(x_max,x_min, steps)
-        X = X.repeat(x_repeats) # 5,000
+        X = [[x_max]]
+        all_x_values = np.flipud(np.linspace(x_min,x_max,50))
+        for x in all_x_values:
+            X = np.pad(X,((1,1),(1,1)),'constant',constant_values=((x,x),(x,x)))
+        X = X.flatten()
+
         
-        m = (A * (X + shift) + C)/2 
-        s = m**2 - B * (X + shift)**2 - D * (X + shift) - E
+        g = (A * (X + shift) + C)/2 
+        s = g**2 - B * (X + shift)**2 - D * (X + shift) - E
         s = np.where(s < 0, 0, s) # to account for negatives under the radical
         
     
@@ -1842,9 +1880,12 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model,
         r = np.sqrt(s) + remainder # 5,000
         
         r = np.where(r== remainder, 0, r)
-        phi = np.linspace(0, 2 * np.pi, x_repeats)
-        phi = np.matlib.repmat(phi, 1, steps).flatten()
-    
+        m = np.linspace(1,-1,2*len(all_x_values)+1,endpoint=True)
+        u = np.matlib.repmat(m,1,len(m)).flatten()
+        v = np.repeat(m,len(m))
+        phi = np.arctan2(v,u)
+        
+        
         Y = r * np.cos(phi)
         Z = r * np.sin(phi)
         
@@ -2001,7 +2042,7 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model,
     output.SetPoints(pts)
     output.GetPointData().AddArray(colors)
 
-def magnetopause(time=None, Bz=None, Psw=None, model='Shue97', coord_sys='GSM',
+def magnetopause(time, Bz=None, Psw=None, model='Shue97', coord_sys='GSM',
                  color=[0,1,0,0.5], representation='Surface',
                  out_dir=tempfile.gettempdir(),
                  renderView=None, render=True, show=True,
@@ -2011,10 +2052,10 @@ def magnetopause(time=None, Bz=None, Psw=None, model='Shue97', coord_sys='GSM',
                  out_dir=out_dir, renderView=renderView, render=render,
                  show=show, return_x_max=return_x_max, obj='Magnetopause')
     
-def bowshock(time=None, model='Fairfield71', Bz = None, Psw = None,
+def bowshock(time, model='Fairfield71', Bz = None, Psw = None,
              mpause_model='Roelof_Sibeck93',
              coord_sys='GSM',
-             color=[0,1,0,1], representation='Surface',
+             color=[0,.3,.35,1], representation='Surface',
              renderView=None, render=True, show=True):
     
     objs_wrapper(time=time, Bz=Bz, Psw=Psw, model=model, 
@@ -2132,7 +2173,7 @@ def _axis(self, output, time, val, coord_sys, lims,
 
 def neutralsheet(time=None, psi=None, 
                  Rh=8, G=10, Lw=10, d=4,
-                 xlims = (-40,-10), ylims = (-18,18),
+                 xlims = (-40,-5), ylims = (-18,18),
                  coord_sys='GSM',
                  model='tsyganenko95',
                  color = [1,0,0,0.5],
