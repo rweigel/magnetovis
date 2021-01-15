@@ -514,19 +514,7 @@ def _latitude_lines(self, time, coord_sys='GEO', increment=15, color=[1,0,0]):
         a = np.column_stack([np.ones(npts, ), lat_array[i]*np.ones(npts, ), lon])
         line = cx.transform(a, time, coord_sys, 'GSM', ctype_in='sph', ctype_out='car')
         points[i*npts : (i+1)*npts, :] = line
-        
 
-
-    # conn = npts*np.ones(lat_array.size, dtype=int)
-
-    # out_fname = os.path.join(out_dir, coord_sys + '_latitude_lines.vtk')
-
-    # trace_lines(points, {'LINES' : conn}, out_fname=out_fname,
-    #                                     color=color, ftype='BINARY',
-    #                                         renderView=renderView,
-    #                                         render=render,
-    #                                         show=show,
-    #                                         debug = debug)
 
 
 def longitude_lines(time, coord_sys='GEO', increment=30, color=[0,0,1],
@@ -782,7 +770,6 @@ def _plasmapause(self, output, time):
     
     """
     
-    import spacepy as sc
     import numpy as np
     import numpy.matlib
     
@@ -1118,12 +1105,19 @@ def objs_wrapper(**kwargs):
         programmableSourceDisplay.Representation = kwargs['representation']
     
     if kwargs['obj'] in mag_surfaces:
-        if kwargs['obj'] == "Plasmasheet":
-            z_dim = 3
-        else:
+        if kwargs['obj'] == 'Magnetopause' or kwargs['obj'] == 'Bowshock':
             x_dim = 1
-        y_dim = 101 # theta_array = np.linspace(0, last_theta, 100)
-        z_dim = 101 # phi_array = np.linspace(0, last_phi, 50) # 50 old
+            y_dim = 101
+            z_dim = 101
+        elif kwargs['obj'] == 'Neutralsheet':
+            x_dim = 200
+            y_dim = 50
+            z_dim = 1
+        elif kwargs['obj'] == 'Plasmasheet':
+            x_dim = 200
+            y_dim = 50
+            z_dim = 1
+            
         scalar_data = 'Magnetosphere Surface'
             
         programmableSource.OutputDataSetType = 'vtkStructuredGrid'
@@ -1388,7 +1382,6 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
         
         alpha = (0.58 - 0.010 * Bz) * (1 + 0.010 * Psw)  #  Eqn 14 of Shue et al. 1997
         
-        last_phi = 360
         stopping_constant = 40/(2**alpha * r_0)
         theta_finder_array = np.arange(np.pi/2 , np.pi, 0.01)
         for theta in theta_finder_array: 
