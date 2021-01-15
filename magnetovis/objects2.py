@@ -978,6 +978,7 @@ def plasmasheet(time, psi=None,
                  model='tsyganenko95',
                  color = [.6,.3,.2,0.5],
                  representation='Surface',
+                 out_dir=tempfile.gettempdir(), png_fn=None,
                  return_sheet=False,
                  renderView=None,
                  render=True,
@@ -985,7 +986,9 @@ def plasmasheet(time, psi=None,
     
     objs_wrapper(time=time, psi=psi, Rh=Rh, G=G, Lw=Lw, d=d, xlims=xlims,
                  ylims=ylims, coord_sys=coord_sys, model=model, color=color,
-                 representation=representation, return_sheet=return_sheet,
+                 representation=representation,
+                 out_dir=out_dir, png_fn=png_fn,
+                 return_sheet=return_sheet,
                  renderView=renderView, render=render, show=show, 
                  obj='Plasmasheet')
     
@@ -1091,6 +1094,9 @@ def objs_wrapper(**kwargs):
     
     mag_surfaces = ['Magnetopause','Bowshock','Neutralsheet', 'Plasmasheet']
     
+    if kwargs['png_fn']:
+        png_fn_fp = os.path.join(kwargs['out_dir'],kwargs['png_fn'])
+    
     if kwargs['obj'] == 'axis':
         x_dim = 300
         y_dim = 300
@@ -1151,7 +1157,7 @@ def objs_wrapper(**kwargs):
         elif kwargs['obj'] == 'Plasmasheet':
             x_dim = 200
             y_dim = 50
-            z_dim = 1
+            z_dim = 3
             
         scalar_data = 'Magnetosphere Surface'
             
@@ -1181,8 +1187,6 @@ def objs_wrapper(**kwargs):
             kwargs['time'] = ''
             
         if kwargs['obj'] == 'Magnetopause':
-            
-            
             time_str, Bz_str, Psw_str = \
                 _magnetopause(self='', output='', time=kwargs['time'],
                               Bz=kwargs['Bz'], Psw=kwargs['Psw'],
@@ -1236,7 +1240,30 @@ def objs_wrapper(**kwargs):
         
         pvs.ColorBy(programmableSourceDisplay, ('POINTS', scalar_data))
         programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
-    
+        
+        # current camera placement for renderView1
+        if kwargs['png_fn']:
+            if False:
+                renderView.CameraPosition = [70, 80, 130]
+                renderView.CameraFocalPoint = [-15, 2, 0]
+                renderView.CameraViewUp = [0, 1, 0]
+                renderView.CameraParallelScale = 45
+                # save screenshot
+                pvs.SaveScreenshot(png_fn_fp, renderView, ImageResolution=[1676, 1220])
+            if True:
+                renderView.CameraPosition = [11, -80, 42]
+                renderView.CameraFocalPoint = [-22, 0, 0]
+                renderView.CameraViewUp = [-0.3, 0.3, 0.8]
+                renderView.CameraParallelScale = 25.245512504246587
+                # save screenshot
+                pvs.SaveScreenshot(png_fn_fp, renderView, ImageResolution=[1676, 1220])
+                
+               # current camera placement for renderView1
+#                renderView1.CameraPosition = [11.063843851950597, -81.41308153532496, 42.7102252582156]
+#                renderView1.CameraFocalPoint = [-22.499999999999982, -3.884904374276781e-15, 0.7619427442550575]
+#                renderView1.CameraViewUp = [-0.36850344375815675, 0.30122748312476083, 0.8794698490276406]
+#                renderView1.CameraParallelScale = 25.245512504246587
+        
     
     if kwargs['obj'] == 'satellite':
         
@@ -2125,23 +2152,25 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model,
 
 def magnetopause(time, Bz=None, Psw=None, model='Shue97', coord_sys='GSM',
                  color=[0,1,0,0.5], representation='Surface',
-                 out_dir=tempfile.gettempdir(),
+                 out_dir=tempfile.gettempdir(), png_fn=None,
                  renderView=None, render=True, show=True,
                  return_x_max = False):
     objs_wrapper(time=time, Bz=Bz, Psw=Psw, model=model, coord_sys=coord_sys,
                  color=color, representation=representation,
-                 out_dir=out_dir, renderView=renderView, render=render,
+                 out_dir=out_dir, png_fn=png_fn, renderView=renderView, render=render,
                  show=show, return_x_max=return_x_max, obj='Magnetopause')
     
 def bowshock(time, model='Fairfield71', Bz = None, Psw = None,
              mpause_model='Roelof_Sibeck93',
              coord_sys='GSM',
              color=[0,.3,.35,1], representation='Surface',
+             out_dir=tempfile.gettempdir(), png_fn=None,
              renderView=None, render=True, show=True):
     
     objs_wrapper(time=time, Bz=Bz, Psw=Psw, model=model, 
                  mpause_model=mpause_model, coord_sys=coord_sys,
-                 color=color, representation=representation, 
+                 color=color, representation=representation,
+                 out_dir=out_dir, png_fn=png_fn,
                  renderView=renderView, render=render,
                  show=show, obj='Bowshock')
     
@@ -2259,6 +2288,7 @@ def neutralsheet(time=None, psi=None,
                  model='tsyganenko95',
                  color = [1,0,0,0.5],
                  representation='Surface',
+                 out_dir=tempfile.gettempdir(), png_fn=None,
                  return_sheet=False,
                  renderView=None,
                  render=True,
@@ -2266,7 +2296,9 @@ def neutralsheet(time=None, psi=None,
                  debug=False):
     objs_wrapper(time=time, psi=psi, Rh=Rh, G=G, Lw=Lw, d=d, xlims=xlims,
                  ylims=ylims, coord_sys=coord_sys, model=model, color=color,
-                 representation=representation, return_sheet=return_sheet,
+                 representation=representation,
+                 out_dir=out_dir, png_fn=png_fn,
+                 return_sheet=return_sheet,
                  renderView=renderView, render=render, show=show, debug=debug,
                  obj='Neutralsheet')
     
