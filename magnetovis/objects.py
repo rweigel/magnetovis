@@ -5,6 +5,8 @@ import numpy as np
 
 from magnetovis import util
 
+
+
 def earth(time,
             coord_sys='GSM',
             renderView=None,
@@ -857,7 +859,7 @@ def magnetopause(time, Bz=None, Psw=None, model='Shue97', coord_sys='GSM',
     import numpy as np
     import numpy.matlib
     from datetime import datetime
-    from magnetovis.util import tstrTimeDelta, tstr, time2datetime
+    from magnetovis.util import tstr, time2datetime
     from vtk_export import vtk_export
     from magnetovis.cxtransform import transform
 
@@ -1049,15 +1051,8 @@ def magnetopause(time, Bz=None, Psw=None, model='Shue97', coord_sys='GSM',
         points = np.column_stack([X, Y, Z])
         connectivity = {'HYPERBOLOID TRIANGLE': x_repeats}
         
-        
-        # flag pole for text label in paraview
-        base_coords = np.array([[-15, np.sqrt(-s1*(-15)**2 -s2*(-15)-s3 ), 0]])
-        base_coords = rot_mat(base_coords)[0]
-        top_coords = np.copy(base_coords) 
-        top_coords[1] = top_coords[1] +30
-        flagpole_coords = [base_coords, top_coords]
         print('Created Magnetopause model from Roelof and Sibeck 1993.')
-        return points, connectivity, flagpole_coords
+        return points, connectivity
     
     def mpause_Sibeck_Lopez_Roelof1991(Bz=None, Psw=None,
                                         return_x_max = False):
@@ -1162,17 +1157,9 @@ def magnetopause(time, Bz=None, Psw=None, model='Shue97', coord_sys='GSM',
         Y = r * np.cos(phi)
         Z = r * np.sin(phi)
         
-        # flag pole for text label in paraview
-        base_coords = np.array([[0, np.sqrt(-s3 * rho ** 2), 0]])        
-        
-        base_coords = rot_mat(base_coords)[0]
-        top_coords = np.copy(base_coords) 
-        top_coords[1] = top_coords[1] + 10
-        flagpole_coords = [base_coords, top_coords]
-        
         print('Created Magnetopause model from Sibeck Lopez Roelof 1991.')
         points = np.column_stack([X, Y, Z])
-        return points, connectivity, flagpole_coords
+        return points, connectivity
     
     r, g, b, opacity = color
     year_limit = datetime(1995, 1, 1)
@@ -1273,16 +1260,16 @@ def magnetopause(time, Bz=None, Psw=None, model='Shue97', coord_sys='GSM',
     if model == "Shue97":
         if return_x_max:
             return mpause_Shue97(Bz, Psw, return_x_max)
-        points, connectivity, flagpole_coords = mpause_Shue97(Bz, Psw)
+        points, connectivity = mpause_Shue97(Bz, Psw)
     elif model == "Roelof_Sibeck93":
         if return_x_max:
             return mpause_Roelof_Sibeck93(Bz,Psw, return_x_max)
-        points, connectivity, flagpole_coords = mpause_Roelof_Sibeck93(Bz, Psw)
+        points, connectivity = mpause_Roelof_Sibeck93(Bz, Psw)
     elif model == 'Sibeck_Lopez_Roelof91':
         if return_x_max:
             return mpause_Sibeck_Lopez_Roelof1991(Bz=Bz, Psw=Psw, 
                                                   return_x_max=return_x_max)
-        points, connectivity, flagpole_coords = mpause_Sibeck_Lopez_Roelof1991(Bz, Psw)
+        points, connectivity = mpause_Sibeck_Lopez_Roelof1991(Bz, Psw)
     
     if coord_sys != 'GSE':
         points = transform(points, time, 'GSE', coord_sys, 'car', 'car')
@@ -1293,8 +1280,6 @@ def magnetopause(time, Bz=None, Psw=None, model='Shue97', coord_sys='GSM',
     filename = 'mPause_{}_{}_{}_{}_{}'\
         .format(model, Bz_str, Psw_str, coord_sys, time_str)\
         .replace(' ', '')
-    flagpole_text = 'mPause {} \n{} {}\n{} {}'\
-        .format(model, Bz_str, Psw_str, coord_sys, time_str)
     fnameVTK = os.path.join(out_dir, filename + '.vtk') 
     vtk_export(out_filename =fnameVTK,
                    points = points, dataset = 'POLYDATA',
@@ -1322,23 +1307,10 @@ def magnetopause(time, Bz=None, Psw=None, model='Shue97', coord_sys='GSM',
     
     renderView.ResetCamera()
     
-    text = pvs.Text()
-    textDisplay = pvs.Show(text, renderView)
-    textDisplay.FontSize = 12
-    textDisplay.TextPropMode = 'Flagpole Actor'
-    textDisplay.TopPosition = flagpole_coords[1]
-    textDisplay.BasePosition = flagpole_coords[0]
 
-    textDisplay.Color = [r, g, b]
-    text.Text = flagpole_text 
-    
-    renderView.Update()
-    pvs.RenameSource(filename, magnetopauseVTK)
-    pvs.RenameSource('TEXT - ' + flagpole_text.strip('\n'))
     
     if not show:
         pvs.Hide(magnetopauseVTK, renderView)
-        pvs.Hide(text, renderView)
     if render:
         pvs.RenderAllViews()
     
@@ -1355,7 +1327,7 @@ def bowshock(time, model='Fairfield71', Bz = None, Psw = None,
 
     from datetime import datetime
     import pytz 
-    from magnetovis.util import tstrTimeDelta, tstr, time2datetime
+    from magnetovis.util import tstr, time2datetime
     from vtk_export import vtk_export
     from magnetovis.cxtransform import transform
     
@@ -1431,15 +1403,9 @@ def bowshock(time, model='Fairfield71', Bz = None, Psw = None,
         connectivity = {'HYPERBOLOID TRIANGLE': repeat}
         print('Created Magnetopause model from Fairfield 1971.')
         
-        # flag pole for text label in paraview
-        base_coords = np.array([[x_max, 0, 0]])        
-        
-        base_coords = rot_mat(base_coords)[0]
-        top_coords = np.copy(base_coords) 
-        top_coords[1] = top_coords[1] + 45
-        flagpole_coords = [base_coords, top_coords]
+
     
-        return points, connectivity, flagpole_coords
+        return points, connectivity
     year_limit = datetime(1995, 1, 1)
     r, g, b, opacity = color
     
@@ -1527,7 +1493,7 @@ def bowshock(time, model='Fairfield71', Bz = None, Psw = None,
 
     
     if model == 'Fairfield71':
-        points, connectivity, flagpole_coords = bowshock_Fairfield71(Bz, Psw,
+        points, connectivity = bowshock_Fairfield71(Bz, Psw,
                                                     mpause_model=mpause_model)
         
     
@@ -1554,8 +1520,6 @@ def bowshock(time, model='Fairfield71', Bz = None, Psw = None,
         .format(model, mpause_model, Bz_str, Psw_str, coord_sys, time_str)\
         .replace(' ', '')
     mpause_model = mpause_model.replace('_', " ")
-    flagpole_text = "bshock {} {} \n{} {}\n{} {}"\
-        .format(model, mpause_model, Bz_str, Psw_str, coord_sys, time_str)
         
     fnameVTK = os.path.join(out_dir, filename + '.vtk') 
     vtk_export(out_filename =fnameVTK,
@@ -1577,21 +1541,8 @@ def bowshock(time, model='Fairfield71', Bz = None, Psw = None,
     
     renderView.ResetCamera()
     
-    text = pvs.Text()
-    textDisplay = pvs.Show(text, renderView)
-    textDisplay.FontSize = 12
-    textDisplay.Color = [r, g, b]
-    text.Text = flagpole_text
-    textDisplay.TextPropMode = 'Flagpole Actor'
-    textDisplay.TopPosition = flagpole_coords[1]
-    textDisplay.BasePosition = flagpole_coords[0]
-    renderView.Update()
-    pvs.RenameSource(filename, bowshockVTK)
-    pvs.RenameSource('TEXT - ' + flagpole_text.strip('\n'))
-    
     if not show:
         pvs.Hide(bowshockVTK, renderView)
-        pvs.Hide(text, renderView)
     if render:
         pvs.RenderAllViews()
     
@@ -1651,19 +1602,6 @@ def satellite(time_o, time_f, satellite_id,
             trace_display.ShaderPreset = shader_preset 
             trace_display.GaussianRadius = 0.005
         
-        text = pvs.Text()
-        textDisplay = pvs.Show(text, renderView)
-        textDisplay.FontSize = 12
-        textDisplay.Color = color[0:3]
-        text.Text = flagpole_text
-        textDisplay.TextPropMode = 'Flagpole Actor'
-        textDisplay.BasePosition = points[0:3]
-        top = np.copy(points[0:3])
-        top[2] =+ text_y_loc
-        textDisplay.TopPosition = top
-        textDisplay.Bold = 1
-        pvs.RenameSource("text " + title.replace('tube ',''), text)
-        pvs.RenameSource(title.replace('tube ','line '), trace_path)
         
         if tube_radius != None:      
             tube = pvs.Tube(Input=trace_path)
@@ -1684,7 +1622,6 @@ def satellite(time_o, time_f, satellite_id,
         
         if not show:
             pvs.Hide(trace_path, renderView)
-            pvs.Hide(text, renderView)
         
         if render:
             pvs.RenderAllViews() 
@@ -1756,7 +1693,9 @@ def satellite(time_o, time_f, satellite_id,
         text = "{} {} tube continuous {}".format(satellite_id, coord_sys,
                                                 text_time)
         poly_line(points, color, title=text, 
-                  tube_radius=tube_radius, text_y_loc=0.95,
+                  tube_radius=tube_radius, text_y_loc=0.95, 
+                  representation=representation, shader_preset=shader_preset,
+                  flagpole_text="",
                   renderView=renderView, render=render, show=show)
         
            
@@ -1839,8 +1778,7 @@ def neutralsheet(time, psi=None,
             "Neut_Sh_{}_psi{}_{}_{}Rh{}G{}Lw{}d{}x{},{}y{},{}.vtk"\
                         .format(model, np.rad2deg(psi), time_str, coord_sys, Rh, G, Lw, d, 
                                 xlims[0], xlims[1], ylims[0], ylims[1])
-    flagpole_text = 'Neut_Sh {} psi{} {} \n{} Rh{} G{} Lw{} d{}'\
-        .format(model, np.rad2deg(psi), time_str, coord_sys, Rh, G, Lw, d)
+
     fileVTK = os.path.join(out_dir, sheet_file +'.vtk') 
     
     if not os.path.exists(fileVTK) or return_sheet:   
@@ -1905,18 +1843,6 @@ def neutralsheet(time, psi=None,
     if not show:
         pvs.Hide(neutralShVTK, renderView)
     
-    text = pvs.Text()
-    textDisplay = pvs.Show(text, renderView)
-    textDisplay.FontSize = 12
-    textDisplay.Color = [r, g, b]
-    text.Text = flagpole_text
-    textDisplay.TextPropMode = 'Flagpole Actor'
-    top = np.copy(points[0,0:3])
-    textDisplay.BasePosition = top
-    base = np.copy(top)
-    base[2] += 5
-    pvs.RenameSource('text ' + flagpole_text.strip('\n'))
-    renderView.Update()
     
     if render:
         pvs.Render()
@@ -1960,8 +1886,7 @@ def plasmasheet(time, psi=None,
             "Plas_Sh_{}_psi{}_time{}_{}_Rh{}G{}Lw{}d{}x{},{}y{},{}"\
                         .format(model, psi_deg, time_str, coord_sys, Rh, G, Lw, d, 
                                 xlims[0], xlims[1], ylims[0], ylims[1])
-    flagpole_text = 'Neut_Sh {} \npsi{} {} \n{} Rh{} G{} Lw{} d{}'\
-        .format(model, psi_deg, time_str, coord_sys, Rh, G, Lw, d)
+
     fileVTK = os.path.join(out_dir, sheet_file + '.vtk') 
     if True:# not os.path.exists(fileVTK):
     
@@ -2012,21 +1937,6 @@ def plasmasheet(time, psi=None,
     if not show:
         pvs.Hide(plasmaShVTK, renderView)
     
-    text = pvs.Text()
-    textDisplay = pvs.Show(text, renderView)
-    textDisplay.FontSize = 16
-    textDisplay.Color = [r, g, b]
-    text.Text = flagpole_text
-    textDisplay.TextPropMode = 'Flagpole Actor'
-    base = np.copy(points[0,0:3])
-    base[2] += 6
-    textDisplay.BasePosition = base
-    top = np.copy(base)
-    top[2] += 5
-    textDisplay.TopPosition = top
-    textDisplay.Bold = 1
-    
-    pvs.RenameSource('text ' + flagpole_text.strip('\n'))
     renderView.Update()
     
     if render:
@@ -2051,3 +1961,71 @@ def rot_mat(points, angle=-4, h=0, k=0):
     points = np.matmul(rot_trans_mat, points.transpose()).transpose()
     points = np.delete(points, 3, 1)
     return points    
+
+def tstrTimeDelta(time, minute_delta):
+    from datetime import timedelta
+    
+    t_datetime = time2datetime(time) + timedelta(minutes=minute_delta)
+    return tstr(t_datetime)
+
+def time2datetime(t):
+    import datetime as dt
+    
+    for i in range(len(t)):
+        if int(t[i]) != t[i]:
+            raise ValueError("int(t[{0:d}] != t[{0:d}] = {1:f}".format(i, t[i]))\
+            
+    if len(t) < 3:
+        raise ValueError('Time list/tuple must have 3 or more elements')
+    if len(t) == 3:
+        return dt.datetime(int(t[0]), int(t[1]), int(t[2]))    
+    if len(t) == 4:
+        return dt.datetime(int(t[0]), int(t[1]), int(t[2]), int(t[3]))    
+    if len(t) == 5:
+        return dt.datetime(int(t[0]), int(t[1]), int(t[2]), int(t[3]), int(t[4]))    
+    if len(t) == 6:
+        return dt.datetime(int(t[0]), int(t[1]), int(t[2]), int(t[3]), int(t[4]), int(t[5]))    
+    if len(t) == 7:
+        return dt.datetime(int(t[0]), int(t[1]), int(t[2]), int(t[3]), int(t[4]), int(t[5]), int(t[6]))   
+
+def tstr(time, length=7):
+    """Create date/time string of the convention to tag files with given array of integers
+    
+    tstr((2000, 1, 1, 2)) # 2000:01:01T02:00:00
+    tstr((2000, 1, 1, 2, 3)) # 2000:01:01T02:03:00
+    tstr((2000, 1, 1, 2, 3, 4)) # 2000:01:01T02:03:04
+    tstr((2000, 1, 1, 2, 3, 4, 567)) # 2000:01:01T02:03:04.567
+    """
+    import datetime
+    
+    if isinstance(time, datetime.date ):
+        return time.strftime("%Y-%m-%dT%H:%M:%SZ")
+    
+    else:
+        # ISO 8601
+        assert(len(time) > 2)
+    
+        if length == 7:
+            return '%04d-%02d-%02dT%02d:%02d:%02d.%03d' % tpad(time, length=length)
+        elif length == 6:
+            return '%04d-%02d-%02dT%02d:%02d:%02d' % tpad(time, length=length)        
+        elif length == 5:
+            return '%04d-%02d-%02dT%02d:%02d' % tpad(time, length=length)        
+        elif length == 4:
+            return '%04d-%02d-%02dT%02d' % tpad(time, length=length)        
+        elif length == 3:
+            return '%04d-%02d-%02d' % tpad(time, length=length)   
+def tpad(time, length=7):
+
+    # TODO: Check that time is valid
+    time = list(time)
+
+    assert(len(time) > 2)
+    
+    if len(time) > length:
+        time = time[0:length]
+    else:
+        pad = length - len(time)
+        time = time + pad*[0]
+
+    return tuple(time)
