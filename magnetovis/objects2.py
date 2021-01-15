@@ -500,22 +500,57 @@ def trace_lines(points, connectivity, out_fname=os.path.join(tempfile.gettempdir
 
 def _latitude_lines(self, time, coord_sys='GEO', increment=15, color=[1,0,0]):
 
-    import cxtransform as cx
+    import numpy as np
+    import numpy.matlib
+    import vtk
+    import paraview.simple as pvs
+    from magnetovis import cxtransform as cx
     
-    npts = 100
-
-    lat_array = np.arange(-90., 90. + increment, increment)
-    lon = np.linspace(0,360,npts)
-    #np.einstum('',lat_array,lon)
-
+    lon = np.arange(0,360 + 5, 5)#360/npts) # [0, 90, 180, 270]
+    lat = np.arange(-90,90 + increment,increment) # [-90, -45, 0, 45, 90]
+    lon_repeat = len(lat) # 5
+    lat_repeat = len(lon) # 4
+    lon = np.matlib.repmat(lon, 1, lon_repeat).flatten()
+    lat = np.repeat(lat,lat_repeat)
+    r = np.ones(lon_repeat*lat_repeat)
     
-    points = np.zeros((npts*lat_array.size, 3))
-    for i in range(lat_array.size):
-        a = np.column_stack([np.ones(npts, ), lat_array[i]*np.ones(npts, ), lon])
-        line = cx.transform(a, time, coord_sys, 'GSM', ctype_in='sph', ctype_out='car')
-        points[i*npts : (i+1)*npts, :] = line
+    sph_coords = np.column_stack((r,lat,lon))
+    points = cx.transform(sph_coords, time, 'GEO', coord_sys, ctype_in='sph', ctype_out='car')
+    
+    ### start of vtk
+    
+    pdo = self.GetPolyDataOutput()
+    pdo.Allocate(len(r), 1)
+    pts = vtk.vtkPoints()
+    lon_size = np.unique(lon).size
+    lat_size = np.unique(lat).size
+    for i in range(lat_size): # 4
+        polyline = vtk.vtkPolyLine()
+        polyline.GetPointIds().SetNumberOfIds(lon_size)
+        for j in range(lon_size): # 5
+            pts_index = j+i*lon_size
+            pts.InsertPoint(pts_index, points[pts_index,0], points[pts_index,1], points[pts_index,2] )
+            polyline.GetPointIds().SetId(j,pts_index)
+        pdo.InsertNextCell(polyline.GetCellType(), polyline.GetPointIds())
+    pdo.SetPoints(pts)
+
+    colors = vtk.vtkUnsignedCharArray()
+    colors.SetNumberOfComponents(1)
+    colors.SetName('lat-lon')
+    
+    for n in range(r.size):
+        colors.InsertNextTuple([0]) # 0 for lat, # 1 for lon
+    pdo.GetPointData().AddArray(colors)
 
 
+def latitude_lines(time, coord_sys='GEO', increment=15, color=[0,0,1],
+                   representation='Surface', tube_radius=.02, renderView=None,
+                   render=True, show=True, show_annotations=False):
+                   
+    objs_wrapper(time=time, coord_sys=coord_sys, increment=increment,
+                color=color, representation=representation, tube_radius=tube_radius,
+                renderView=renderView, render=render, show=show,
+                show_annotations=show_annotations, obj='latitude')
 
 def longitude_lines(time, coord_sys='GEO', increment=30, color=[0,0,1],
                                         renderView=None,
@@ -1282,8 +1317,61 @@ def objs_wrapper(**kwargs):
             tubeDisplay.SetScalarBarVisibility(renderView, True)
             renderView.Update()
             
-                
             pvs.RenameSource(title.replace('line','tube'), tube)
+            
+    if kwargs['obj'] == "latitude" or kwargs['obj'] == 'longitude':
+        scalar_data = 'lat-lon'
+        programmableSource.Script = "kwargs="+str(kwargs)+";execfile('{}',globals(),locals())".format(path)
+        
+        if not kwargs['renderView']:
+            renderView = pvs.GetActiveViewOrCreate('RenderView')
+            programmableSourceDisplay = pvs.Show(programmableSource, renderView)
+            programmableSourceDisplay.Representation = kwargs['representation']
+            
+        if not kwargs['show']:
+            pvs.Hide(programmableSource, renderView)
+            
+        if kwargs['render']:
+            pvs.Render()
+            renderView.Update()
+        
+        title = "{} line {} {}".format(kwargs['obj'], kwargs['coord_sys'], tstr(kwargs['time'],5))
+            
+        lat_lonLUT = pvs.GetColorTransferFunction(scalar_data)
+        lat_lonLUT.InterpretValuesAsCategories = 1
+        lat_lonLUT.AnnotationsInitialized = 1
+        
+        lat_lonLUT.Annotations = ['0', 'latitude', '1', 'longitude']
+        index_colored_list = [0,0,1,1,1,0]
+        lat_lonLUT.IndexedColors = index_colored_list
+        
+        if kwargs['tube_radius'] != None:
+            tube = pvs.Tube(Input=programmableSource)
+            tube.Scalars = ['POINTS',scalar_data]
+            tube.Radius = kwargs['tube_radius']
+            
+            lat_lonLUT = pvs.GetColorTransferFunction(scalar_data)
+            lat_lonLUT.InterpretValuesAsCategories = 1
+            lat_lonLUT.AnnotationsInitialized = 1
+#            lat_lonLUT.Annotations = annotations
+            lat_lonLUT.IndexedColors = index_colored_list
+            
+            tubeDisplay = pvs.Show(tube, renderView)
+            tubeDisplay.Representation = kwargs['representation']
+            tubeDisplay.ColorArrayName = ['POINTS', scalar_data]
+            tubeDisplay.LookupTable = lat_lonLUT
+            tubeDisplay.OpacityArray = ['POINTS', scalar_data]
+            
+            pvs.Hide(programmableSource, renderView)
+            if kwargs['show_annotations']:
+                tubeDisplay.SetScalarBarVisibility(renderView, True)
+            renderView.Update()
+            
+            pvs.RenameSource(title.replace('line','tube'), tube)
+        
+        if kwargs['show_annotations']:
+            programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
+    
     pvs.RenameSource(title, programmableSource)
 
     renderView.ResetCamera()
@@ -2234,6 +2322,9 @@ if "kwargs" in vars():
     elif kwargs['obj'] == 'plasmapause':
         _plasmapause(self, output, time=kwargs['time'])
         
+    elif kwargs['obj'] == 'latitude':
+        _latitude_lines(self, time=kwargs['time'], coord_sys=kwargs['coord_sys'],
+                        increment=kwargs['increment'], color=kwargs['color'])
         
     
     
