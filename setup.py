@@ -26,10 +26,8 @@ if len(sys.argv) > 1 and sys.argv[1] == 'develop':
 
 # https://stackoverflow.com/a/8663557
 # Temporarily modify path so that util functions can be used.
-setup_path = os.path.dirname(os.path.realpath(__file__))
-print(setup_path)
-sys.path.insert(0, os.path.join(setup_path, 'magnetovis'))
-print(sys.path[0])
+setup_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+sys.path.insert(0, os.path.join(setup_path, 'magnetovis', 'magnetovis'))
 import util
 del sys.path[0]
 
