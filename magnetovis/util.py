@@ -124,6 +124,7 @@ def compatability_check(debug=False):
     import warnings
     import subprocess
     import site
+    import os
 
     if sys.maxunicode > 65535:
         print('UCS4 build')
