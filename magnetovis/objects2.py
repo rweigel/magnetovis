@@ -87,7 +87,7 @@ def earth(time,
         # XYZr = cx.transform(XYZ, time, 'GEO', coord_sys)
         if coord_sys != 'GSM':
             XYZr = cx.transform(XYZ, time, 'GEO', coord_sys)
-        XYZr = cx.GEOtoGSM(XYZ, time, 'car', 'car')
+#        XYZr = cx.GEOtoGSM(XYZ, time, 'car', 'car')
 
         vtk_export(fnameVTK, XYZr,
                     dataset = 'STRUCTURED_GRID',
@@ -498,12 +498,11 @@ def trace_lines(points, connectivity, out_fname=os.path.join(tempfile.gettempdir
     tube1Display.DiffuseColor = color
 
 
-def _latitude_lines(self, time, coord_sys='GEO', increment=15, color=[1,0,0]):
+def _latitude_lines(self, time, coord_sys='GSM', increment=15, color=[1,0,0]):
 
     import numpy as np
     import numpy.matlib
     import vtk
-    import paraview.simple as pvs
     from magnetovis import cxtransform as cx
     
     lon = np.arange(0,360 + 5, 5)#360/npts) # [0, 90, 180, 270]
@@ -515,7 +514,7 @@ def _latitude_lines(self, time, coord_sys='GEO', increment=15, color=[1,0,0]):
     r = np.ones(lon_repeat*lat_repeat)
     
     sph_coords = np.column_stack((r,lat,lon))
-    points = cx.transform(sph_coords, time, 'GEO', coord_sys, ctype_in='sph', ctype_out='car')
+    points = cx.transform(sph_coords, time, 'GSM', coord_sys, ctype_in='sph', ctype_out='car')
     
     ### start of vtk
     
@@ -536,10 +535,53 @@ def _latitude_lines(self, time, coord_sys='GEO', increment=15, color=[1,0,0]):
 
     colors = vtk.vtkUnsignedCharArray()
     colors.SetNumberOfComponents(1)
-    colors.SetName('lat-lon')
+    colors.SetName('lat_lon')
     
     for n in range(r.size):
         colors.InsertNextTuple([0]) # 0 for lat, # 1 for lon
+    pdo.GetPointData().AddArray(colors)
+    
+def _longitude_lines(self, time, coord_sys='GSM', increment=15, color=[1,0,0]):
+
+    import numpy as np
+    import numpy.matlib
+    import vtk
+    from magnetovis import cxtransform as cx
+    
+    lon = np.arange(0,360 + increment, increment) #360/npts) # [0, 90, 180, 270]
+    lat = np.arange(-90,90 + 5, 5) # [-90, -45, 0, 45, 90]
+    lon_repeat = len(lat) # 5
+    lat_repeat = len(lon) # 4
+    lat = np.matlib.repmat(lat, 1, lat_repeat).flatten()
+    lon = np.repeat(lon,lon_repeat)
+    r = np.ones(lon_repeat*lat_repeat)
+    
+    sph_coords = np.column_stack((r,lat,lon))
+    points = cx.transform(sph_coords, time, 'GSM', coord_sys, ctype_in='sph', ctype_out='car')
+    
+    ### start of vtk
+    
+    pdo = self.GetPolyDataOutput()
+    pdo.Allocate(len(r), 1)
+    pts = vtk.vtkPoints()
+    lon_size = np.unique(lon).size
+    lat_size = np.unique(lat).size
+    for i in range(lon_size): # 4
+        polyline = vtk.vtkPolyLine()
+        polyline.GetPointIds().SetNumberOfIds(lat_size)
+        for j in range(lat_size): # 5
+            pts_index = j+i*lat_size
+            pts.InsertPoint(pts_index, points[pts_index,0], points[pts_index,1], points[pts_index,2] )
+            polyline.GetPointIds().SetId(j,pts_index)
+        pdo.InsertNextCell(polyline.GetCellType(), polyline.GetPointIds())
+    pdo.SetPoints(pts)
+
+    colors = vtk.vtkUnsignedCharArray()
+    colors.SetNumberOfComponents(1)
+    colors.SetName('lat_lon')
+    
+    for n in range(r.size):
+        colors.InsertNextTuple([1]) # 0 for lat, # 1 for lon
     pdo.GetPointData().AddArray(colors)
 
 
@@ -552,37 +594,15 @@ def latitude_lines(time, coord_sys='GEO', increment=15, color=[0,0,1],
                 renderView=renderView, render=render, show=show,
                 show_annotations=show_annotations, obj='latitude')
 
-def longitude_lines(time, coord_sys='GEO', increment=30, color=[0,0,1],
-                                        renderView=None,
-                                        render=True,
-                                        show=True,
-                                        out_dir=tempfile.gettempdir(),
-                                        debug=False):
 
-    npts = 100
-
-    lon_array = np.arange(0., 360. + increment, increment)
-    lat = np.linspace(-90,90,npts)
-    #np.einstum('',lat_array,lon)
-
-    import cxtransform as cx
-
-    points = np.zeros((npts*lon_array.size, 3))
-    for i in range(lon_array.size):
-        a = np.column_stack([np.ones(npts, ), lat, lon_array[i]*np.ones(npts, )])
-        line = cx.transform(a, time, coord_sys, 'GSM', ctype_in='sph', ctype_out='car')
-        points[i*npts : (i+1)*npts, :] = line
-
-    conn = npts*np.ones(lon_array.size, dtype=int)
-
-    out_fname = os.path.join(out_dir, coord_sys + '_longitude_lines.vtk')
-
-    trace_lines(points, {'LINES' : conn}, out_fname=out_fname,
-                                        color=color, ftype='BINARY',
-                                            renderView=renderView,
-                                            render=render,
-                                            show=show,
-                                            debug = debug)
+def longitude_lines(time, coord_sys='GEO', increment=15, color=[0,.5,1],
+                   representation='Surface', tube_radius=.02, renderView=None,
+                   render=True, show=True, show_annotations=False):
+                   
+    objs_wrapper(time=time, coord_sys=coord_sys, increment=increment,
+                color=color, representation=representation, tube_radius=tube_radius,
+                renderView=renderView, render=render, show=show,
+                show_annotations=show_annotations, obj='longitude')
 
 
 def plane(time, val, extend=[[-40,40],[-40,40]], coord_sys='GSM', labels=True,
@@ -973,7 +993,7 @@ def _neutralsheet(self, output, time, psi,
 
 def plasmasheet(time, psi=None, 
                  Rh=8, G=10, Lw=10, d=4,
-                 xlims = (-40,-5), ylims = (-18,18),
+                 xlims = (-40,-5), ylims = (-15,15),
                  coord_sys='GSM',
                  model='tsyganenko95',
                  color = [.6,.3,.2,0.5],
@@ -1094,8 +1114,9 @@ def objs_wrapper(**kwargs):
     
     mag_surfaces = ['Magnetopause','Bowshock','Neutralsheet', 'Plasmasheet']
     
-    if kwargs['png_fn']:
-        png_fn_fp = os.path.join(kwargs['out_dir'],kwargs['png_fn'])
+    if 'png_fn' in kwargs.keys():
+        if kwargs['png_fn']:
+            png_fn_fp = os.path.join(kwargs['out_dir'],kwargs['png_fn'])
     
     if kwargs['obj'] == 'axis':
         x_dim = 300
@@ -1173,8 +1194,18 @@ def objs_wrapper(**kwargs):
         
         if not kwargs['renderView']:
             renderView = pvs.GetActiveViewOrCreate('RenderView')
-            programmableSourceDisplay = pvs.Show(programmableSource, renderView)
-            programmableSourceDisplay.Representation = kwargs['representation']
+        else:
+            renderView = kwargs['renderView']
+#            renderView = pvs.GetActiveViewOrCreate(kwargs['renderView']['name'])
+#            if "CameraPosition" in kwargs['renderView'].keys():
+#                renderView.CameraPosition = kwargs['renderView']["CameraPosition"]
+#            if "CameraFocalPoint" in kwargs['renderView'].keys():
+#                renderView.CameraFocalPoint = kwargs['renderView']["CameraFocalPoint"]
+#            if "CameraViewUp" in kwargs['renderView']['CameraViewUp']:
+#                renderView.CameraViewUp = kwargs['renderView']['CameraViewUp']
+#            renderView = kwargs['renderView']
+        programmableSourceDisplay = pvs.Show(programmableSource, renderView)
+        programmableSourceDisplay.Representation = kwargs['representation']
         
         if not kwargs['show']:
             pvs.Hide(programmableSource, renderView)
@@ -1234,7 +1265,7 @@ def objs_wrapper(**kwargs):
         
         regionsLUT.Annotations = annotations   
         
-        renderView = pvs.GetActiveViewOrCreate('RenderView')
+#        renderView = pvs.GetActiveViewOrCreate('RenderView')
         programmableSourceDisplay = pvs.Show(programmableSource, renderView)
         programmableSourceDisplay.Representation = kwargs['representation']
         
@@ -1243,26 +1274,22 @@ def objs_wrapper(**kwargs):
         
         # current camera placement for renderView1
         if kwargs['png_fn']:
-            if False:
-                renderView.CameraPosition = [70, 80, 130]
-                renderView.CameraFocalPoint = [-15, 2, 0]
-                renderView.CameraViewUp = [0, 1, 0]
-                renderView.CameraParallelScale = 45
-                # save screenshot
-                pvs.SaveScreenshot(png_fn_fp, renderView, ImageResolution=[1676, 1220])
-            if True:
+#            if False:
+#                renderView.CameraPosition = [70, 80, 130]
+#                renderView.CameraFocalPoint = [-15, 2, 0]
+#                renderView.CameraViewUp = [0, 1, 0]
+#                renderView.CameraParallelScale = 45
+#                # save screenshot
+#                pvs.SaveScreenshot(png_fn_fp, renderView, ImageResolution=[1676, 1220])
+            if not kwargs['renderView']:
                 renderView.CameraPosition = [11, -80, 42]
                 renderView.CameraFocalPoint = [-22, 0, 0]
                 renderView.CameraViewUp = [-0.3, 0.3, 0.8]
                 renderView.CameraParallelScale = 25.245512504246587
+                if kwargs['obj'] == 'Bowshock':
+                    renderView.ResetCamera()
                 # save screenshot
-                pvs.SaveScreenshot(png_fn_fp, renderView, ImageResolution=[1676, 1220])
-                
-               # current camera placement for renderView1
-#                renderView1.CameraPosition = [11.063843851950597, -81.41308153532496, 42.7102252582156]
-#                renderView1.CameraFocalPoint = [-22.499999999999982, -3.884904374276781e-15, 0.7619427442550575]
-#                renderView1.CameraViewUp = [-0.36850344375815675, 0.30122748312476083, 0.8794698490276406]
-#                renderView1.CameraParallelScale = 25.245512504246587
+            pvs.SaveScreenshot(png_fn_fp, renderView, ImageResolution=[1676, 1220])
         
     
     if kwargs['obj'] == 'satellite':
@@ -1347,7 +1374,7 @@ def objs_wrapper(**kwargs):
             pvs.RenameSource(title.replace('line','tube'), tube)
             
     if kwargs['obj'] == "latitude" or kwargs['obj'] == 'longitude':
-        scalar_data = 'lat-lon'
+        scalar_data = 'lat_lon'
         programmableSource.Script = "kwargs="+str(kwargs)+";execfile('{}',globals(),locals())".format(path)
         
         if not kwargs['renderView']:
@@ -1369,19 +1396,21 @@ def objs_wrapper(**kwargs):
         lat_lonLUT.AnnotationsInitialized = 1
         
         lat_lonLUT.Annotations = ['0', 'latitude', '1', 'longitude']
-        index_colored_list = [0,0,1,1,1,0]
-        lat_lonLUT.IndexedColors = index_colored_list
+        if list(lat_lonLUT.IndexedColors) != []: 
+            if kwargs['obj'] == 'latitude':
+                lat_lonLUT.IndexedColors = np.concatenate((kwargs['color'], lat_lonLUT.IndexedColors[3:]))
+            else:
+                lat_lonLUT.IndexedColors = np.concatenate((lat_lonLUT.IndexedColors[0:3], kwargs['color']))
+        else: 
+            if kwargs['obj'] == 'latitude':
+                lat_lonLUT.IndexedColors = np.concatenate((kwargs['color'],.5*np.array(kwargs['color'])))
+            else:
+                lat_lonLUT.IndexedColors = np.concatenate((.5*np.array(kwargs['color']),kwargs['color']))
         
         if kwargs['tube_radius'] != None:
             tube = pvs.Tube(Input=programmableSource)
             tube.Scalars = ['POINTS',scalar_data]
             tube.Radius = kwargs['tube_radius']
-            
-            lat_lonLUT = pvs.GetColorTransferFunction(scalar_data)
-            lat_lonLUT.InterpretValuesAsCategories = 1
-            lat_lonLUT.AnnotationsInitialized = 1
-#            lat_lonLUT.Annotations = annotations
-            lat_lonLUT.IndexedColors = index_colored_list
             
             tubeDisplay = pvs.Show(tube, renderView)
             tubeDisplay.Representation = kwargs['representation']
@@ -2174,7 +2203,7 @@ def bowshock(time, model='Fairfield71', Bz = None, Psw = None,
                  renderView=renderView, render=render,
                  show=show, obj='Bowshock')
     
-def satellite(time_o='', time_f='', satellite_id='', 
+def satellite(time_o, time_f, satellite_id, 
               coord_sys='GSM',
               color=[1,0,0,1],
               representation='Surface',
@@ -2283,7 +2312,7 @@ def _axis(self, output, time, val, coord_sys, lims,
 
 def neutralsheet(time=None, psi=None, 
                  Rh=8, G=10, Lw=10, d=4,
-                 xlims = (-40,-5), ylims = (-18,18),
+                 xlims = (-40,-5), ylims = (-15,15),
                  coord_sys='GSM',
                  model='tsyganenko95',
                  color = [1,0,0,0.5],
@@ -2357,6 +2386,10 @@ if "kwargs" in vars():
     elif kwargs['obj'] == 'latitude':
         _latitude_lines(self, time=kwargs['time'], coord_sys=kwargs['coord_sys'],
                         increment=kwargs['increment'], color=kwargs['color'])
+        
+    elif kwargs['obj'] == 'longitude':
+        _longitude_lines(self, time=kwargs['time'], coord_sys=kwargs['coord_sys'],
+                         increment=kwargs['increment'], color=kwargs['color'])
         
     
     
