@@ -28,7 +28,7 @@ if len(sys.argv) > 1 and sys.argv[1] == 'develop':
 # Temporarily modify path so that util functions can be used.
 setup_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.insert(0, os.path.join(setup_path, 'magnetovis', 'magnetovis'))
-import util
+from magnetovis import util
 del sys.path[0]
 
 util.compatability_check(debug=debug)
