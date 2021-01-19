@@ -81,12 +81,12 @@ def earth(time,
         x = R*np.cos(B1+PI)*np.sin(B2)
         y = R*np.sin(B1+PI)*np.sin(B2)
         z = R*np.cos(B2)
-        XYZ = np.column_stack((x, y, z))
+        XYZr = np.column_stack((x, y, z))
 
         # TODO: Use this:
         # XYZr = cx.transform(XYZ, time, 'GEO', coord_sys)
         if coord_sys != 'GSM':
-            XYZr = cx.transform(XYZ, time, 'GEO', coord_sys)
+            XYZr = cx.transform(XYZr, time, 'GEO', coord_sys)
 #        XYZr = cx.GEOtoGSM(XYZ, time, 'car', 'car')
 
         vtk_export(fnameVTK, XYZr,
@@ -1790,7 +1790,7 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
         return points
     
     
-    year_limit = datetime(1995, 1, 1)
+    year_limit = datetime(1995, 1, 1, tzinfo=pytz.utc)
     
     if not return_x_max:
         if time == None:
@@ -2031,7 +2031,7 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model,
  
     
         return points
-    year_limit = datetime(1995, 1, 1)
+    year_limit = datetime(1995, 1, 1,tzinfo=pytz.utc)
     
     if time == None:
        assert Bz != None and Psw != None, \
