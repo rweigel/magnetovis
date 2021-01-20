@@ -1,37 +1,81 @@
 import numpy as np
 
 ###########
-N = 100
+N = 50
 debug = False
 
 def exampleCallable(r, theta, phi):
-    return np.cos(3*phi)* r**3 * np.sin(5*theta)
+    theta = np.pi/2. - theta
+    a1 = 1.4
+    a2 = 1.53
+    a3 = -0.036
+    a4 = 30.76
+    a5 = 159.9
+    a7 = 6.27
+    Re = 6371.2
+    
+    MLT = (phi*180/np.pi/15.) - 12.
+    x = MLT
+    if MLT > 24:
+        MLT = MLT - 24
+    if MLT < 0:
+        MLT + MLT + 24
+    if x > 12:
+        x = x - 24
+    if x<0:
+        x = x + 24
+    
+    a6 = -0.87 + 0.12 * np.exp(-x**2/9.)
+    a8 = 0.7 * np.cos(2*np.pi* (MLT-21.)/24.) + 4.4
+    a9 = 15.3 * np.cos(2*np.pi*MLT/24.) + 19.7
+    
+    F = a2 - np.exp(a3 * (1.-a4 * np.exp(Re*(1.-r)/a5)))
+    C2LAM = (np.cos(theta))**2
+    L = r/np.cos(C2LAM)
+    G = (a6*r/C2LAM) + a7
+    H = (1. + (L / a8) ** (2. * (a9 - 1.))) ** (-a9 / (a9 - 1.))
+    
+    n_log = a1 * F * G * H
+    
+    return n_log
+    # return np.cos(3*phi)* r**3 * np.sin(5*theta)
 ###########
 
-rmin = 1.
+rmin = 1.05
 dr = 0.02
 dtheta = np.pi/N 
 dphi = 2.*np.pi/N
 
-r_ax = rmin + dr*np.arange(N)
-theta_ax = dtheta*np.arange(N) + dtheta/2.
+# r_ax = rmin + dr*np.arange(N)
+r_ax = np.arange(rmin,6,(6-rmin)/N) # make radius out to 6
+# theta_ax = dtheta*np.arange(N) + dtheta/2. #np.arange(-np.pi/2,np.pi/2,dtheta) + dtheta/2.# dtheta*np.arange(N) #+ dtheta/2.
+theta_i = 28*np.pi/180 
+theta_f =152 * np.pi/180 
+theta_step = (theta_f-theta_i)/N
+theta_ax = np.arange(theta_i,theta_f,theta_step)
+# print('theta',theta_ax*180/np.pi)
 phi_ax = dphi*np.arange(N)
+# print('phi',phi_ax*180/np.pi)
 
 phi = np.kron(np.ones(N),phi_ax)
+# print('phikron',phi*180/np.pi)
 theta = np.kron(theta_ax,np.ones(N))
 r = np.kron(r_ax, np.ones(N**2))
 phi = np.kron(np.ones(N), phi)
 theta = np.kron(np.ones(N), theta)
-
+print(max(r))
 
 P = np.column_stack([r,theta,phi])
 
 P_cartesian = np.nan*np.empty(P.shape)
+# print(P_cartesian)
 P_cartesian[:,0] = P[:,0]*np.cos(P[:,2])*np.sin(P[:,1])  # x = r cos(phi) sin(theta)
 P_cartesian[:,1] = P[:,0]*np.sin(P[:,2])*np.sin(P[:,1])  # y = r sin(phi) sin(theta)
 P_cartesian[:,2] = P[:,0]*np.cos(P[:,1])                 # z = r cos(theta)
 
-ind = np.arange(N**3).reshape(N,N,N)
+
+
+ind = np.arange(N**3).reshape((N,N,N))
 #PERIODIC IN PHI DIRECTION (indexed by k)
 indPeriodic = np.zeros((N,N,N+1), dtype=int)
 indPeriodic[:,:,:-1] = ind
@@ -72,8 +116,7 @@ for i in range(N**3):
 scalarfield = np.array(scalarfield)
 
 nV_Periodic = V_Periodic.shape[0]
-
-f = open('UNSTRUCTURED_GRID-volumesPeriodic.vtk','w')
+f = open('blahUNSTRUCTURED_GRID-volumesPeriodic.vtk','w')
 f.write('# vtk DataFile Version 3.0\n')
 f.write('Unstructured_grid cells\n')
 f.write('ASCII\n')

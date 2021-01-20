@@ -81,13 +81,13 @@ def earth(time,
         x = R*np.cos(B1+PI)*np.sin(B2)
         y = R*np.sin(B1+PI)*np.sin(B2)
         z = R*np.cos(B2)
-        XYZ = np.column_stack((x, y, z))
+        XYZr = np.column_stack((x, y, z))
 
         # TODO: Use this:
         # XYZr = cx.transform(XYZ, time, 'GEO', coord_sys)
         if coord_sys != 'GSM':
-            XYZr = cx.transform(XYZ, time, 'GEO', coord_sys)
-        XYZr = cx.GEOtoGSM(XYZ, time, 'car', 'car')
+            XYZr = cx.transform(XYZr, time, 'GEO', coord_sys)
+#        XYZr = cx.GEOtoGSM(XYZ, time, 'car', 'car')
 
         vtk_export(fnameVTK, XYZr,
                     dataset = 'STRUCTURED_GRID',
@@ -498,68 +498,111 @@ def trace_lines(points, connectivity, out_fname=os.path.join(tempfile.gettempdir
     tube1Display.DiffuseColor = color
 
 
-def _latitude_lines(self, time, coord_sys='GEO', increment=15, color=[1,0,0]):
+def _latitude_lines(self, time, coord_sys='GSM', increment=15, color=[1,0,0]):
 
-    import cxtransform as cx
+    import numpy as np
+    import numpy.matlib
+    import vtk
+    from magnetovis import cxtransform as cx
     
-    npts = 100
-
-    lat_array = np.arange(-90., 90. + increment, increment)
-    lon = np.linspace(0,360,npts)
-    #np.einstum('',lat_array,lon)
-
+    lon = np.arange(0,360 + 5, 5)#360/npts) # [0, 90, 180, 270]
+    lat = np.arange(-90,90 + increment,increment) # [-90, -45, 0, 45, 90]
+    lon_repeat = len(lat) # 5
+    lat_repeat = len(lon) # 4
+    lon = np.matlib.repmat(lon, 1, lon_repeat).flatten()
+    lat = np.repeat(lat,lat_repeat)
+    r = np.ones(lon_repeat*lat_repeat)
     
-    points = np.zeros((npts*lat_array.size, 3))
-    for i in range(lat_array.size):
-        a = np.column_stack([np.ones(npts, ), lat_array[i]*np.ones(npts, ), lon])
-        line = cx.transform(a, time, coord_sys, 'GSM', ctype_in='sph', ctype_out='car')
-        points[i*npts : (i+1)*npts, :] = line
-        
+    sph_coords = np.column_stack((r,lat,lon))
+    points = cx.transform(sph_coords, time, 'GSM', coord_sys, ctype_in='sph', ctype_out='car')
+    
+    ### start of vtk
+    
+    pdo = self.GetPolyDataOutput()
+    pdo.Allocate(len(r), 1)
+    pts = vtk.vtkPoints()
+    lon_size = np.unique(lon).size
+    lat_size = np.unique(lat).size
+    for i in range(lat_size): # 4
+        polyline = vtk.vtkPolyLine()
+        polyline.GetPointIds().SetNumberOfIds(lon_size)
+        for j in range(lon_size): # 5
+            pts_index = j+i*lon_size
+            pts.InsertPoint(pts_index, points[pts_index,0], points[pts_index,1], points[pts_index,2] )
+            polyline.GetPointIds().SetId(j,pts_index)
+        pdo.InsertNextCell(polyline.GetCellType(), polyline.GetPointIds())
+    pdo.SetPoints(pts)
+
+    colors = vtk.vtkUnsignedCharArray()
+    colors.SetNumberOfComponents(1)
+    colors.SetName('lat_lon')
+    
+    for n in range(r.size):
+        colors.InsertNextTuple([0]) # 0 for lat, # 1 for lon
+    pdo.GetPointData().AddArray(colors)
+    
+def _longitude_lines(self, time, coord_sys='GSM', increment=15, color=[1,0,0]):
+
+    import numpy as np
+    import numpy.matlib
+    import vtk
+    from magnetovis import cxtransform as cx
+    
+    lon = np.arange(0,360 + increment, increment) #360/npts) # [0, 90, 180, 270]
+    lat = np.arange(-90,90 + 5, 5) # [-90, -45, 0, 45, 90]
+    lon_repeat = len(lat) # 5
+    lat_repeat = len(lon) # 4
+    lat = np.matlib.repmat(lat, 1, lat_repeat).flatten()
+    lon = np.repeat(lon,lon_repeat)
+    r = np.ones(lon_repeat*lat_repeat)
+    
+    sph_coords = np.column_stack((r,lat,lon))
+    points = cx.transform(sph_coords, time, 'GSM', coord_sys, ctype_in='sph', ctype_out='car')
+    
+    ### start of vtk
+    
+    pdo = self.GetPolyDataOutput()
+    pdo.Allocate(len(r), 1)
+    pts = vtk.vtkPoints()
+    lon_size = np.unique(lon).size
+    lat_size = np.unique(lat).size
+    for i in range(lon_size): # 4
+        polyline = vtk.vtkPolyLine()
+        polyline.GetPointIds().SetNumberOfIds(lat_size)
+        for j in range(lat_size): # 5
+            pts_index = j+i*lat_size
+            pts.InsertPoint(pts_index, points[pts_index,0], points[pts_index,1], points[pts_index,2] )
+            polyline.GetPointIds().SetId(j,pts_index)
+        pdo.InsertNextCell(polyline.GetCellType(), polyline.GetPointIds())
+    pdo.SetPoints(pts)
+
+    colors = vtk.vtkUnsignedCharArray()
+    colors.SetNumberOfComponents(1)
+    colors.SetName('lat_lon')
+    
+    for n in range(r.size):
+        colors.InsertNextTuple([1]) # 0 for lat, # 1 for lon
+    pdo.GetPointData().AddArray(colors)
 
 
-    # conn = npts*np.ones(lat_array.size, dtype=int)
-
-    # out_fname = os.path.join(out_dir, coord_sys + '_latitude_lines.vtk')
-
-    # trace_lines(points, {'LINES' : conn}, out_fname=out_fname,
-    #                                     color=color, ftype='BINARY',
-    #                                         renderView=renderView,
-    #                                         render=render,
-    #                                         show=show,
-    #                                         debug = debug)
+def latitude_lines(time, coord_sys='GEO', increment=15, color=[0,0,1],
+                   representation='Surface', tube_radius=.02, renderView=None,
+                   render=True, show=True, show_annotations=False):
+                   
+    objs_wrapper(time=time, coord_sys=coord_sys, increment=increment,
+                color=color, representation=representation, tube_radius=tube_radius,
+                renderView=renderView, render=render, show=show,
+                show_annotations=show_annotations, obj='latitude')
 
 
-def longitude_lines(time, coord_sys='GEO', increment=30, color=[0,0,1],
-                                        renderView=None,
-                                        render=True,
-                                        show=True,
-                                        out_dir=tempfile.gettempdir(),
-                                        debug=False):
-
-    npts = 100
-
-    lon_array = np.arange(0., 360. + increment, increment)
-    lat = np.linspace(-90,90,npts)
-    #np.einstum('',lat_array,lon)
-
-    import cxtransform as cx
-
-    points = np.zeros((npts*lon_array.size, 3))
-    for i in range(lon_array.size):
-        a = np.column_stack([np.ones(npts, ), lat, lon_array[i]*np.ones(npts, )])
-        line = cx.transform(a, time, coord_sys, 'GSM', ctype_in='sph', ctype_out='car')
-        points[i*npts : (i+1)*npts, :] = line
-
-    conn = npts*np.ones(lon_array.size, dtype=int)
-
-    out_fname = os.path.join(out_dir, coord_sys + '_longitude_lines.vtk')
-
-    trace_lines(points, {'LINES' : conn}, out_fname=out_fname,
-                                        color=color, ftype='BINARY',
-                                            renderView=renderView,
-                                            render=render,
-                                            show=show,
-                                            debug = debug)
+def longitude_lines(time, coord_sys='GEO', increment=15, color=[0,.5,1],
+                   representation='Surface', tube_radius=.02, renderView=None,
+                   render=True, show=True, show_annotations=False):
+                   
+    objs_wrapper(time=time, coord_sys=coord_sys, increment=increment,
+                color=color, representation=representation, tube_radius=tube_radius,
+                renderView=renderView, render=render, show=show,
+                show_annotations=show_annotations, obj='longitude')
 
 
 def plane(time, val, extend=[[-40,40],[-40,40]], coord_sys='GSM', labels=True,
@@ -782,7 +825,6 @@ def _plasmapause(self, output, time):
     
     """
     
-    import spacepy as sc
     import numpy as np
     import numpy.matlib
     
@@ -951,11 +993,12 @@ def _neutralsheet(self, output, time, psi,
 
 def plasmasheet(time, psi=None, 
                  Rh=8, G=10, Lw=10, d=4,
-                 xlims = (-40,-5), ylims = (-18,18),
+                 xlims = (-40,-5), ylims = (-15,15),
                  coord_sys='GSM',
                  model='tsyganenko95',
                  color = [.6,.3,.2,0.5],
                  representation='Surface',
+                 out_dir=tempfile.gettempdir(), png_fn=None,
                  return_sheet=False,
                  renderView=None,
                  render=True,
@@ -963,7 +1006,9 @@ def plasmasheet(time, psi=None,
     
     objs_wrapper(time=time, psi=psi, Rh=Rh, G=G, Lw=Lw, d=d, xlims=xlims,
                  ylims=ylims, coord_sys=coord_sys, model=model, color=color,
-                 representation=representation, return_sheet=return_sheet,
+                 representation=representation,
+                 out_dir=out_dir, png_fn=png_fn,
+                 return_sheet=return_sheet,
                  renderView=renderView, render=render, show=show, 
                  obj='Plasmasheet')
     
@@ -1069,6 +1114,10 @@ def objs_wrapper(**kwargs):
     
     mag_surfaces = ['Magnetopause','Bowshock','Neutralsheet', 'Plasmasheet']
     
+    if 'png_fn' in kwargs.keys():
+        if kwargs['png_fn']:
+            png_fn_fp = os.path.join(kwargs['out_dir'],kwargs['png_fn'])
+    
     if kwargs['obj'] == 'axis':
         x_dim = 300
         y_dim = 300
@@ -1118,12 +1167,19 @@ def objs_wrapper(**kwargs):
         programmableSourceDisplay.Representation = kwargs['representation']
     
     if kwargs['obj'] in mag_surfaces:
-        if kwargs['obj'] == "Plasmasheet":
-            z_dim = 3
-        else:
+        if kwargs['obj'] == 'Magnetopause' or kwargs['obj'] == 'Bowshock':
             x_dim = 1
-        y_dim = 101 # theta_array = np.linspace(0, last_theta, 100)
-        z_dim = 101 # phi_array = np.linspace(0, last_phi, 50) # 50 old
+            y_dim = 101
+            z_dim = 101
+        elif kwargs['obj'] == 'Neutralsheet':
+            x_dim = 200
+            y_dim = 50
+            z_dim = 1
+        elif kwargs['obj'] == 'Plasmasheet':
+            x_dim = 200
+            y_dim = 50
+            z_dim = 3
+            
         scalar_data = 'Magnetosphere Surface'
             
         programmableSource.OutputDataSetType = 'vtkStructuredGrid'
@@ -1138,8 +1194,18 @@ def objs_wrapper(**kwargs):
         
         if not kwargs['renderView']:
             renderView = pvs.GetActiveViewOrCreate('RenderView')
-            programmableSourceDisplay = pvs.Show(programmableSource, renderView)
-            programmableSourceDisplay.Representation = kwargs['representation']
+        else:
+            renderView = kwargs['renderView']
+#            renderView = pvs.GetActiveViewOrCreate(kwargs['renderView']['name'])
+#            if "CameraPosition" in kwargs['renderView'].keys():
+#                renderView.CameraPosition = kwargs['renderView']["CameraPosition"]
+#            if "CameraFocalPoint" in kwargs['renderView'].keys():
+#                renderView.CameraFocalPoint = kwargs['renderView']["CameraFocalPoint"]
+#            if "CameraViewUp" in kwargs['renderView']['CameraViewUp']:
+#                renderView.CameraViewUp = kwargs['renderView']['CameraViewUp']
+#            renderView = kwargs['renderView']
+        programmableSourceDisplay = pvs.Show(programmableSource, renderView)
+        programmableSourceDisplay.Representation = kwargs['representation']
         
         if not kwargs['show']:
             pvs.Hide(programmableSource, renderView)
@@ -1152,8 +1218,6 @@ def objs_wrapper(**kwargs):
             kwargs['time'] = ''
             
         if kwargs['obj'] == 'Magnetopause':
-            
-            
             time_str, Bz_str, Psw_str = \
                 _magnetopause(self='', output='', time=kwargs['time'],
                               Bz=kwargs['Bz'], Psw=kwargs['Psw'],
@@ -1201,13 +1265,32 @@ def objs_wrapper(**kwargs):
         
         regionsLUT.Annotations = annotations   
         
-        renderView = pvs.GetActiveViewOrCreate('RenderView')
+#        renderView = pvs.GetActiveViewOrCreate('RenderView')
         programmableSourceDisplay = pvs.Show(programmableSource, renderView)
         programmableSourceDisplay.Representation = kwargs['representation']
         
         pvs.ColorBy(programmableSourceDisplay, ('POINTS', scalar_data))
         programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
-    
+        
+        # current camera placement for renderView1
+        if kwargs['png_fn']:
+#            if False:
+#                renderView.CameraPosition = [70, 80, 130]
+#                renderView.CameraFocalPoint = [-15, 2, 0]
+#                renderView.CameraViewUp = [0, 1, 0]
+#                renderView.CameraParallelScale = 45
+#                # save screenshot
+#                pvs.SaveScreenshot(png_fn_fp, renderView, ImageResolution=[1676, 1220])
+            if not kwargs['renderView']:
+                renderView.CameraPosition = [11, -80, 42]
+                renderView.CameraFocalPoint = [-22, 0, 0]
+                renderView.CameraViewUp = [-0.3, 0.3, 0.8]
+                renderView.CameraParallelScale = 25.245512504246587
+                if kwargs['obj'] == 'Bowshock':
+                    renderView.ResetCamera()
+                # save screenshot
+            pvs.SaveScreenshot(png_fn_fp, renderView, ImageResolution=[1676, 1220])
+        
     
     if kwargs['obj'] == 'satellite':
         
@@ -1288,8 +1371,63 @@ def objs_wrapper(**kwargs):
             tubeDisplay.SetScalarBarVisibility(renderView, True)
             renderView.Update()
             
-                
             pvs.RenameSource(title.replace('line','tube'), tube)
+            
+    if kwargs['obj'] == "latitude" or kwargs['obj'] == 'longitude':
+        scalar_data = 'lat_lon'
+        programmableSource.Script = "kwargs="+str(kwargs)+";execfile('{}',globals(),locals())".format(path)
+        
+        if not kwargs['renderView']:
+            renderView = pvs.GetActiveViewOrCreate('RenderView')
+            programmableSourceDisplay = pvs.Show(programmableSource, renderView)
+            programmableSourceDisplay.Representation = kwargs['representation']
+            
+        if not kwargs['show']:
+            pvs.Hide(programmableSource, renderView)
+            
+        if kwargs['render']:
+            pvs.Render()
+            renderView.Update()
+        
+        title = "{} line {} {}".format(kwargs['obj'], kwargs['coord_sys'], tstr(kwargs['time'],5))
+            
+        lat_lonLUT = pvs.GetColorTransferFunction(scalar_data)
+        lat_lonLUT.InterpretValuesAsCategories = 1
+        lat_lonLUT.AnnotationsInitialized = 1
+        
+        lat_lonLUT.Annotations = ['0', 'latitude', '1', 'longitude']
+        if list(lat_lonLUT.IndexedColors) != []: 
+            if kwargs['obj'] == 'latitude':
+                lat_lonLUT.IndexedColors = np.concatenate((kwargs['color'], lat_lonLUT.IndexedColors[3:]))
+            else:
+                lat_lonLUT.IndexedColors = np.concatenate((lat_lonLUT.IndexedColors[0:3], kwargs['color']))
+        else: 
+            if kwargs['obj'] == 'latitude':
+                lat_lonLUT.IndexedColors = np.concatenate((kwargs['color'],.5*np.array(kwargs['color'])))
+            else:
+                lat_lonLUT.IndexedColors = np.concatenate((.5*np.array(kwargs['color']),kwargs['color']))
+        
+        if kwargs['tube_radius'] != None:
+            tube = pvs.Tube(Input=programmableSource)
+            tube.Scalars = ['POINTS',scalar_data]
+            tube.Radius = kwargs['tube_radius']
+            
+            tubeDisplay = pvs.Show(tube, renderView)
+            tubeDisplay.Representation = kwargs['representation']
+            tubeDisplay.ColorArrayName = ['POINTS', scalar_data]
+            tubeDisplay.LookupTable = lat_lonLUT
+            tubeDisplay.OpacityArray = ['POINTS', scalar_data]
+            
+            pvs.Hide(programmableSource, renderView)
+            if kwargs['show_annotations']:
+                tubeDisplay.SetScalarBarVisibility(renderView, True)
+            renderView.Update()
+            
+            pvs.RenameSource(title.replace('line','tube'), tube)
+        
+        if kwargs['show_annotations']:
+            programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
+    
     pvs.RenameSource(title, programmableSource)
 
     renderView.ResetCamera()
@@ -1388,7 +1526,6 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
         
         alpha = (0.58 - 0.010 * Bz) * (1 + 0.010 * Psw)  #  Eqn 14 of Shue et al. 1997
         
-        last_phi = 360
         stopping_constant = 40/(2**alpha * r_0)
         theta_finder_array = np.arange(np.pi/2 , np.pi, 0.01)
         for theta in theta_finder_array: 
@@ -1653,7 +1790,7 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
         return points
     
     
-    year_limit = datetime(1995, 1, 1)
+    year_limit = datetime(1995, 1, 1, tzinfo=pytz.utc)
     
     if not return_x_max:
         if time == None:
@@ -1894,7 +2031,7 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model,
  
     
         return points
-    year_limit = datetime(1995, 1, 1)
+    year_limit = datetime(1995, 1, 1,tzinfo=pytz.utc)
     
     if time == None:
        assert Bz != None and Psw != None, \
@@ -2044,27 +2181,29 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model,
 
 def magnetopause(time, Bz=None, Psw=None, model='Shue97', coord_sys='GSM',
                  color=[0,1,0,0.5], representation='Surface',
-                 out_dir=tempfile.gettempdir(),
+                 out_dir=tempfile.gettempdir(), png_fn=None,
                  renderView=None, render=True, show=True,
                  return_x_max = False):
     objs_wrapper(time=time, Bz=Bz, Psw=Psw, model=model, coord_sys=coord_sys,
                  color=color, representation=representation,
-                 out_dir=out_dir, renderView=renderView, render=render,
+                 out_dir=out_dir, png_fn=png_fn, renderView=renderView, render=render,
                  show=show, return_x_max=return_x_max, obj='Magnetopause')
     
 def bowshock(time, model='Fairfield71', Bz = None, Psw = None,
              mpause_model='Roelof_Sibeck93',
              coord_sys='GSM',
              color=[0,.3,.35,1], representation='Surface',
+             out_dir=tempfile.gettempdir(), png_fn=None,
              renderView=None, render=True, show=True):
     
     objs_wrapper(time=time, Bz=Bz, Psw=Psw, model=model, 
                  mpause_model=mpause_model, coord_sys=coord_sys,
-                 color=color, representation=representation, 
+                 color=color, representation=representation,
+                 out_dir=out_dir, png_fn=png_fn,
                  renderView=renderView, render=render,
                  show=show, obj='Bowshock')
     
-def satellite(time_o='', time_f='', satellite_id='', 
+def satellite(time_o, time_f, satellite_id, 
               coord_sys='GSM',
               color=[1,0,0,1],
               representation='Surface',
@@ -2173,11 +2312,12 @@ def _axis(self, output, time, val, coord_sys, lims,
 
 def neutralsheet(time=None, psi=None, 
                  Rh=8, G=10, Lw=10, d=4,
-                 xlims = (-40,-5), ylims = (-18,18),
+                 xlims = (-40,-5), ylims = (-15,15),
                  coord_sys='GSM',
                  model='tsyganenko95',
                  color = [1,0,0,0.5],
                  representation='Surface',
+                 out_dir=tempfile.gettempdir(), png_fn=None,
                  return_sheet=False,
                  renderView=None,
                  render=True,
@@ -2185,7 +2325,9 @@ def neutralsheet(time=None, psi=None,
                  debug=False):
     objs_wrapper(time=time, psi=psi, Rh=Rh, G=G, Lw=Lw, d=d, xlims=xlims,
                  ylims=ylims, coord_sys=coord_sys, model=model, color=color,
-                 representation=representation, return_sheet=return_sheet,
+                 representation=representation,
+                 out_dir=out_dir, png_fn=png_fn,
+                 return_sheet=return_sheet,
                  renderView=renderView, render=render, show=show, debug=debug,
                  obj='Neutralsheet')
     
@@ -2241,6 +2383,13 @@ if "kwargs" in vars():
     elif kwargs['obj'] == 'plasmapause':
         _plasmapause(self, output, time=kwargs['time'])
         
+    elif kwargs['obj'] == 'latitude':
+        _latitude_lines(self, time=kwargs['time'], coord_sys=kwargs['coord_sys'],
+                        increment=kwargs['increment'], color=kwargs['color'])
+        
+    elif kwargs['obj'] == 'longitude':
+        _longitude_lines(self, time=kwargs['time'], coord_sys=kwargs['coord_sys'],
+                         increment=kwargs['increment'], color=kwargs['color'])
         
     
     

@@ -26,9 +26,9 @@ objects.neutralsheet([2017, 11, 15, 3, 0, 0], coord_sys='GSM',
                       color=[1,0,0,0.5], representation='Wireframe')
 
 objects.magnetopause(time=[2000, 1, 1, 0, 0, 0], Bz=None, Psw=None, 
-                      model='Shue97', coord_sys='GSM', 
+                      model='Roelof_Sibeck93', coord_sys='GSM', 
                       color=[0.1,0.8,0.3,0.5],
-                      representation='Surface With Edges')
+                      representation='Surface')
 
 objects.satellite(time_o = '2017-01-01T01:00:00.000Z', 
                   time_f = '2017-01-01T06:00:00.000Z', 
