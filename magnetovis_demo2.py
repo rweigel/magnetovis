@@ -1,12 +1,10 @@
 from magnetovis import objects2
 import paraview.simple as pvs
-"""
-This script shows a demonstration of magnetovis if ran with: demo = True
 
+"""
 Instructions for running 
 From the terminal run command:
-    PYTHONPATH=/.../site-packages:. paraview --script=magnetovis_demo2.py
-
+    magnetovis --script=magnetovis_demo2.py
 """
 
 # these are the times and coordinate system of the demo
