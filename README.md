@@ -35,6 +35,19 @@ cd magnetovis; magnetovis --script=magnetovis_demo.py
 
 Please provide feedback by submitting an [issue](https://github.com/rweigel/magnetovis/issues).
 
+## Manual
+
+```
+git clone https://github.com/rweigel/magnetovis
+cd magnetovis; 
+conda create --name python2.7 python=2.7
+conda install numpy; pip install spacepy hapiclient
+# In the following, change the path /opt to the location of your anaconda3 install
+# Also change /Applications/ParaView-5.7.0.app/Contents/MacOS/ to be the directory where
+# paraview is installed.
+PYTHONPATH=/opt/anaconda3/envs/python2.7/lib/python2.7/site-packages:/opt/anaconda3/envs/python2.7/lib/site-python:. /Applications/ParaView-5.7.0.app/Contents/MacOS/paraview --script=demo.py
+```
+
 # Use
 
 ```
