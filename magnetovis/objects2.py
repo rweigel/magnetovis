@@ -37,6 +37,14 @@ def rot_mat(points, angle=-4, (h,k)= (0,0), translate=True, axis='Z'):
     return points    
 
 
+#def cutplane():
+    # read http://mag.gmu.edu/git-data/magnetovis/simulation/demo.vtk and plot it
+
+
+#def trajectory():
+    # read http://mag.gmu.edu/git-data/magnetovis/trajectory/demo.vtk and plot it
+
+
 def earth(time,
             coord_sys='GSM',
             renderView=None,
@@ -160,6 +168,7 @@ def earth(time,
         pvs.Render()
     pvs.RenameSource('Earth - {} {}'.format(coord_sys, util.tstr(time,6)))
     return sphereDisplay, renderView, sphereVTK
+
 
 def field_data(time, Xgrid, values, dims, texture, # dims = [Nx,Ny,Nz]
                     var = 'dummy_variable',
@@ -2338,6 +2347,7 @@ if False:
     # the variables below are defined inside of programmable source not here.
     self = ''
     output = ''
+
 
 if "kwargs" in vars():         
         
