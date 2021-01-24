@@ -1518,9 +1518,9 @@ def objs_wrapper(**kwargs):
             annotations.append(str(i))
             annotations.append(unique_regions[i])
             if kwargs['region_colors'] != None:
-                index_colored_list.append(kwargs['region_colors'][unique_regions[i]])
+                index_colored_list.append(kwargs['region_colors'][unique_regions[i]][0:3])
             else:
-                index_colored_list.append(kwargs['color'])
+                index_colored_list.append(kwargs['color'][0:3])
 
         regionsLUT.Annotations = annotations
         index_colored_list = np.array(index_colored_list).flatten()
