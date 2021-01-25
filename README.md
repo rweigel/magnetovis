@@ -1,3 +1,5 @@
+This project is in a "pre-alpha" stage. Expect major changes and inconsistencies between the documentation and code.
+
 # About
 
 `magnetovis` is a set of Python scripts that display magnetosphere-related objects, regions, and data in ParaView.
@@ -12,7 +14,7 @@ An existing installation of [ParaView](https://www.paraview.org/download/) is re
 
 The set-up script in `magnetovis` will check for compatability between the Python version distributed with an existing install of ParaView and the Python version used for the `magnetovis` installation.
 
-Installation has been tested only on OS-X and Linux. 
+Installation has been tested only on OS-X. 
 
 ## User
 
