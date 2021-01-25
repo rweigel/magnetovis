@@ -38,12 +38,9 @@ def rot_mat(points, angle=-4, (h,k)= (0,0), translate=True, axis='Z'):
 
 
 def cutplane(run='DIPTSUR2', time=(2019,9,2,4,10,0,0), plane='xz', var='p',
-                    renderView=None,
-                    render=True,
-                    show=True,
-                    debug=True):
-    # read http://mag.gmu.edu/git-data/magnetovis/simulation/demo.vtk and plot it
-    # due to permissions, now on http://mag.gmu.edu/git-data/sblake/magnetovisVTK/
+                    renderView=None, render=True, show=True, debug=True):
+
+    from hapiclient.util import urlretrieve
 
     if plane == 'xz':
         extend=[[-55,25],[-55,55]]
@@ -51,149 +48,16 @@ def cutplane(run='DIPTSUR2', time=(2019,9,2,4,10,0,0), plane='xz', var='p',
         raise ValueError ('only xz plane currently supported')
 
 
-    from hapiclient.util import urlretrieve
-
-    '''
-    def log(msg, opts):
-        print(msg)
-
-    def modified(url, fname, **kwargs):
-        """Check if timestamp on file is later than Last-Modifed in HEAD request"""
-
-        from os import stat, path
-        from time import mktime, strptime
-
-        debug = False
-
-        if not path.exists(fname):
-            return True
-
-        # HEAD request on url
-        log('Making head request on ' + url, kwargs)
-        headers = head(url)
-
-        # TODO: Write headers to file.head
-        if debug:
-            print("Header:\n--\n")
-            print(headers)
-            print("--")
-
-        # TODO: Get this from file.head if found
-        fileLastModified = stat(fname).st_mtime
-        if "Last-Modified" in headers:
-            urlLastModified = mktime(strptime(headers["Last-Modified"],
-                                              "%a, %d %b %Y %H:%M:%S GMT"))
-
-            if debug:
-                print("File Last Modified = %s" % fileLastModified)
-                print("URL Last Modified = %s" % urlLastModified)
-
-            if urlLastModified > fileLastModified:
-                return True
-            return False
-        else:
-            if debug:
-                print("No Last-Modified header. Will re-download")
-            # TODO: Read file.head and compare etag
-            return True
-
-    def urlretrieve(url, fname, check_last_modified=False, **kwargs):
-        """Download URL to file
-        urlretrieve(url, fname, check_last_modified=False, **kwargs)
-        If check_last_modified=True, `fname` is found, URL returns Last-Modfied
-        header, and `fname` timestamp is after Last-Modfied timestamp, the URL
-        is not downloaded.
-        """
-
-        import shutil
-        from os import path, utime, makedirs
-        from time import mktime, strptime
-
-        if check_last_modified:
-            if modified(url, fname, **kwargs):
-                log('Downloading ' + url + ' to ' + fname, kwargs)
-                res = urlretrieve(url, fname, check_last_modified=False)
-                if "Last-Modified" in res.headers:
-                    # Change access and modfied time to match that on server.
-                    # TODO: Won't need if using file.head in modified().
-                    urlLastModified = mktime(strptime(res.headers["Last-Modified"],
-                                                      "%a, %d %b %Y %H:%M:%S GMT"))
-                    utime(fname, (urlLastModified, urlLastModified))
-            else:
-                log('Local version of ' + fname + ' is up-to-date; using it.', kwargs)
-
-        dirname = path.dirname(fname)
-        if not path.exists(dirname):
-            makedirs(dirname)
-
-        with open(fname, 'wb') as out:
-            res = urlopen(url)
-            shutil.copyfileobj(res, out)
-            return res
-    '''
-
-    def urlretrieveWRAP(url, fname, check_last_modified=False):
-        try:
-            urlretrieve(url, fname, check_last_modified=check_last_modified)
-        except:
-            return 'ERROR'
-
-    '''
-    def urlretrieveWRAP(url, fname, check_last_modified=False): #TODO: mostly duplicated in magnetosphere/util/util.py
-        """Python 2/3 urlretrieve compatability function.
-
-        If Python 3, returns
-        urllib.request.urlretrieve(url, fname)
-
-        If Python 2, returns
-        urllib.urlretrieve(url, fname)
-        """
-
-        import sys
-        if (not os.path.exists(fname)) or (not check_last_modified):
-            if sys.version_info[0] > 2:
-                import urllib.request, urllib.error
-                try:
-                    res = urllib.request.urlretrieve(url, fname)
-                    return res
-                except urllib.error.URLError as e:
-                    print(e)
-                except ValueError as e:
-                    print("'" + url + "' is not a valid URL")
-            else:
-                import urllib, urllib2, ssl
-                try:
-                    context = ssl._create_unverified_context()
-                    urllib2.urlopen(url) 
-                    res = urllib.urlretrieve(url, fname, context=context)
-                    return res
-        #https://stackoverflow.com/questions/16778435/python-check-if-website-exists
-                except urllib2.HTTPError, e: 
-                    return(e.code)
-                except urllib2.URLError, e:
-                    return(e.args)
-                except ValueError:
-                    print("'" + url + "' is not a valid URL")
-            return 'ERROR'
-    '''
-
     vtk_fname = '%s_GSM_plane_%s_demo.vtk'%(plane,var)
 
-    #dowload demo vtk from online server and save to /tmp/
-    vtk_url = 'http://mag.gmu.edu/git-data/magnetovis/simulation/' \
-              + vtk_fname
-    retd = urlretrieveWRAP(vtk_url, '/tmp/'+vtk_fname, check_last_modified=True)
-    if debug: print(retd)
-    if retd in ['ERROR', 404]:
-        vtk_url = 'http://mag.gmu.edu/git-data/sblake/magnetovisVTK/' \
-                  + vtk_fname
-        retd = urlretrieveWRAP(vtk_url, '/tmp/'+vtk_fname, check_last_modified=True)
-        if debug: print(retd)
+    # Dowload demo vtk from online server and save to /tmp/
+    vtk_url = 'http://mag.gmu.edu/git-data/magnetovis/simulation/' + vtk_fname
+    retd = urlretrieve(vtk_url, '/tmp/'+vtk_fname, check_last_modified=True)
 
-    #import for paraview
     import paraview.simple as pvs
     if not renderView:
         renderView = pvs.GetActiveViewOrCreate('RenderView')
+
     # load vtk from /tmp/ into reader object
     cutplane_vtk = pvs.LegacyVTKReader(FileNames=['/tmp/'+vtk_fname])
     # show data in view

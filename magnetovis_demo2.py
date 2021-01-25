@@ -10,9 +10,10 @@ Usage:
 demo_time = [2015, 1, 1, 0, 0]
 demo_coord = 'GSM'
 
-objects2.cutplane() # Urgent: plot cutplane of rho from SWMF (any run, any time) - make same size as XZ plane plotted below.
 
-objects2.trajectory() # Plot a particle trajectory from Blake's code (not urgent)
+#objects2.trajectory() # Plot a particle trajectory from Blake's code (not urgent)
+
+objects2.cutplane()
 
 objects2.neutralsheet(time = demo_time, coord_sys=demo_coord)
 objects2.plasmasheet(time = demo_time, coord_sys=demo_coord)
