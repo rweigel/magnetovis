@@ -13,8 +13,6 @@ demo_coord = 'GSM'
 
 #objects2.trajectory() # Plot a particle trajectory from Blake's code (not urgent)
 
-objects2.cutplane()
-
 objects2.neutralsheet(time = demo_time, coord_sys=demo_coord)
 objects2.plasmasheet(time = demo_time, coord_sys=demo_coord)
 objects2.magnetopause(time=demo_time, coord_sys=demo_coord)
@@ -41,13 +39,13 @@ objects2.satellite(time_o = '2005-01-01T00:00:00.000Z',
                   )
 
 objects2.earth(demo_time, coord_sys=demo_coord)
-objects2.latitude_lines(time=demo_time, coord_sys=demo_coord)
-objects2.longitude_lines(time=demo_time, coord_sys=demo_coord)
+#objects2.latitude_lines(time=demo_time, coord_sys=demo_coord)
+#objects2.longitude_lines(time=demo_time, coord_sys=demo_coord)
 objects2.axis(time=demo_time, val='Y', lims=[-55,55],coord_sys=demo_coord)
 objects2.axis(time=demo_time, val='X', lims=[-55,25], coord_sys=demo_coord)
 objects2.axis(time=demo_time, val='Z', lims=[-55,55], coord_sys=demo_coord)
 objects2.plane(time=demo_time, val='XY', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)
-objects2.plane(time=demo_time, val='XZ', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)
+#objects2.plane(time=demo_time, val='XZ', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)
 objects2.plane(time=demo_time, val='YZ', extend=[[-55,55],[-55,55]], coord_sys=demo_coord)
 
 # stylize background
@@ -55,4 +53,24 @@ renderView = pvs.GetActiveViewOrCreate('RenderView')
 renderView.UseGradientBackground = 1
 renderView.Background2 = [0.07023727779049363, 0.07129015030136568, 0.471976806286717]
 renderView.Background = [0.0865796902418555, 0.35515373464560923, 0.48921950102998396]
+
+if True:
+
+  renderView = pvs.GetActiveViewOrCreate('RenderView')
+
+  for name_id, pObject in pvs.GetSources().items():
+      clip = pvs.Clip(Input=pObject)
+      clip.ClipType= 'Plane'
+      clip.Invert = 0
+      clip.ClipType.Origin = [0,-1,0]
+      clip.ClipType.Normal = [0,1,0]
+      clipDisplay = pvs.Show(clip, renderView)
+      
+      pvs.Hide3DWidgets(proxy=clip.ClipType)
+      pvs.Hide(pObject)
+      
+  renderView.Update()
+
+objects2.cutplane()
+
 

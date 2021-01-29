@@ -6,6 +6,16 @@ import tempfile
 import numpy as np
 
 
+#def trajectory([L, theta, phi], [phase_angle, pitch_angle, E], dt=..., e_over_m=...)
+
+    # Plots a tube showing trajectory.
+    # L in R_E
+    # angles in degrees
+    # Energy in keV
+    # e_over_m = positive or negative
+    # t = run time in seconds
+    # dt = time step in seconds
+
 def rot_mat(points, angle=-4, (h,k)= (0,0), translate=True, axis='Z'):
     deg = np.deg2rad(angle)
     
