@@ -62,7 +62,7 @@ def cutplane(run='DIPTSUR2', time=(2019,9,2,4,10,0,0), plane='xz', var='p',
 
     # Dowload demo vtk from online server and save to /tmp/
     vtk_url = 'http://mag.gmu.edu/git-data/magnetovis/simulation/' + vtk_fname
-    retd = urlretrieve(vtk_url, '/tmp/'+vtk_fname, check_last_modified=True)
+    retd = urlretrieve(vtk_url, '/tmp/'+vtk_fname, check_last_modified=False)
 
     import paraview.simple as pvs
     if not renderView:
@@ -638,7 +638,7 @@ def latitude_lines(time, coord_sys='GEO', increment=15, color=[0,0,1],
                    representation='Surface', tube_radius=.02, renderView=None,
                    render=True, show=True, show_annotations=False):
                    
-    objs_wrapper(time=time, coord_sys=coord_sys, increment=increment,
+    return objs_wrapper(time=time, coord_sys=coord_sys, increment=increment,
                 color=color, representation=representation, tube_radius=tube_radius,
                 renderView=renderView, render=render, show=show,
                 show_annotations=show_annotations, obj='latitude')
@@ -648,7 +648,7 @@ def longitude_lines(time, coord_sys='GEO', increment=15, color=[0,.5,1],
                    representation='Surface', tube_radius=.02, renderView=None,
                    render=True, show=True, show_annotations=False):
                    
-    objs_wrapper(time=time, coord_sys=coord_sys, increment=increment,
+    return objs_wrapper(time=time, coord_sys=coord_sys, increment=increment,
                 color=color, representation=representation, tube_radius=tube_radius,
                 renderView=renderView, render=render, show=show,
                 show_annotations=show_annotations, obj='longitude')
@@ -713,7 +713,7 @@ def plane(time, val, extend=[[-40,40],[-40,40]], coord_sys='GSM', labels=True,
     if render:
         pvs.Render()
     
-    return planeDisplay, renderView
+    return planeDisplay, renderView, plane
         
 
 if False:
@@ -915,7 +915,7 @@ def _plasmapause(self, output, time):
 def plasmapause(time, representation='Surface', renderView=None, render=True,
                 show=True):
     
-    objs_wrapper(time=time, representation=representation, 
+    return objs_wrapper(time=time, representation=representation, 
                  renderView=renderView, render=render, show=show, 
                  obj='Plasmapause')
     
@@ -1053,7 +1053,7 @@ def plasmasheet(time, psi=None,
                  render=True,
                  show=True):
     
-    objs_wrapper(time=time, psi=psi, Rh=Rh, G=G, Lw=Lw, d=d, xlims=xlims,
+    return objs_wrapper(time=time, psi=psi, Rh=Rh, G=G, Lw=Lw, d=d, xlims=xlims,
                  ylims=ylims, coord_sys=coord_sys, model=model, color=color,
                  representation=representation,
                  out_dir=out_dir, png_fn=png_fn,
@@ -1187,7 +1187,6 @@ def objs_wrapper(**kwargs):
         if not kwargs['renderView']:
             renderView = pvs.GetActiveViewOrCreate('RenderView')
             
-        
         programmableSourceDisplay = pvs.Show(programmableSource, renderView)
         programmableSourceDisplay.Representation = kwargs['representation']
         if kwargs['val'] == 'X':
@@ -1274,7 +1273,7 @@ def objs_wrapper(**kwargs):
                               coord_sys=kwargs['coord_sys'], 
                               return_x_max=False, return_title=True)
             
-            title = "{} {} {} {} Bz={} Psw={}".format(
+            title = "{} {} {} {} {} {}".format(
                 kwargs['obj'], kwargs['model'], kwargs['coord_sys'], 
                 time_str, Bz_str, Psw_str)
         
@@ -1321,24 +1320,24 @@ def objs_wrapper(**kwargs):
         pvs.ColorBy(programmableSourceDisplay, ('POINTS', scalar_data))
         programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
         
-        # current camera placement for renderView1
-        if kwargs['png_fn']:
-#            if False:
-#                renderView.CameraPosition = [70, 80, 130]
-#                renderView.CameraFocalPoint = [-15, 2, 0]
-#                renderView.CameraViewUp = [0, 1, 0]
-#                renderView.CameraParallelScale = 45
-#                # save screenshot
-#                pvs.SaveScreenshot(png_fn_fp, renderView, ImageResolution=[1676, 1220])
-            if not kwargs['renderView']:
-                renderView.CameraPosition = [11, -80, 42]
-                renderView.CameraFocalPoint = [-22, 0, 0]
-                renderView.CameraViewUp = [-0.3, 0.3, 0.8]
-                renderView.CameraParallelScale = 25.245512504246587
-                if kwargs['obj'] == 'Bowshock':
-                    renderView.ResetCamera()
-                # save screenshot
-            pvs.SaveScreenshot(png_fn_fp, renderView, ImageResolution=[1676, 1220])
+#         # current camera placement for renderView1
+#         if kwargs['png_fn']:
+# #            if False:
+# #                renderView.CameraPosition = [70, 80, 130]
+# #                renderView.CameraFocalPoint = [-15, 2, 0]
+# #                renderView.CameraViewUp = [0, 1, 0]
+# #                renderView.CameraParallelScale = 45
+# #                # save screenshot
+# #                pvs.SaveScreenshot(png_fn_fp, renderView, ImageResolution=[1676, 1220])
+#             if not kwargs['renderView']:
+#                 renderView.CameraPosition = [11, -80, 42]
+#                 renderView.CameraFocalPoint = [-22, 0, 0]
+#                 renderView.CameraViewUp = [-0.3, 0.3, 0.8]
+#                 renderView.CameraParallelScale = 25.245512504246587
+#                 if kwargs['obj'] == 'Bowshock':
+#                     renderView.ResetCamera()
+#                 # save screenshot
+#             pvs.SaveScreenshot(png_fn_fp, renderView, ImageResolution=[1676, 1220])
         
     
     if kwargs['obj'] == 'satellite':
@@ -1480,7 +1479,90 @@ def objs_wrapper(**kwargs):
     pvs.RenameSource(title, programmableSource)
 
     renderView.ResetCamera()
+    
+    return programmableSourceDisplay, renderView, programmableSource
 
+def screenshot(obj=None, renderView=None, fName=None, 
+                              camera=None,):
+	
+	# option 2 create a new renderView
+	# input option and 
+	# https://www.paraview.org/Wiki/ParaView/Python_Scripting
+	# https://discourse.paraview.org/t/feature-request-clone-renderview/2370/3
+	# https://docs.paraview.org/en/latest/UsersGuide/displayingData.html
+    
+    import paraview.simple as pvs 
+    # import inspect 
+    
+    # caller = inspect.stack()
+    # print('\n\n')
+    # print(caller)
+    # print('\n\n')
+    if not renderView:
+		renderView = pvs.GetActiveViewOrCreate('RenderView')
+
+	
+    objDisplay = pvs.GetRepresentation(proxy=obj, view=renderView) # with this we don't need to  pass around objectDisplay variable
+    tempLayout = pvs.CreateLayout('Temp Layout')
+    tempRenderView = pvs.CreateRenderView()
+    pvs.AssignViewToLayout(view=tempRenderView, layout=tempLayout, hint=0)
+    pvs.SetActiveView(tempRenderView)
+    pvs.SetActiveSource(obj)
+
+	# show data in view
+    tempObjDisplay = pvs.Show(obj, tempRenderView)
+    for prop in objDisplay.ListProperties():
+		# print('\n')
+		# print(property)
+		# print(display.GetPropertyValue(property))
+		# RepresentationTypesInfo gives a Runtime Error message. this is a list of strings
+		# BlockColor and Block Opacity both give attribute error. they are blank {}
+		# ColorArrayName produces TypeError: SetElement argument 2: string or None required. this gives [None, ''] might have to use color transfer function
+		# OpacityArray produces TypeError: SetElement argument 2: string or None required. this gives ['POINTS', 'Normals']
+		# SetScaleArray producecs TypeError: SetElement argument 2: string or None required. this gives ['POINTS', 'Normals']
+
+        try:
+            tempObjDisplay.SetPropertyWithName(prop, objDisplay.GetPropertyValue(prop))
+        except RuntimeError as err:
+            print('RunTimeError: {}'.format(err))
+            print('Issue Copying: {}'.format(prop))
+        except TypeError as err:
+            print('TypeError: {}'.format(err))
+            print('Issue Copying: {}'.format(prop))
+        except AttributeError as err:
+            print('AttributeError: {}'.format(err))
+            print('Issue Copying: {}'.format(prop))
+            
+    pvs.Show()
+
+    if not camera:
+        tempRenderView.ResetCamera()
+        tempCamera = pvs.GetActiveCamera()
+        tempCamera.Azimuth(30) # Horizontal rotation
+        tempCamera.Elevation(30) # Vertical rotation
+        
+    
+    if not fName:
+        base_path = os.path.join(os.path.dirname(os.path.dirname(__file__)))
+        if not os.path.isdir(os.path.join(base_path, 'figures')):
+            os.mkdir(os.path.join(base_path,'figures'))
+        for name_id, pObject in pvs.GetSources().items():
+            if pObject.__eq__(obj):
+                info = name_id[0]
+        
+        fName = os.path.join(base_path,'figures',info+'.png')
+        fName = fName.replace(' ','_').replace(':','')
+        
+    pvs.SaveScreenshot(fName, tempRenderView, ImageResolution=[1800, 1220])
+
+	# # destroy temps 
+    pvs.Delete(tempRenderView)
+    del tempRenderView
+    pvs.RemoveLayout(tempLayout)
+    del tempLayout
+
+    pvs.SetActiveView(renderView)
+    
 def _satellite(self, time_o, time_f, satellite_id, coord_sys, region_colors):
     
     import vtk
@@ -1892,7 +1974,7 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
                   'model = Sibeck_Lopez_Roelof91')
         else:
             if Bz == None:
-                if hapitime2datetime(start) < year_limit:
+                if hapitime2datetime(start)[0].replace(tzinfo=pytz.UTC) < year_limit:
                     Bz = 0 # Nominal Value
                     print('Current Dataset OMNI_HRO2_1MIN does not go back further')
                     print('than 1995. Using Nominal Value Bz=0')
@@ -1915,7 +1997,7 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
                   'model = Sibeck_Lopez_Roelof91')
         else:
             if Psw == None:
-                if hapitime2datetime(start) < year_limit:
+                if hapitime2datetime(start)[0].replace(tzinfo=pytz.UTC) < year_limit:
                     Psw = 2.04 
                     print('Current Dataset OMNI_HRO2_1MIN does not go back further')
                     print('than 1995. Using Nominal Value Psw=2')
@@ -2130,7 +2212,7 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model,
         Bz_str = ''
     else:
         if Bz == None:
-            if hapitime2datetime(start) < year_limit:
+            if hapitime2datetime(start)[0].replace(tzinfo=pytz.UTC) < year_limit:
                 Bz = 0 
                 print('Current Dataset OMNI_HRO2_1MIN does not go back further')
                 print('than 1995. Using Nominal Value Bz=0')
@@ -2150,7 +2232,7 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model,
         Psw_str = ''
     else:
         if Psw == None:
-            if hapitime2datetime(start) < year_limit:
+            if hapitime2datetime(start)[0].replace(tzinfo=pytz.UTC) < year_limit:
                 Psw = 2 
                 print('Current Dataset OMNI_HRO2_1MIN does not go back further')
                 print('than 1995. Using Nominal Value Psw=2')
@@ -2231,12 +2313,16 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model,
 def magnetopause(time, Bz=None, Psw=None, model='Shue97', coord_sys='GSM',
                  color=[0,1,0,0.5], representation='Surface',
                  out_dir=tempfile.gettempdir(), png_fn=None,
-                 renderView=None, render=True, show=True,
+                 renderView=None, render=True, show=True, 
+                 fName=None, camera=None, take_screenshot=False,
                  return_x_max = False):
-    objs_wrapper(time=time, Bz=Bz, Psw=Psw, model=model, coord_sys=coord_sys,
+    
+    return objs_wrapper(time=time, Bz=Bz, Psw=Psw, model=model, coord_sys=coord_sys,
                  color=color, representation=representation,
                  out_dir=out_dir, png_fn=png_fn, renderView=renderView, render=render,
-                 show=show, return_x_max=return_x_max, obj='Magnetopause')
+                 show=show, 
+                 fName=fName, camera=camera, take_screenshot=take_screenshot,
+                 return_x_max=return_x_max, obj='Magnetopause')
     
 def bowshock(time, model='Fairfield71', Bz = None, Psw = None,
              mpause_model='Roelof_Sibeck93',
@@ -2245,7 +2331,7 @@ def bowshock(time, model='Fairfield71', Bz = None, Psw = None,
              out_dir=tempfile.gettempdir(), png_fn=None,
              renderView=None, render=True, show=True):
     
-    objs_wrapper(time=time, Bz=Bz, Psw=Psw, model=model, 
+    return objs_wrapper(time=time, Bz=Bz, Psw=Psw, model=model, 
                  mpause_model=mpause_model, coord_sys=coord_sys,
                  color=color, representation=representation,
                  out_dir=out_dir, png_fn=png_fn,
@@ -2264,7 +2350,7 @@ def satellite(time_o, time_f, satellite_id,
               render=True,
               show=True):
     
-    objs_wrapper(time_o=time_o, time_f=time_f, satellite_id=satellite_id, 
+    return objs_wrapper(time_o=time_o, time_f=time_f, satellite_id=satellite_id, 
               coord_sys=coord_sys,
               color=color,
               representation=representation,
@@ -2281,7 +2367,7 @@ def axis(time, val, coord_sys='GSM', lims=[-20,20], tick_spacing=1,
          label=True, representation = 'Surface', 
          renderView=None,render=True,show=True, debug=False):
 
-    objs_wrapper(time=time, val=val, coord_sys=coord_sys, 
+    return objs_wrapper(time=time, val=val, coord_sys=coord_sys, 
                  lims=lims, tick_spacing=tick_spacing,
                  label=label, representation=representation, 
                  renderView=renderView, render=render, show=show,
@@ -2372,7 +2458,7 @@ def neutralsheet(time=None, psi=None,
                  render=True,
                  show=True,
                  debug=False):
-    objs_wrapper(time=time, psi=psi, Rh=Rh, G=G, Lw=Lw, d=d, xlims=xlims,
+    return objs_wrapper(time=time, psi=psi, Rh=Rh, G=G, Lw=Lw, d=d, xlims=xlims,
                  ylims=ylims, coord_sys=coord_sys, model=model, color=color,
                  representation=representation,
                  out_dir=out_dir, png_fn=png_fn,

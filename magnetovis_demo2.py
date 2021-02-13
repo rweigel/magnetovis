@@ -13,13 +13,19 @@ demo_coord = 'GSM'
 
 #objects2.trajectory() # Plot a particle trajectory from Blake's code (not urgent)
 
-objects2.neutralsheet(time = demo_time, coord_sys=demo_coord)
-objects2.plasmasheet(time = demo_time, coord_sys=demo_coord)
-objects2.magnetopause(time=demo_time, coord_sys=demo_coord)
+neutDisplay, renderView, neutSource =  objects2.neutralsheet(time = demo_time, coord_sys=demo_coord)
+objects2.screenshot(obj=neutSource)
 
-objects2.bowshock(time=demo_time, coord_sys=demo_coord)
+plasShDisp, renderView, plasShSource = objects2.plasmasheet(time = demo_time, coord_sys=demo_coord)
+objects2.screenshot(obj=plasShSource)
 
-objects2.satellite(time_o = '2005-01-01T00:00:00.000Z', 
+mpauseDisplay, renderView, mpauseSource =objects2.magnetopause(time=demo_time, coord_sys=demo_coord)
+objects2.screenshot(obj=mpauseSource)
+
+bowDisp, renderView, bowSource = objects2.bowshock(time=demo_time, coord_sys=demo_coord)
+objects2.screenshot(obj=bowSource)
+
+satDisp, renderView, satSource = objects2.satellite(time_o = '2005-01-01T00:00:00.000Z', 
                   time_f = '2005-01-06T00:15:00.000Z', 
                   satellite_id = 'geotail', coord_sys=demo_coord,
                   color=None, tube_radius=1,
@@ -37,16 +43,20 @@ objects2.satellite(time_o = '2005-01-01T00:00:00.000Z',
                       'Intpl_Med' : (255./255, 255./255, 255./255, 0.7)  # white
                       }
                   )
+objects2.screenshot(obj=satSource)
 
-objects2.earth(demo_time, coord_sys=demo_coord)
-#objects2.latitude_lines(time=demo_time, coord_sys=demo_coord)
-#objects2.longitude_lines(time=demo_time, coord_sys=demo_coord)
-objects2.axis(time=demo_time, val='Y', lims=[-55,55],coord_sys=demo_coord)
-objects2.axis(time=demo_time, val='X', lims=[-55,25], coord_sys=demo_coord)
-objects2.axis(time=demo_time, val='Z', lims=[-55,55], coord_sys=demo_coord)
-objects2.plane(time=demo_time, val='XY', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)
-#objects2.plane(time=demo_time, val='XZ', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)
-objects2.plane(time=demo_time, val='YZ', extend=[[-55,55],[-55,55]], coord_sys=demo_coord)
+earthDisp, renderView, earthSource = objects2.earth(demo_time, coord_sys=demo_coord)
+objects2.screenshot(obj=earthSource)
+
+
+# #objects2.latitude_lines(time=demo_time, coord_sys=demo_coord)
+# #objects2.longitude_lines(time=demo_time, coord_sys=demo_coord)
+# objects2.axis(time=demo_time, val='Y', lims=[-55,55],coord_sys=demo_coord)
+# objects2.axis(time=demo_time, val='X', lims=[-55,25], coord_sys=demo_coord)
+# objects2.axis(time=demo_time, val='Z', lims=[-55,55], coord_sys=demo_coord)
+# objects2.plane(time=demo_time, val='XY', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)
+# #objects2.plane(time=demo_time, val='XZ', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)
+# objects2.plane(time=demo_time, val='YZ', extend=[[-55,55],[-55,55]], coord_sys=demo_coord)
 
 # stylize background
 renderView = pvs.GetActiveViewOrCreate('RenderView')
@@ -54,7 +64,7 @@ renderView.UseGradientBackground = 1
 renderView.Background2 = [0.07023727779049363, 0.07129015030136568, 0.471976806286717]
 renderView.Background = [0.0865796902418555, 0.35515373464560923, 0.48921950102998396]
 
-if True:
+if False:
 
   renderView = pvs.GetActiveViewOrCreate('RenderView')
 
@@ -71,6 +81,8 @@ if True:
       
   renderView.Update()
 
-objects2.cutplane()
+# objects2.cutplane()
 
-
+screenshot=False
+if screenshot:
+  pvs.savescreenshot(renderView, 'path.png', 'resolution')
