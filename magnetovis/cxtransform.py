@@ -10,8 +10,6 @@ from magnetovis.util import tpad
 
 import spacepy.coordinates as sc
 from spacepy.time import Ticktock
-import spacepy.toolbox as st
-st.update(leapsecs=True)
 
 def rot_mat(points, angle=-4, (h,k)= (0,0)):
     deg = np.deg2rad(angle)
