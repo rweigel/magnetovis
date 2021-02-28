@@ -563,7 +563,8 @@ def _latitude_lines(self, time, coord_sys='GSM', increment=15, color=[1,0,0]):
     r = np.ones(lon_repeat*lat_repeat)
     
     sph_coords = np.column_stack((r,lat,lon))
-    points = cx.transform(sph_coords, time, 'GSM', coord_sys, ctype_in='sph', ctype_out='car')
+    if coord_sys != 'GSM':
+        points = cx.transform(sph_coords, time, 'GSM', coord_sys, ctype_in='sph', ctype_out='car')
     
     ### start of vtk
     
@@ -821,7 +822,7 @@ if False:
 
   
     
-def _plasmapause(self, output, time):
+def _plasmapause(self, output, N, coord_sys, time):
     
     """
     coordinate system is in Spherical SM coordinates with angle in radians
@@ -876,48 +877,118 @@ def _plasmapause(self, output, time):
     
     import numpy as np
     import numpy.matlib
+    import vtk 
+    from copy import deepcopy
+    from magnetovis import cxtransform as cx
     
-    # constants
-    a1 = 1.4
-    a2 = 1.53
-    a3 = -0.036
-    a4 = 30.76
-    a5 = 159.9
-    a7 = 6.27
+    def logDen(r, theta, phi):
+        a1 = 1.4
+        a2 = 1.53
+        a3 = -0.036
+        a4 = 30.76
+        a5 = 159.9
+        a7 = 6.27
+            
+        MLT = (phi*180/np.pi/15.) - 12.
+        x = deepcopy(MLT)
+        if MLT >= 24: MLT = MLT - 24
+        if MLT < 0: MLT = MLT + 24
+        if x > 12: x = x - 24
+        if x< - 12: x = x + 24
+        
+        a6 = -0.87 + 0.12 * np.exp(-x*x/9.)
+        a8 = 0.7 * np.cos(2*np.pi* (MLT-21.)/24.) + 4.4
+        a9 = 15.3 * np.cos(2*np.pi*MLT/24.) + 19.7
+        
+        F = a2 - np.exp(a3 * (1.-a4 * np.exp(6371.2*(1.-r)/a5)))
+        C2LAM = np.cos(theta)*np.cos(theta)
+        G = (a6*r/C2LAM) + a7
+        H = (1. + (r /(C2LAM*a8)) ** (2. * (a9 - 1.))) ** (-a9 / (a9 - 1.))
+             
+        n_log = a1 * F * G * H
+        return n_log
+        
+    rmin = 1.05
+    dphi = 2.*np.pi/N
+       
     
-    # obtained from SSCWEB fortran
-    Re = 6371 # radius of Earth in km according to fortran SSCWEB
-    R = np.linspace(1.05* Re,6, 10).repeat(10)
-    THETA = 0
-    PHI = np.linspace(0,2*np.pi,10)
-    PHI = np.matlib.repmat(PHI, 1, 10).flatten()
-    RAD = 180/np.pi
-    MLT = (PHI*RAD/15.) - 12.
-    x = MLT 
-    MLT[MLT>=24] = MLT[MLT>=24] - 24
-    MLT[MLT<0] = MLT[MLT<0] + 24
-    x[x>12] = x[x>12] - 24
-    x[x<12] = x[x<12] + 24
+    r_ax = np.arange(rmin,6,(6-rmin)/N) # make radius out to 6. 
+    theta_i = 28*np.pi/180 
+    theta_f = 152 * np.pi/180 
+    theta_step = (theta_f-theta_i)/N
+    theta_ax = np.arange(theta_i,theta_f,theta_step)
+    theta_ax = np.pi/2. - theta_ax # converting from colatitude to latitude
+    phi_ax = dphi*np.arange(N)
+        
+    phi = np.kron(np.ones(N),phi_ax)
+    theta = np.kron(theta_ax,np.ones(N))
+    r = np.kron(r_ax, np.ones(N**2))
+        
+    phi = np.kron(np.ones(N), phi)
+    theta = np.kron(np.ones(N), theta)  
+    P = np.column_stack([r,theta,phi])
+    P_cartesian = np.nan*np.empty(P.shape)
     
-    a6 = -0.87 + 0.12 * np.exp(-x**2/9.)
-    a8 = 0.7 * np.cos(2*np.pi* (MLT-21.)/24.) + 4.4
-    a9 = 15.3 * np.cos(2*np.pi*MLT/24.) + 19.7
+    P_cartesian[:,0] = P[:,0]*np.cos(P[:,2])*np.cos(P[:,1])  # x = r cos(phi) cos(theta)
+    P_cartesian[:,1] = P[:,0]*np.sin(P[:,2])*np.cos(P[:,1])  # y = r sin(phi) cos(theta)
+    P_cartesian[:,2] = P[:,0]*np.sin(P[:,1])                 # z = r sin(theta)
     
-    F = a2 - np.exp(a3 * (1.-a4 * np.exp(Re*(1.-R)/a5)))
+    if coord_sys != 'SM':
+        P_cartesian = cx.transform(P_cartesian, time, 'SM', coord_sys, 'car', 'car')
+       
+    ind = np.arange(N**3).reshape((N,N,N)) # ind is (50,50,50) going from 0-124999
+        #PERIODIC IN PHI DIRECTION (indexed by k)
+    indPeriodic = np.zeros((N,N,N+1), dtype=int) # shape: (50,50,51)
+    indPeriodic[:,:,:-1] = ind # the same as ind except with an extra column of zeros
+    indPeriodic[:,:,-1] = ind[:,:,0] # the last row which was all zeros is now a copy of the first row
+        
+         
+    V_Periodic = []
+    for i in range(N-1):
+        for j in range(N-1):
+            for k in range(N):
+                V_Periodic.append( (indPeriodic[i,j,k], indPeriodic[i+1,j,k], indPeriodic[i+1,j+1,k], indPeriodic[i,j+1,k],
+                           indPeriodic[i,j,k+1], indPeriodic[i+1,j,k+1], indPeriodic[i+1,j+1,k+1], indPeriodic[i,j+1,k+1])
+                        ) 
+    V_Periodic = np.array(V_Periodic, dtype=int) # size = (N-1)(N-1)*N
     
-    L2LAM = (np.cos(THETA))**2
+    scalars = vtk.vtkDoubleArray()
+    scalars.SetName("log density")
+    for i in range(N**3):
+        scalars.InsertNextValue(logDen(P[i,0],P[i,1],P[i,2]))
+      
+    nV_Periodic = V_Periodic.shape[0]
+    ppc = V_Periodic.shape[1]
+        
+    # Creating vtk points
+    vtkpts = vtk.vtkPoints()
+    vtkpts.SetNumberOfPoints(N**3)
+    for i in range(N**3):
+        vtkpts.InsertPoint(i, P_cartesian[i,0], P_cartesian[i,1], P_cartesian[i,2])
+          
+    ugo = self.GetUnstructuredGridOutput()
+    ugo.Allocate(nV_Periodic,1)
+    ugo.SetPoints(vtkpts)
+        
+    for row in range(nV_Periodic):
+        aHexahedron = vtk.vtkHexahedron()
+        for cell_indx in range(ppc):
+            aHexahedron.GetPointIds().SetId(cell_indx, V_Periodic[row, cell_indx])
+            
+        ugo.InsertNextCell(aHexahedron.GetCellType(), aHexahedron.GetPointIds())
     
-    G = (a6*R/L2LAM) + a7
-    # L = R/np.cos(Lambda)**2
+    output.GetPointData().AddArray(scalars)
+        
     
     
-
-def plasmapause(time, representation='Surface', renderView=None, render=True,
-                show=True):
+def plasmapause(N, representation='Surface', model='Gallagher_Craven_Comfort88',
+                coord_sys='GSM', log_den=[1.5], time=None, 
+                renderView=None, render=True, show=True):
     
-    return objs_wrapper(time=time, representation=representation, 
-                 renderView=renderView, render=render, show=show, 
-                 obj='Plasmapause')
+    return objs_wrapper(N=N, representation=representation, model=model, 
+                        coord_sys=coord_sys, log_den=log_den, time=time,
+                        renderView=renderView, render=render, show=show, 
+                        obj='Plasmapause')
     
 def _neutralsheet(self, output, time, psi, 
                  Rh, G, Lw, d,
@@ -1244,14 +1315,6 @@ def objs_wrapper(**kwargs):
             renderView = pvs.GetActiveViewOrCreate('RenderView')
         else:
             renderView = kwargs['renderView']
-#            renderView = pvs.GetActiveViewOrCreate(kwargs['renderView']['name'])
-#            if "CameraPosition" in kwargs['renderView'].keys():
-#                renderView.CameraPosition = kwargs['renderView']["CameraPosition"]
-#            if "CameraFocalPoint" in kwargs['renderView'].keys():
-#                renderView.CameraFocalPoint = kwargs['renderView']["CameraFocalPoint"]
-#            if "CameraViewUp" in kwargs['renderView']['CameraViewUp']:
-#                renderView.CameraViewUp = kwargs['renderView']['CameraViewUp']
-#            renderView = kwargs['renderView']
         programmableSourceDisplay = pvs.Show(programmableSource, renderView)
         programmableSourceDisplay.Representation = kwargs['representation']
         
@@ -1320,25 +1383,46 @@ def objs_wrapper(**kwargs):
         pvs.ColorBy(programmableSourceDisplay, ('POINTS', scalar_data))
         programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
         
-#         # current camera placement for renderView1
-#         if kwargs['png_fn']:
-# #            if False:
-# #                renderView.CameraPosition = [70, 80, 130]
-# #                renderView.CameraFocalPoint = [-15, 2, 0]
-# #                renderView.CameraViewUp = [0, 1, 0]
-# #                renderView.CameraParallelScale = 45
-# #                # save screenshot
-# #                pvs.SaveScreenshot(png_fn_fp, renderView, ImageResolution=[1676, 1220])
-#             if not kwargs['renderView']:
-#                 renderView.CameraPosition = [11, -80, 42]
-#                 renderView.CameraFocalPoint = [-22, 0, 0]
-#                 renderView.CameraViewUp = [-0.3, 0.3, 0.8]
-#                 renderView.CameraParallelScale = 25.245512504246587
-#                 if kwargs['obj'] == 'Bowshock':
-#                     renderView.ResetCamera()
-#                 # save screenshot
-#             pvs.SaveScreenshot(png_fn_fp, renderView, ImageResolution=[1676, 1220])
+    if kwargs['obj'] == 'Plasmapause':
         
+        programmableSource.OutputDataSetType = 'vtkUnstructuredGrid'
+        programmableSource.Script = 'kwargs='+str(kwargs)+";execfile('{}',globals(),locals())".format(path)
+        
+        if not kwargs['renderView']:
+            renderView = pvs.GetActiveViewOrCreate('RenderView')
+        
+        programmableSourceDisplay = pvs.Show(programmableSource, renderView)
+        programmableSourceDisplay.Representation = kwargs['representation']
+        
+        if not kwargs['show']:
+            pvs.Hide(programmableSource, renderView)
+            
+        if kwargs['render']:
+            pvs.Render()
+            renderView.Update()
+            
+        title = "Plasmapause {} {}".format(kwargs['model'], kwargs['coord_sys'])
+        
+        pvs.ColorBy(programmableSourceDisplay, ('POINTS', 'log density'))
+        programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
+        
+        # create a new 'Contour'
+        contour = pvs.Contour()
+        contour.ContourBy = ['POINTS', 'log density']
+        contour.PointMergeMethod = 'Uniform Binning'
+        
+        # Properties modified on contour1
+        contour.Isosurfaces = kwargs['log_den']
+        contourDisplay = pvs.Show(contour, renderView)
+        
+        # trace defaults for the display properties.
+        contourDisplay.Representation = kwargs['representation']
+        contourDisplay.ColorArrayName = ['POINTS', 'log density']
+        contourDisplay.SetScaleArray = ['POINTS', 'log density']
+        
+        pvs.Hide(programmableSource, renderView)
+        
+        contourDisplay.SetScalarBarVisibility(renderView, True)
     
     if kwargs['obj'] == 'satellite':
         
@@ -1349,8 +1433,9 @@ def objs_wrapper(**kwargs):
         
         if not kwargs['renderView']:
             renderView = pvs.GetActiveViewOrCreate('RenderView')
-            programmableSourceDisplay = pvs.Show(programmableSource, renderView)
-            programmableSourceDisplay.Representation = kwargs['representation']
+            
+        programmableSourceDisplay = pvs.Show(programmableSource, renderView)
+        programmableSourceDisplay.Representation = kwargs['representation']
         
         if not kwargs['show']:
             pvs.Hide(programmableSource, renderView)
@@ -2516,8 +2601,9 @@ if "kwargs" in vars():
               coord_sys=kwargs['coord_sys'], lims=kwargs['lims'],
               tick_spacing=kwargs['label'], label=kwargs['label'])
     
-    elif kwargs['obj'] == 'plasmapause':
-        _plasmapause(self, output, time=kwargs['time'])
+    elif kwargs['obj'] == 'Plasmapause':
+        _plasmapause(self, output, N=kwargs['N'] , time=kwargs['time'],
+                     coord_sys=kwargs['coord_sys'])
         
     elif kwargs['obj'] == 'latitude':
         _latitude_lines(self, time=kwargs['time'], coord_sys=kwargs['coord_sys'],

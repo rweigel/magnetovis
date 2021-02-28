@@ -10,6 +10,12 @@ Usage:
 demo_time = [2015, 1, 1, 0, 0]
 demo_coord = 'GSM'
 
+# Plasmapause does not have a time parameter. 
+ppauseDisp, renderView, ppauseSource = objects2.plasmapause(N=25, log_den=[1,1.5],
+                                                            time=[1984,1,1,0,0],
+                                                            coord_sys=demo_coord)
+objects2.screenshot(obj=ppauseSource)
+
 
 #objects2.trajectory() # Plot a particle trajectory from Blake's code (not urgent)
 
@@ -44,19 +50,39 @@ satDisp, renderView, satSource = objects2.satellite(time_o = '2005-01-01T00:00:0
                       }
                   )
 objects2.screenshot(obj=satSource)
+satDisp, renderView, satSource = objects2.satellite(time_o = '1984-01-01T00:00:00.000Z', 
+                  time_f = '1984-01-01T04:00:00.000Z', 
+                  satellite_id = 'de1', coord_sys=demo_coord,
+                  color=None, tube_radius=.3,
+                  region_colors = {
+                      'D_Msheath' : (230./255, 25./255,  75./255,  0.7), # red
+                      'N_Msheath' : (245./255, 130./255, 48./255,  0.7), # orange
+                      'D_Msphere' : (255./255, 255./255, 25./255,  0.7), # yellow
+                      'N_Msphere' : (220./255, 190./255, 255./255, 0.7), # lavender
+                      'D_Psphere' : (60./255,  180./255, 75./255,  0.7), # green
+                      'N_Psphere' : (70./255,  240./255, 240./255, 0.7), # cyan
+                      'Tail_Lobe' : (0,        130./255, 200./255, 0.7), # blue
+                      'Plasma_Sh' : (145./255, 30./255,  180./255, 0.7), # purple
+                      'HLB_Layer' : (240./255, 50./255,  230./255, 0.7), # magenta
+                      'LLB_Layer' : (128./255, 128./255, 128./255, 0.7), # grey
+                      'Intpl_Med' : (255./255, 255./255, 255./255, 0.7)  # white
+                      }
+                  )
+
+objects2.screenshot(obj=satSource)
 
 earthDisp, renderView, earthSource = objects2.earth(demo_time, coord_sys=demo_coord)
 objects2.screenshot(obj=earthSource)
 
 
-# #objects2.latitude_lines(time=demo_time, coord_sys=demo_coord)
-# #objects2.longitude_lines(time=demo_time, coord_sys=demo_coord)
-# objects2.axis(time=demo_time, val='Y', lims=[-55,55],coord_sys=demo_coord)
-# objects2.axis(time=demo_time, val='X', lims=[-55,25], coord_sys=demo_coord)
-# objects2.axis(time=demo_time, val='Z', lims=[-55,55], coord_sys=demo_coord)
-# objects2.plane(time=demo_time, val='XY', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)
-# #objects2.plane(time=demo_time, val='XZ', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)
-# objects2.plane(time=demo_time, val='YZ', extend=[[-55,55],[-55,55]], coord_sys=demo_coord)
+objects2.latitude_lines(time=demo_time, coord_sys=demo_coord)
+objects2.longitude_lines(time=demo_time, coord_sys=demo_coord)
+objects2.axis(time=demo_time, val='Y', lims=[-55,55],coord_sys=demo_coord)
+objects2.axis(time=demo_time, val='X', lims=[-55,25], coord_sys=demo_coord)
+objects2.axis(time=demo_time, val='Z', lims=[-55,55], coord_sys=demo_coord)
+objects2.plane(time=demo_time, val='XY', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)
+#objects2.plane(time=demo_time, val='XZ', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)
+objects2.plane(time=demo_time, val='YZ', extend=[[-55,55],[-55,55]], coord_sys=demo_coord)
 
 # stylize background
 renderView = pvs.GetActiveViewOrCreate('RenderView')
