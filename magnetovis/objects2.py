@@ -1577,12 +1577,7 @@ def screenshot(obj=None, renderView=None, fName=None,
 	# https://docs.paraview.org/en/latest/UsersGuide/displayingData.html
     
     import paraview.simple as pvs 
-    # import inspect 
-    
-    # caller = inspect.stack()
-    # print('\n\n')
-    # print(caller)
-    # print('\n\n')
+
     if not renderView:
 		renderView = pvs.GetActiveViewOrCreate('RenderView')
 
@@ -1607,7 +1602,11 @@ def screenshot(obj=None, renderView=None, fName=None,
 		# SetScaleArray producecs TypeError: SetElement argument 2: string or None required. this gives ['POINTS', 'Normals']
 
         try:
-            tempObjDisplay.SetPropertyWithName(prop, objDisplay.GetPropertyValue(prop))
+            if prop == 'ColorArrayName':
+                tempObjDisplay.ColorArrayName = objDisplay.GetPropertyValue(prop)[1]
+                # pvs.ColorBy(tempObjDisplay, tempObjDisplay.ColorArrayName)
+            else:
+                tempObjDisplay.SetPropertyWithName(prop, objDisplay.GetPropertyValue(prop))
         except RuntimeError as err:
             print('RunTimeError: {}'.format(err))
             print('Issue Copying: {}'.format(prop))
@@ -1619,6 +1618,13 @@ def screenshot(obj=None, renderView=None, fName=None,
             print('Issue Copying: {}'.format(prop))
             
     pvs.Show()
+    
+    tempObjDisplay.SetScalarBarVisibility(tempRenderView, True)
+    
+    renderView = pvs.GetActiveViewOrCreate('RenderView')
+    renderView.UseGradientBackground = 1
+    renderView.Background2 = [0.07023727779049363, 0.07129015030136568, 0.471976806286717]
+    renderView.Background = [0.0865796902418555, 0.35515373464560923, 0.48921950102998396]
 
     if not camera:
         tempRenderView.ResetCamera()
