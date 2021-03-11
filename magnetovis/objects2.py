@@ -1406,23 +1406,23 @@ def objs_wrapper(**kwargs):
         pvs.ColorBy(programmableSourceDisplay, ('POINTS', 'log density'))
         programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
         
-        # create a new 'Contour'
-        contour = pvs.Contour()
-        contour.ContourBy = ['POINTS', 'log density']
-        contour.PointMergeMethod = 'Uniform Binning'
+        # # create a new 'Contour'
+        # contour = pvs.Contour()
+        # contour.ContourBy = ['POINTS', 'log density']
+        # contour.PointMergeMethod = 'Uniform Binning'
         
-        # Properties modified on contour1
-        contour.Isosurfaces = kwargs['log_den']
-        contourDisplay = pvs.Show(contour, renderView)
+        # # Properties modified on contour1
+        # contour.Isosurfaces = kwargs['log_den']
+        # contourDisplay = pvs.Show(contour, renderView)
         
-        # trace defaults for the display properties.
-        contourDisplay.Representation = kwargs['representation']
-        contourDisplay.ColorArrayName = ['POINTS', 'log density']
-        contourDisplay.SetScaleArray = ['POINTS', 'log density']
+        # # trace defaults for the display properties.
+        # contourDisplay.Representation = kwargs['representation']
+        # contourDisplay.ColorArrayName = ['POINTS', 'log density']
+        # contourDisplay.SetScaleArray = ['POINTS', 'log density']
         
-        pvs.Hide(programmableSource, renderView)
+        # pvs.Hide(programmableSource, renderView)
         
-        contourDisplay.SetScalarBarVisibility(renderView, True)
+        # contourDisplay.SetScalarBarVisibility(renderView, True)
     
     if kwargs['obj'] == 'satellite':
         
@@ -1567,6 +1567,24 @@ def objs_wrapper(**kwargs):
     
     return programmableSourceDisplay, renderView, programmableSource
 
+def contour(obj, isosurface, display=None, color_by=None):
+    import paraview.simple as pvs 
+
+    contourFilter = pvs.Contour(obj)
+    contourFilter.Isosurfaces = isosurface 
+
+
+    renderView = pvs.GetActiveViewOrCreate("RenderView")
+    pvs.Hide(obj, renderView)
+    conDis = pvs.Show(contourFilter)
+    conDis.SetScalarBarVisibility(renderView, True)
+
+
+    return conDis, renderView, contourFilter 
+
+def tube(obj, display=None):
+    pass 
+
 def screenshot(obj=None, renderView=None, fName=None, 
                               camera=None,):
 	
@@ -1602,7 +1620,7 @@ def screenshot(obj=None, renderView=None, fName=None,
 		# SetScaleArray producecs TypeError: SetElement argument 2: string or None required. this gives ['POINTS', 'Normals']
 
         try:
-            if prop == 'ColorArrayName':
+            if prop == 'ColorArrayName': # or prop=='SetScaleArray' or prop=='OpacityArray'
                 tempObjDisplay.ColorArrayName = objDisplay.GetPropertyValue(prop)[1]
                 # pvs.ColorBy(tempObjDisplay, tempObjDisplay.ColorArrayName)
             else:

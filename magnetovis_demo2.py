@@ -11,11 +11,12 @@ demo_time = [2015, 1, 1, 0, 0]
 demo_coord = 'GSM'
 
 # Plasmapause does not have a time parameter. 
-ppauseDisp, renderView, ppauseSource = objects2.plasmapause(N=25, log_den=[1,1.5],
+# throw time not being used unless changing coord systems
+ppauseDisp, renderView, ppauseSource = objects2.plasmapause(N=25,
                                                             time=[1984,1,1,0,0],
                                                             coord_sys=demo_coord)
-objects2.screenshot(obj=ppauseSource)
-
+conDis, renderView, contourFilter = objects2.contour(ppauseSource, isosurface=[1.5])
+objects2.screenshot(obj=contourFilter)
 
 #objects2.trajectory() # Plot a particle trajectory from Blake's code (not urgent)
 
@@ -81,8 +82,8 @@ objects2.axis(time=demo_time, val='Y', lims=[-55,55],coord_sys=demo_coord)
 objects2.axis(time=demo_time, val='X', lims=[-55,25], coord_sys=demo_coord)
 objects2.axis(time=demo_time, val='Z', lims=[-55,55], coord_sys=demo_coord)
 objects2.plane(time=demo_time, val='XY', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)
-#objects2.plane(time=demo_time, val='XZ', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)
-objects2.plane(time=demo_time, val='YZ', extend=[[-55,55],[-55,55]], coord_sys=demo_coord)
+objects2.plane(time=demo_time, val='XZ', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)
+# objects2.plane(time=demo_time, val='YZ', extend=[[-55,55],[-55,55]], coord_sys=demo_coord)
 
 # stylize background
 renderView = pvs.GetActiveViewOrCreate('RenderView')
