@@ -35,7 +35,7 @@ objects2.screenshot(obj=bowSource)
 satDisp, renderView, satSource = objects2.satellite(time_o = '2005-01-01T00:00:00.000Z', 
                   time_f = '2005-01-06T00:15:00.000Z', 
                   satellite_id = 'geotail', coord_sys=demo_coord,
-                  color=None, tube_radius=1,
+                  color=None, tube_radius=None,
                   region_colors = {
                       'D_Msheath' : (230./255, 25./255,  75./255,  0.7), # red
                       'N_Msheath' : (245./255, 130./255, 48./255,  0.7), # orange
@@ -50,11 +50,12 @@ satDisp, renderView, satSource = objects2.satellite(time_o = '2005-01-01T00:00:0
                       'Intpl_Med' : (255./255, 255./255, 255./255, 0.7)  # white
                       }
                   )
-objects2.screenshot(obj=satSource)
+tubeDis, renderView, tubeFilter = objects2.tube(satSource)
+objects2.screenshot(obj=satFilter)
 satDisp, renderView, satSource = objects2.satellite(time_o = '1984-01-01T00:00:00.000Z', 
                   time_f = '1984-01-01T04:00:00.000Z', 
                   satellite_id = 'de1', coord_sys=demo_coord,
-                  color=None, tube_radius=.3,
+                  color=None, tube_radius=None,
                   region_colors = {
                       'D_Msheath' : (230./255, 25./255,  75./255,  0.7), # red
                       'N_Msheath' : (245./255, 130./255, 48./255,  0.7), # orange
@@ -70,7 +71,8 @@ satDisp, renderView, satSource = objects2.satellite(time_o = '1984-01-01T00:00:0
                       }
                   )
 
-objects2.screenshot(obj=satSource)
+tubeDis, renderView, tubeFilter = objects2.tube(satSource)
+objects2.screenshot(obj=tubeFilter)
 
 earthDisp, renderView, earthSource = objects2.earth(demo_time, coord_sys=demo_coord)
 objects2.screenshot(obj=earthSource)
@@ -83,7 +85,7 @@ objects2.axis(time=demo_time, val='X', lims=[-55,25], coord_sys=demo_coord)
 objects2.axis(time=demo_time, val='Z', lims=[-55,55], coord_sys=demo_coord)
 objects2.plane(time=demo_time, val='XY', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)
 objects2.plane(time=demo_time, val='XZ', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)
-# objects2.plane(time=demo_time, val='YZ', extend=[[-55,55],[-55,55]], coord_sys=demo_coord)
+objects2.plane(time=demo_time, val='YZ', extend=[[-55,55],[-55,55]], coord_sys=demo_coord)
 
 # stylize background
 renderView = pvs.GetActiveViewOrCreate('RenderView')

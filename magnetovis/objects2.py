@@ -1482,7 +1482,13 @@ def objs_wrapper(**kwargs):
 
         regionsLUT.Annotations = annotations
         index_colored_list = np.array(index_colored_list).flatten()
-        
+        regionsLUT.IndexedColors = index_colored_list
+
+        programmableSourceDisplay.LookupTable = regionsLUT
+        programmableSourceDisplay.OpacityArray = ['POINTS', scalar_data]
+        programmableSourceDisplay.ColorArrayName = ['POINTS', scalar_data]
+        programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
+
         if kwargs['tube_radius'] != None:
             tube = pvs.Tube(Input=programmableSource)
             tube.Scalars = ['POINTS', scalar_data]
@@ -1582,8 +1588,18 @@ def contour(obj, isosurface, display=None, color_by=None):
 
     return conDis, renderView, contourFilter 
 
-def tube(obj, display=None):
-    pass 
+def tube(obj, renderView=None):
+    import paraview.simple as pvs 
+    tubeFilter = pvs.Tube(obj)
+
+    if not renderView:
+        renderView = pvs.GetActiveViewOrCreate("RenderView")
+
+    pvs.Hide(obj, renderView)
+    tubeDis = pvs.Show(tubeFilter)
+    tubeDis.SetScalarBarVisibility(renderView, True)
+
+    return tubeDis, renderView, tubeFilter
 
 def screenshot(obj=None, renderView=None, fName=None, 
                               camera=None,):
