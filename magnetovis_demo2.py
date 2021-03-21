@@ -18,12 +18,12 @@ ppauseDisp, renderView, ppauseSource = objects2.plasmapause(N=25,
 conDis, renderView, contourFilter = objects2.contour(ppauseSource, isosurface=[1.5])
 objects2.screenshot(obj=contourFilter)
 
-#objects2.trajectory() # Plot a particle trajectory from Blake's code (not urgent)
+# # # #objects2.trajectory() # Plot a particle trajectory from Blake's code (not urgent)
 
 neutDisplay, renderView, neutSource =  objects2.neutralsheet(time = demo_time, coord_sys=demo_coord)
 objects2.screenshot(obj=neutSource)
 
-plasShDisp, renderView, plasShSource = objects2.plasmasheet(time = demo_time, coord_sys=demo_coord)
+plasShDisp, renderView, plasShSource = objects2.plasmasheet(time = demo_time, coord_sys=demo_coord,)
 objects2.screenshot(obj=plasShSource)
 
 mpauseDisplay, renderView, mpauseSource =objects2.magnetopause(time=demo_time, coord_sys=demo_coord)
@@ -51,7 +51,7 @@ satDisp, renderView, satSource = objects2.satellite(time_o = '2005-01-01T00:00:0
                       }
                   )
 tubeDis, renderView, tubeFilter = objects2.tube(satSource)
-objects2.screenshot(obj=satFilter)
+objects2.screenshot(obj=tubeFilter)
 satDisp, renderView, satSource = objects2.satellite(time_o = '1984-01-01T00:00:00.000Z', 
                   time_f = '1984-01-01T04:00:00.000Z', 
                   satellite_id = 'de1', coord_sys=demo_coord,
@@ -78,9 +78,14 @@ earthDisp, renderView, earthSource = objects2.earth(demo_time, coord_sys=demo_co
 objects2.screenshot(obj=earthSource)
 
 
-objects2.latitude_lines(time=demo_time, coord_sys=demo_coord)
-objects2.longitude_lines(time=demo_time, coord_sys=demo_coord)
-objects2.axis(time=demo_time, val='Y', lims=[-55,55],coord_sys=demo_coord)
+latDis, renderView, latSource = objects2.latitude_lines(time=demo_time, coord_sys=demo_coord, tube_radius=None)
+latDisTube, renderView, latTubeFilter = objects2.tube(latSource)
+objects2.screenshot(obj=latTubeFilter)
+lonDis, renderView, lonSource = objects2.longitude_lines(time=demo_time, coord_sys=demo_coord, tube_radius=None)
+lonDisTue, renderView, lonTubeFilter = objects2.tube(lonSource)
+objects2.screenshot(obj=lonTubeFilter)
+
+axisDis, renderView, axisSource = objects2.axis(time=demo_time, val='Y', lims=[-55,55],coord_sys=demo_coord)
 objects2.axis(time=demo_time, val='X', lims=[-55,25], coord_sys=demo_coord)
 objects2.axis(time=demo_time, val='Z', lims=[-55,55], coord_sys=demo_coord)
 objects2.plane(time=demo_time, val='XY', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)

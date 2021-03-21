@@ -563,8 +563,10 @@ def _latitude_lines(self, time, coord_sys='GSM', increment=15, color=[1,0,0]):
     r = np.ones(lon_repeat*lat_repeat)
     
     sph_coords = np.column_stack((r,lat,lon))
-    if coord_sys != 'GSM':
-        points = cx.transform(sph_coords, time, 'GSM', coord_sys, ctype_in='sph', ctype_out='car')
+    
+    points = cx.transform(sph_coords, time, 'GSM', coord_sys, ctype_in='sph', ctype_out='car')
+    
+
     
     ### start of vtk
     
@@ -953,7 +955,7 @@ def _plasmapause(self, output, N, coord_sys, time):
     V_Periodic = np.array(V_Periodic, dtype=int) # size = (N-1)(N-1)*N
     
     scalars = vtk.vtkDoubleArray()
-    scalars.SetName("log density")
+    scalars.SetName("H+ log density (cm^-3)")
     for i in range(N**3):
         scalars.InsertNextValue(logDen(P[i,0],P[i,1],P[i,2]))
       
@@ -995,7 +997,7 @@ def _neutralsheet(self, output, time, psi,
                  xlims, ylims,
                  coord_sys,
                  model,
-                 return_sheet):
+                 return_sheet, array_scalar_value=1):
 
     """
     Show neutral sheet surface.
@@ -1095,8 +1097,11 @@ def _neutralsheet(self, output, time, psi,
     pts.Allocate(dims[0] * dims[1] * dims[2])
     
     # color sections
-    lut = pvs.GetColorTransferFunction('Magnetosphere Surface')
-    value = int(len(lut.Annotations)/2)
+    annotations_list = list(pvs.GetColorTransferFunction('Magnetosphere Surface').Annotations)
+    if 'Neutralsheet' in annotations_list:
+        value = int(annotations_list[annotations_list.index('Neutralsheet')-1])
+    else:
+        value = int(1+len(annotations_list)/2)
     colors = vtk.vtkUnsignedCharArray()
     colors.SetNumberOfComponents(1)
     colors.SetName("Magnetosphere Surface")
@@ -1199,8 +1204,13 @@ def _plasmasheet(self, output, time, psi,
     pts.Allocate(dims[0] * dims[1] * dims[2])
     
     # color sections
-    lut = pvs.GetColorTransferFunction('Magnetosphere Surface')
-    value = int(len(lut.Annotations)/2)
+    annotations_list = list(pvs.GetColorTransferFunction('Magnetosphere Surface').Annotations)
+    if 'Plasmasheet' in annotations_list:
+        value = int(annotations_list[annotations_list.index('Plasmasheet')-1])
+    else:
+        value = int(1+len(annotations_list)/2)
+    
+    
     colors = vtk.vtkUnsignedCharArray()
     colors.SetNumberOfComponents(1)
     colors.SetName("Magnetosphere Surface")
@@ -1284,6 +1294,8 @@ def objs_wrapper(**kwargs):
         renderView = pvs.GetActiveViewOrCreate('RenderView')
         programmableSourceDisplay = pvs.Show(programmableSource, renderView)
         programmableSourceDisplay.Representation = kwargs['representation']
+        
+        return programmableSourceDisplay, renderView, programmableSource
     
     if kwargs['obj'] in mag_surfaces:
         if kwargs['obj'] == 'Magnetopause' or kwargs['obj'] == 'Bowshock':
@@ -1323,7 +1335,7 @@ def objs_wrapper(**kwargs):
             
         if kwargs['render']:
             pvs.Render()
-            renderView.Update()
+        renderView.Update()
         
         if not kwargs['time']:
             kwargs['time'] = ''
@@ -1363,26 +1375,28 @@ def objs_wrapper(**kwargs):
                         tstr(kwargs['time'],length=5), kwargs['psi'], kwargs['Rh'], 
                         kwargs['G'], kwargs['Lw'], kwargs['d'])\
                     .replace('  ', ' ')
-        regionsLUT = pvs.GetColorTransferFunction(scalar_data)
-        regionsLUT.InterpretValuesAsCategories = 1
-        regionsLUT.AnnotationsInitialized = 1
-        
+                    
+                    
+        LUT = pvs.GetColorTransferFunction(scalar_data) # [].....[1,2,3].....[1,2,3,4,5,6]
         index_colored_list = kwargs['color'][0:3]
-        regionsLUT.IndexedColors = np.concatenate((regionsLUT.IndexedColors,index_colored_list))
-
-        annotations = list(regionsLUT.Annotations)
-        annotations.append(str(int(len(regionsLUT.Annotations)/2)))
-        annotations.append(kwargs['obj'])
+        LUT.IndexedColors = np.concatenate((LUT.IndexedColors,index_colored_list)) # [1.0, 0.0, 0.0]
         
-        regionsLUT.Annotations = annotations   
+        # # appending the new annotation from last created magnetosphere surface
+        annotations = list(LUT.Annotations) 
+        annotations.append(str(int(1+ len(LUT.Annotations)/2)))
+        annotations.append(kwargs['obj'])
+        LUT.Annotations = annotations   # ['0', 'Neutralsheet']
+        
+        LUT.InterpretValuesAsCategories = 1
+        LUT.AnnotationsInitialized = 1
         
 #        renderView = pvs.GetActiveViewOrCreate('RenderView')
-        programmableSourceDisplay = pvs.Show(programmableSource, renderView)
-        programmableSourceDisplay.Representation = kwargs['representation']
-        
-        pvs.ColorBy(programmableSourceDisplay, ('POINTS', scalar_data))
+        programmableSourceDisplay.LookupTable = LUT
+        programmableSourceDisplay.OpacityArray = ['POINTS', scalar_data]
+        programmableSourceDisplay.ColorArrayName = ['POINTS', scalar_data]
         programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
-        
+
+
     if kwargs['obj'] == 'Plasmapause':
         
         programmableSource.OutputDataSetType = 'vtkUnstructuredGrid'
@@ -1403,26 +1417,9 @@ def objs_wrapper(**kwargs):
             
         title = "Plasmapause {} {}".format(kwargs['model'], kwargs['coord_sys'])
         
-        pvs.ColorBy(programmableSourceDisplay, ('POINTS', 'log density'))
+        pvs.ColorBy(programmableSourceDisplay, ('POINTS', 'H+ log density (cm^-3)'))
         programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
         
-        # # create a new 'Contour'
-        # contour = pvs.Contour()
-        # contour.ContourBy = ['POINTS', 'log density']
-        # contour.PointMergeMethod = 'Uniform Binning'
-        
-        # # Properties modified on contour1
-        # contour.Isosurfaces = kwargs['log_den']
-        # contourDisplay = pvs.Show(contour, renderView)
-        
-        # # trace defaults for the display properties.
-        # contourDisplay.Representation = kwargs['representation']
-        # contourDisplay.ColorArrayName = ['POINTS', 'log density']
-        # contourDisplay.SetScaleArray = ['POINTS', 'log density']
-        
-        # pvs.Hide(programmableSource, renderView)
-        
-        # contourDisplay.SetScalarBarVisibility(renderView, True)
     
     if kwargs['obj'] == 'satellite':
         
@@ -1442,7 +1439,7 @@ def objs_wrapper(**kwargs):
             
         if kwargs['render']:
             pvs.Render()
-            renderView.Update()
+        renderView.Update()
         
         server     = 'http://hapi-server.org/servers/SSCWeb/hapi';
         opts       = {'logging': True, 'usecache': True}
@@ -1466,9 +1463,9 @@ def objs_wrapper(**kwargs):
         
         unique_regions = np.unique(data['Spacecraft_Region'])
         
-        regionsLUT = pvs.GetColorTransferFunction(scalar_data)
-        regionsLUT.InterpretValuesAsCategories = 1
-        regionsLUT.AnnotationsInitialized = 1
+        LUT = pvs.GetColorTransferFunction(scalar_data)
+        LUT.InterpretValuesAsCategories = 1
+        LUT.AnnotationsInitialized = 1
         
         annotations = []
         index_colored_list = []
@@ -1480,37 +1477,14 @@ def objs_wrapper(**kwargs):
             else:
                 index_colored_list.append(kwargs['color'][0:3])
 
-        regionsLUT.Annotations = annotations
+        LUT.Annotations = annotations
         index_colored_list = np.array(index_colored_list).flatten()
-        regionsLUT.IndexedColors = index_colored_list
+        LUT.IndexedColors = index_colored_list
 
-        programmableSourceDisplay.LookupTable = regionsLUT
+        programmableSourceDisplay.LookupTable = LUT
         programmableSourceDisplay.OpacityArray = ['POINTS', scalar_data]
         programmableSourceDisplay.ColorArrayName = ['POINTS', scalar_data]
         programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
-
-        if kwargs['tube_radius'] != None:
-            tube = pvs.Tube(Input=programmableSource)
-            tube.Scalars = ['POINTS', scalar_data]
-            tube.Radius = kwargs['tube_radius']
-            
-            spacecraftRegionLUT = pvs.GetColorTransferFunction(scalar_data)
-            spacecraftRegionLUT.InterpretValuesAsCategories = 1
-            spacecraftRegionLUT.AnnotationsInitialized = 1
-            spacecraftRegionLUT.Annotations = annotations
-            spacecraftRegionLUT.IndexedColors = index_colored_list
-            
-            tubeDisplay = pvs.Show(tube, renderView)
-            tubeDisplay.Representation = kwargs['representation']
-            tubeDisplay.ColorArrayName = ['POINTS', scalar_data]
-            tubeDisplay.LookupTable = spacecraftRegionLUT
-            tubeDisplay.OpacityArray = ['POINTS', scalar_data]
-            
-            pvs.Hide(programmableSource, renderView)
-            tubeDisplay.SetScalarBarVisibility(renderView, True)
-            renderView.Update()
-            
-            pvs.RenameSource(title.replace('line','tube'), tube)
             
     if kwargs['obj'] == "latitude" or kwargs['obj'] == 'longitude':
         scalar_data = 'lat_lon'
@@ -1545,27 +1519,12 @@ def objs_wrapper(**kwargs):
                 lat_lonLUT.IndexedColors = np.concatenate((kwargs['color'],.5*np.array(kwargs['color'])))
             else:
                 lat_lonLUT.IndexedColors = np.concatenate((.5*np.array(kwargs['color']),kwargs['color']))
-        
-        if kwargs['tube_radius'] != None:
-            tube = pvs.Tube(Input=programmableSource)
-            tube.Scalars = ['POINTS',scalar_data]
-            tube.Radius = kwargs['tube_radius']
-            
-            tubeDisplay = pvs.Show(tube, renderView)
-            tubeDisplay.Representation = kwargs['representation']
-            tubeDisplay.ColorArrayName = ['POINTS', scalar_data]
-            tubeDisplay.LookupTable = lat_lonLUT
-            tubeDisplay.OpacityArray = ['POINTS', scalar_data]
-            
-            pvs.Hide(programmableSource, renderView)
-            if kwargs['show_annotations']:
-                tubeDisplay.SetScalarBarVisibility(renderView, True)
-            renderView.Update()
-            
-            pvs.RenameSource(title.replace('line','tube'), tube)
-        
-        if kwargs['show_annotations']:
-            programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
+ 
+
+        programmableSourceDisplay.LookupTable = lat_lonLUT
+        programmableSourceDisplay.OpacityArray = ['POINTS', scalar_data]
+        programmableSourceDisplay.ColorArrayName = ['POINTS', scalar_data]
+        programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
     
     pvs.RenameSource(title, programmableSource)
 
@@ -1576,7 +1535,11 @@ def objs_wrapper(**kwargs):
 def contour(obj, isosurface, display=None, color_by=None):
     import paraview.simple as pvs 
 
-    contourFilter = pvs.Contour(obj)
+    for key, value in pvs.GetSources().items():
+        if obj.__eq__(value):
+            title = key[0]
+
+    contourFilter = pvs.Contour(obj,guiName=title)
     contourFilter.Isosurfaces = isosurface 
 
 
@@ -1590,7 +1553,12 @@ def contour(obj, isosurface, display=None, color_by=None):
 
 def tube(obj, renderView=None):
     import paraview.simple as pvs 
-    tubeFilter = pvs.Tube(obj)
+
+    for key, value in pvs.GetSources().items():
+        if obj.__eq__(value):
+            title = key[0]
+
+    tubeFilter = pvs.Tube(obj, guiName=title)
 
     if not renderView:
         renderView = pvs.GetActiveViewOrCreate("RenderView")
@@ -1614,8 +1582,7 @@ def screenshot(obj=None, renderView=None, fName=None,
 
     if not renderView:
 		renderView = pvs.GetActiveViewOrCreate('RenderView')
-
-	
+    
     objDisplay = pvs.GetRepresentation(proxy=obj, view=renderView) # with this we don't need to  pass around objectDisplay variable
     tempLayout = pvs.CreateLayout('Temp Layout')
     tempRenderView = pvs.CreateRenderView()
@@ -1637,11 +1604,30 @@ def screenshot(obj=None, renderView=None, fName=None,
 
         try:
             if prop == 'ColorArrayName': # or prop=='SetScaleArray' or prop=='OpacityArray'
-                tempObjDisplay.ColorArrayName = objDisplay.GetPropertyValue(prop)[1]
+                print('      I AM GETTING HIT IN THE COLOR ARRAY NAME TRY')
+                print(str(objDisplay.ColorArrayName[1]))
+                print()
+                tempObjDisplay.ColorArrayName = [objDisplay.ColorArrayName[0], str(objDisplay.ColorArrayName[1])] # objDisplay.GetPropertyValue(prop)[1]
+                # print('\nthis is inside the try colorArrayName: ', tempObjDisplay.ColorArrayName)
+                # tempObjDisplay.ColorArrayName[0] = objDisplay.ColorArrayName[0]
+                # print('\n\nStill inside but now trying to get points',tempObjDisplay.ColorArrayName,'\n\n')
                 # pvs.ColorBy(tempObjDisplay, tempObjDisplay.ColorArrayName)
+            elif prop == 'OpacityArray':
+                tempObjDisplay.OpacityArray = objDisplay.GetPropertyValue(prop)[1]
+            elif prop == 'SetScaleArray':
+                tempObjDisplay.SetScaleArray = objDisplay.GetPropertyValue(prop)[1]
+            elif prop == 'BlockOpacity' or prop == 'BlockColor':
+                # print('{} Does not currently have a value'.format(prop))
+                if len(objDisplay.BlockOpacity) == 0:
+                    pass 
+                if len(objDisplay.BlockColor) == 0:
+                    pass
+            elif prop == 'RepresentationTypesInfo':
+                pass 
             else:
                 tempObjDisplay.SetPropertyWithName(prop, objDisplay.GetPropertyValue(prop))
         except RuntimeError as err:
+            print(prop)
             print('RunTimeError: {}'.format(err))
             print('Issue Copying: {}'.format(prop))
         except TypeError as err:
@@ -1650,15 +1636,11 @@ def screenshot(obj=None, renderView=None, fName=None,
         except AttributeError as err:
             print('AttributeError: {}'.format(err))
             print('Issue Copying: {}'.format(prop))
-            
-    pvs.Show()
+
     
-    tempObjDisplay.SetScalarBarVisibility(tempRenderView, True)
-    
-    renderView = pvs.GetActiveViewOrCreate('RenderView')
-    renderView.UseGradientBackground = 1
-    renderView.Background2 = [0.07023727779049363, 0.07129015030136568, 0.471976806286717]
-    renderView.Background = [0.0865796902418555, 0.35515373464560923, 0.48921950102998396]
+    tempRenderView.UseGradientBackground = 1
+    tempRenderView.Background2 = [0.07023727779049363, 0.07129015030136568, 0.471976806286717]
+    tempRenderView.Background = [0.0865796902418555, 0.35515373464560923, 0.48921950102998396]
 
     if not camera:
         tempRenderView.ResetCamera()
@@ -1678,15 +1660,31 @@ def screenshot(obj=None, renderView=None, fName=None,
         fName = os.path.join(base_path,'figures',info+'.png')
         fName = fName.replace(' ','_').replace(':','')
         
+    ## checking to see if there is a need for a legend
+    # conclude legend is not needed if the min value in the color array 
+    # is the same as the max value in the color array
+    color_array_name = tempObjDisplay.ColorArrayName
+    print('     \nThis is the color_array_name: ',color_array_name)
+    if color_array_name[1] != '':
+
+        smin, smax = obj.GetPointDataInformation()[color_array_name[1]].GetRange()
+        if smin != smax:
+
+            tempObjDisplay.SetScalarBarVisibility(tempRenderView, True)
+    
+    tempRenderView.OrientationAxesVisibility = 0
     pvs.SaveScreenshot(fName, tempRenderView, ImageResolution=[1800, 1220])
 
 	# # destroy temps 
+    del tempObjDisplay
+    del objDisplay
     pvs.Delete(tempRenderView)
     del tempRenderView
     pvs.RemoveLayout(tempLayout)
     del tempLayout
 
     pvs.SetActiveView(renderView)
+    pvs.Show(proxy=obj, view=renderView)
     
 def _satellite(self, time_o, time_f, satellite_id, coord_sys, region_colors):
     
@@ -2181,8 +2179,11 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
     pts.Allocate(dims[0] * dims[1] * dims[2])
     
     # color sections
-    lut = pvs.GetColorTransferFunction('Magnetosphere Surface')
-    value = int(len(lut.Annotations)/2)
+    annotations_list = list(pvs.GetColorTransferFunction('Magnetosphere Surface').Annotations)
+    if 'Magnetopause' in annotations_list:
+        value = int(annotations_list[annotations_list.index('Magnetopause')-1])
+    else:
+        value = int(1+len(annotations_list)/2)
     colors = vtk.vtkUnsignedCharArray()
     colors.SetNumberOfComponents(1)
     colors.SetName("Magnetosphere Surface")
@@ -2419,8 +2420,11 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model,
     pts.Allocate(dims[0] * dims[1] * dims[2])
     
     # color sections
-    lut = pvs.GetColorTransferFunction('Magnetosphere Surface')
-    value = int(len(lut.Annotations)/2)
+    annotations_list = list(pvs.GetColorTransferFunction('Magnetosphere Surface').Annotations)
+    if 'Bowshock' in annotations_list:
+        value = int(annotations_list[annotations_list.index('Bowshock')-1])
+    else:
+        value = int(1+len(annotations_list)/2)
     colors = vtk.vtkUnsignedCharArray()
     colors.SetNumberOfComponents(1)
     colors.SetName("Magnetosphere Surface")
