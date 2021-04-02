@@ -638,21 +638,21 @@ def _longitude_lines(self, time, coord_sys='GSM', increment=15, color=[1,0,0]):
 
 
 def latitude_lines(time, coord_sys='GEO', increment=15, color=[0,0,1],
-                   representation='Surface', tube_radius=.02, renderView=None,
+                   representation='Surface', renderView=None,
                    render=True, show=True, show_annotations=False):
                    
     return objs_wrapper(time=time, coord_sys=coord_sys, increment=increment,
-                color=color, representation=representation, tube_radius=tube_radius,
+                color=color, representation=representation,
                 renderView=renderView, render=render, show=show,
                 show_annotations=show_annotations, obj='latitude')
 
 
 def longitude_lines(time, coord_sys='GEO', increment=15, color=[0,.5,1],
-                   representation='Surface', tube_radius=.02, renderView=None,
+                   representation='Surface', renderView=None,
                    render=True, show=True, show_annotations=False):
                    
     return objs_wrapper(time=time, coord_sys=coord_sys, increment=increment,
-                color=color, representation=representation, tube_radius=tube_radius,
+                color=color, representation=representation, 
                 renderView=renderView, render=render, show=show,
                 show_annotations=show_annotations, obj='longitude')
 
@@ -1249,19 +1249,9 @@ def objs_wrapper(**kwargs):
             png_fn_fp = os.path.join(kwargs['out_dir'],kwargs['png_fn'])
     
     if kwargs['obj'] == 'axis':
-        x_dim = 300
-        y_dim = 300
-        z_dim = 1
         
-        scalar_data = kwargs['val']
+        scalar_data = '{} axes'.format(kwargs['coord_sys'])
         
-        programmableSource.OutputDataSetType = 'vtkStructuredGrid'
-        programmableSource.ScriptRequestInformation = """
-        executive = self.GetExecutive()
-        outInfo = executive.GetOutputInformation(0)
-        dims = [{}, {}, {}] # x-dims, y-dims, z-dims
-        outInfo.Set(executive.WHOLE_EXTENT(), 0, dims[0]-1 , 0, dims[1]-1 , 0, dims[2]-1)
-        """.format(x_dim, y_dim, z_dim)
         
         programmableSource.Script = "kwargs="+str(kwargs)+";execfile('{}',globals(),locals())".format(path)
         
@@ -1270,14 +1260,17 @@ def objs_wrapper(**kwargs):
             
         programmableSourceDisplay = pvs.Show(programmableSource, renderView)
         programmableSourceDisplay.Representation = kwargs['representation']
-        if kwargs['val'] == 'X':
-            diffuse_color = [1,0,0]
-        elif kwargs['val'] == 'Y':
-            diffuse_color = [1,1,0.5]
-        elif kwargs['val'] == 'Z':
-            diffuse_color = [0,1,0]
-
-        programmableSourceDisplay.DiffuseColor = diffuse_color
+        
+        LUT = pvs.GetColorTransferFunction('{} axes'.format(kwargs['coord_sys']))
+        LUT.IndexedColors = [1,0,0, 1,1,0.5, 0,1,0.1, 1,1,1]
+        LUT.Annotations = ['0','X','1','Y','2','Z','-1','ticks']
+        LUT.InterpretValuesAsCategories = 1
+        LUT.AnnotationsInitialized = 1
+        
+        programmableSourceDisplay.LookupTable = LUT
+        programmableSourceDisplay.OpacityArray = ['POINTS', scalar_data]
+        programmableSourceDisplay.ColorArrayName = ['POINTS', scalar_data]
+        programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
         
         
         if not kwargs['show']:
@@ -1295,7 +1288,7 @@ def objs_wrapper(**kwargs):
         programmableSourceDisplay = pvs.Show(programmableSource, renderView)
         programmableSourceDisplay.Representation = kwargs['representation']
         
-        return programmableSourceDisplay, renderView, programmableSource
+        
     
     if kwargs['obj'] in mag_surfaces:
         if kwargs['obj'] == 'Magnetopause' or kwargs['obj'] == 'Bowshock':
@@ -1551,14 +1544,17 @@ def contour(obj, isosurface, display=None, color_by=None):
 
     return conDis, renderView, contourFilter 
 
-def tube(obj, renderView=None):
+def tube(obj, tube_radius=.1, vary_radius='Off', radius_factor=4.0, renderView=None):
     import paraview.simple as pvs 
 
     for key, value in pvs.GetSources().items():
         if obj.__eq__(value):
             title = key[0]
 
-    tubeFilter = pvs.Tube(obj, guiName=title)
+    tubeFilter = pvs.Tube(obj, guiName='tube - '+title)
+    tubeFilter.Radius = tube_radius
+    tubeFilter.VaryRadius = vary_radius 
+    tubeFilter.RadiusFactor = radius_factor 
 
     if not renderView:
         renderView = pvs.GetActiveViewOrCreate("RenderView")
@@ -1569,8 +1565,8 @@ def tube(obj, renderView=None):
 
     return tubeDis, renderView, tubeFilter
 
-def screenshot(obj=None, renderView=None, fName=None, 
-                              camera=None,):
+def screenshot(obj=None, renderView=None, fName=None, pAxes=False,
+                              camera=None):
 	
 	# option 2 create a new renderView
 	# input option and 
@@ -1583,108 +1579,126 @@ def screenshot(obj=None, renderView=None, fName=None,
     if not renderView:
 		renderView = pvs.GetActiveViewOrCreate('RenderView')
     
-    objDisplay = pvs.GetRepresentation(proxy=obj, view=renderView) # with this we don't need to  pass around objectDisplay variable
-    tempLayout = pvs.CreateLayout('Temp Layout')
-    tempRenderView = pvs.CreateRenderView()
-    pvs.AssignViewToLayout(view=tempRenderView, layout=tempLayout, hint=0)
-    pvs.SetActiveView(tempRenderView)
-    pvs.SetActiveSource(obj)
-
-	# show data in view
-    tempObjDisplay = pvs.Show(obj, tempRenderView)
-    for prop in objDisplay.ListProperties():
-		# print('\n')
-		# print(property)
-		# print(display.GetPropertyValue(property))
-		# RepresentationTypesInfo gives a Runtime Error message. this is a list of strings
-		# BlockColor and Block Opacity both give attribute error. they are blank {}
-		# ColorArrayName produces TypeError: SetElement argument 2: string or None required. this gives [None, ''] might have to use color transfer function
-		# OpacityArray produces TypeError: SetElement argument 2: string or None required. this gives ['POINTS', 'Normals']
-		# SetScaleArray producecs TypeError: SetElement argument 2: string or None required. this gives ['POINTS', 'Normals']
-
-        try:
-            if prop == 'ColorArrayName': # or prop=='SetScaleArray' or prop=='OpacityArray'
-                print('      I AM GETTING HIT IN THE COLOR ARRAY NAME TRY')
-                print(str(objDisplay.ColorArrayName[1]))
-                print()
-                tempObjDisplay.ColorArrayName = [objDisplay.ColorArrayName[0], str(objDisplay.ColorArrayName[1])] # objDisplay.GetPropertyValue(prop)[1]
-                # print('\nthis is inside the try colorArrayName: ', tempObjDisplay.ColorArrayName)
-                # tempObjDisplay.ColorArrayName[0] = objDisplay.ColorArrayName[0]
-                # print('\n\nStill inside but now trying to get points',tempObjDisplay.ColorArrayName,'\n\n')
-                # pvs.ColorBy(tempObjDisplay, tempObjDisplay.ColorArrayName)
-            elif prop == 'OpacityArray':
-                tempObjDisplay.OpacityArray = objDisplay.GetPropertyValue(prop)[1]
-            elif prop == 'SetScaleArray':
-                tempObjDisplay.SetScaleArray = objDisplay.GetPropertyValue(prop)[1]
-            elif prop == 'BlockOpacity' or prop == 'BlockColor':
-                # print('{} Does not currently have a value'.format(prop))
-                if len(objDisplay.BlockOpacity) == 0:
+    base_path = os.path.join(os.path.dirname(os.path.dirname(__file__)))
+    if not os.path.isdir(os.path.join(base_path, 'figures')):
+                os.mkdir(os.path.join(base_path,'figures'))
+                
+    # tempObjDisplay.SetScalarBarVisibility(tempRenderView, True)
+    if not pAxes:
+        renderView.OrientationAxesVisibility = 0
+    if obj:
+        
+        objDisplay = pvs.GetRepresentation(proxy=obj, view=renderView) # with this we don't need to  pass around objectDisplay variable
+        tempLayout = pvs.CreateLayout('Temp Layout')
+        tempRenderView = pvs.CreateRenderView()
+        pvs.AssignViewToLayout(view=tempRenderView, layout=tempLayout, hint=0)
+        pvs.SetActiveView(tempRenderView)
+        pvs.SetActiveSource(obj)
+    
+    	# show data in view
+        tempObjDisplay = pvs.Show(obj, tempRenderView)
+        for prop in objDisplay.ListProperties():
+    		# print('\n')
+    		# print(property)
+    		# print(display.GetPropertyValue(property))
+    		# RepresentationTypesInfo gives a Runtime Error message. this is a list of strings
+    		# BlockColor and Block Opacity both give attribute error. they are blank {}
+    		# ColorArrayName produces TypeError: SetElement argument 2: string or None required. this gives [None, ''] might have to use color transfer function
+    		# OpacityArray produces TypeError: SetElement argument 2: string or None required. this gives ['POINTS', 'Normals']
+    		# SetScaleArray producecs TypeError: SetElement argument 2: string or None required. this gives ['POINTS', 'Normals']
+    
+            try:
+                if prop == 'ColorArrayName': # or prop=='SetScaleArray' or prop=='OpacityArray'
+                    tempObjDisplay.ColorArrayName = [objDisplay.ColorArrayName[0], str(objDisplay.ColorArrayName[1])] # objDisplay.GetPropertyValue(prop)[1]
+                    # print('\nthis is inside the try colorArrayName: ', tempObjDisplay.ColorArrayName)
+                    # tempObjDisplay.ColorArrayName[0] = objDisplay.ColorArrayName[0]
+                    # print('\n\nStill inside but now trying to get points',tempObjDisplay.ColorArrayName,'\n\n')
+                    # pvs.ColorBy(tempObjDisplay, tempObjDisplay.ColorArrayName)
+                elif prop == 'OpacityArray':
+                    tempObjDisplay.OpacityArray = objDisplay.GetPropertyValue(prop)[1]
+                elif prop == 'SetScaleArray':
+                    tempObjDisplay.SetScaleArray = objDisplay.GetPropertyValue(prop)[1]
+                elif prop == 'BlockOpacity' or prop == 'BlockColor':
+                    # print('{} Does not currently have a value'.format(prop))
+                    if len(objDisplay.BlockOpacity) == 0:
+                        pass 
+                    if len(objDisplay.BlockColor) == 0:
+                        pass
+                elif prop == 'RepresentationTypesInfo':
                     pass 
-                if len(objDisplay.BlockColor) == 0:
-                    pass
-            elif prop == 'RepresentationTypesInfo':
-                pass 
-            else:
-                tempObjDisplay.SetPropertyWithName(prop, objDisplay.GetPropertyValue(prop))
-        except RuntimeError as err:
-            print(prop)
-            print('RunTimeError: {}'.format(err))
-            print('Issue Copying: {}'.format(prop))
-        except TypeError as err:
-            print('TypeError: {}'.format(err))
-            print('Issue Copying: {}'.format(prop))
-        except AttributeError as err:
-            print('AttributeError: {}'.format(err))
-            print('Issue Copying: {}'.format(prop))
-
+                else:
+                    tempObjDisplay.SetPropertyWithName(prop, objDisplay.GetPropertyValue(prop))
+            except RuntimeError as err:
+                print(prop)
+                print('RunTimeError: {}'.format(err))
+                print('Issue Copying: {}'.format(prop))
+            except TypeError as err:
+                print('TypeError: {}'.format(err))
+                print('Issue Copying: {}'.format(prop))
+            except AttributeError as err:
+                print('AttributeError: {}'.format(err))
+                print('Issue Copying: {}'.format(prop))
+                
+        tempRenderView.UseGradientBackground = 1
+        tempRenderView.Background2 = [0.07023727779049363, 0.07129015030136568, 0.471976806286717]
+        tempRenderView.Background = [0.0865796902418555, 0.35515373464560923, 0.48921950102998396]
+        
+        if not fName:
+            for name_id, pObject in pvs.GetSources().items():
+                if pObject.__eq__(obj):
+                    fName = name_id[0]
+        
+        fName_full = os.path.join(base_path,'figures',fName+'.png')
+        fName_full = fName_full.replace(' ','_').replace(':','')
+        
+        ## checking to see if there is a need for a legend
+        # conclude legend is not needed if the min value in the color array 
+        # is the same as the max value in the color array
+        color_array_name = tempObjDisplay.ColorArrayName
+        if color_array_name[1] != '':
     
-    tempRenderView.UseGradientBackground = 1
-    tempRenderView.Background2 = [0.07023727779049363, 0.07129015030136568, 0.471976806286717]
-    tempRenderView.Background = [0.0865796902418555, 0.35515373464560923, 0.48921950102998396]
+            smin, smax = obj.GetPointDataInformation()[color_array_name[1]].GetRange()
+            if smin != smax:
+    
+                tempObjDisplay.SetScalarBarVisibility(tempRenderView, True)
+                
+        if not camera:
+            tempRenderView.ResetCamera()
+            tempCamera = pvs.GetActiveCamera()
+            tempCamera.Azimuth(30) # Horizontal rotation
+            tempCamera.Elevation(30) # Vertical rotation
+        
+        tempRenderView.OrientationAxesVisibility = 0
+        pvs.SaveScreenshot(fName_full, tempRenderView, ImageResolution=[1800, 1220])
+    
+    	  # destroy temps 
+        del tempObjDisplay
+        del objDisplay
+        pvs.Delete(tempRenderView)
+        del tempRenderView
+        pvs.RemoveLayout(tempLayout)
+        del tempLayout
 
-    if not camera:
-        tempRenderView.ResetCamera()
-        tempCamera = pvs.GetActiveCamera()
-        tempCamera.Azimuth(30) # Horizontal rotation
-        tempCamera.Elevation(30) # Vertical rotation
+        pvs.SetActiveView(renderView)
+        pvs.Show(proxy=obj, view=renderView)
+        
+    else: 
+        assert fName != None, 'fName cannot be None when full_view is True'
+        fName_full = os.path.join(base_path,'figures',fName+'.png')
+
+        if not camera:
+            renderView.ResetCamera()
+            camera = pvs.GetActiveCamera()
+            camera.Azimuth(30) # Horizontal rotation
+            camera.Elevation(30) # Vertical rotation
+        
+        pvs.SaveScreenshot(fName_full, renderView, ImageResolution=[1800, 1220])
+        
+        
         
     
-    if not fName:
-        base_path = os.path.join(os.path.dirname(os.path.dirname(__file__)))
-        if not os.path.isdir(os.path.join(base_path, 'figures')):
-            os.mkdir(os.path.join(base_path,'figures'))
-        for name_id, pObject in pvs.GetSources().items():
-            if pObject.__eq__(obj):
-                info = name_id[0]
         
-        fName = os.path.join(base_path,'figures',info+'.png')
-        fName = fName.replace(' ','_').replace(':','')
-        
-    ## checking to see if there is a need for a legend
-    # conclude legend is not needed if the min value in the color array 
-    # is the same as the max value in the color array
-    color_array_name = tempObjDisplay.ColorArrayName
-    print('     \nThis is the color_array_name: ',color_array_name)
-    if color_array_name[1] != '':
-
-        smin, smax = obj.GetPointDataInformation()[color_array_name[1]].GetRange()
-        if smin != smax:
-
-            tempObjDisplay.SetScalarBarVisibility(tempRenderView, True)
     
-    tempRenderView.OrientationAxesVisibility = 0
-    pvs.SaveScreenshot(fName, tempRenderView, ImageResolution=[1800, 1220])
-
-	# # destroy temps 
-    del tempObjDisplay
-    del objDisplay
-    pvs.Delete(tempRenderView)
-    del tempRenderView
-    pvs.RemoveLayout(tempLayout)
-    del tempLayout
-
-    pvs.SetActiveView(renderView)
-    pvs.Show(proxy=obj, view=renderView)
     
 def _satellite(self, time_o, time_f, satellite_id, coord_sys, region_colors):
     
@@ -1698,7 +1712,6 @@ def _satellite(self, time_o, time_f, satellite_id, coord_sys, region_colors):
                 .format(coord_sys, coord_sys, coord_sys)
     data, meta = hapi(server, satellite_id, parameters, 
                       time_o, time_f, **opts)
-
     pdo = self.GetPolyDataOutput()
     pdo.Allocate(len(data), 1)
     pts = vtk.vtkPoints()
@@ -1716,16 +1729,13 @@ def _satellite(self, time_o, time_f, satellite_id, coord_sys, region_colors):
     colors.SetName( satellite_id + ' Spacecraft Region')
     region_dict = {}
     unique_regions = np.unique(data['Spacecraft_Region'])
-
     for i in range(len(unique_regions)):
         region_dict[unique_regions[i]] = int(i)
-    
     for region in data['Spacecraft_Region']:
         if region_colors == None:
             colors.InsertNextTuple([0])
         else:
-            colors.InsertNextTuple([region_dict[region]])
-            
+            colors.InsertNextTuple([region_dict[region]])      
     pdo.GetPointData().AddArray(colors)
     
 def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
@@ -1932,7 +1942,6 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
     
     def mpause_Sibeck_Lopez_Roelof1991(Bz=None, Psw=None,
                                         return_x_max = False):
-    
         """
         The magnetopause model from Sibeck, Lopez, and Roelof 1991 paper. 
         DOI: https://doi.org/10.1029/93JA02362
@@ -2492,86 +2501,111 @@ def satellite(time_o, time_f, satellite_id,
               show=show, obj = 'satellite')
     
 
-def axis(time, val, coord_sys='GSM', lims=[-20,20], tick_spacing=1, 
-         label=True, representation = 'Surface', 
+def axis(time, val, coord_sys='GSM', lims=[-20,20], tick_spacing=1, tick_length=1,
+         label=True, representation = 'Surface',
          renderView=None,render=True,show=True, debug=False):
 
     return objs_wrapper(time=time, val=val, coord_sys=coord_sys, 
-                 lims=lims, tick_spacing=tick_spacing,
+                 lims=lims, tick_spacing=tick_spacing, tick_length=tick_length,
                  label=label, representation=representation, 
                  renderView=renderView, render=render, show=show,
                  debug=debug, obj='axis')
     
-def _axis(self, output, time, val, coord_sys, lims,
-          tick_spacing, label):
+def _axis(self, time, val, coord_sys, lims,
+          tick_spacing, tick_length, label):
     
     import numpy as np
-    import numpy.matlib
+    from numpy.matlib import repmat
     from magnetovis.objects2 import rot_mat
     from magnetovis.cxtransform import transform
     
-    X = np.linspace(lims[0],lims[1], 300)
-    X = X.repeat(300)
+    assert lims[0] < lims[1], 'first element of lims must be smaller than the second'
     
-    r = 0.25
+    if lims[0] > 0 or lims[1] <0:
+        tick_array = np.arange(lims[0],lims[1],tick_spacing)
+    else:
+        tick_array = np.concatenate((np.arange(0,lims[0]-tick_spacing,-tick_spacing),np.arange(0,lims[1]+tick_spacing,tick_spacing)))
+        tick_array = np.sort(np.unique(tick_array))
+        
+    ends = np.array([[lims[0],0,0],[lims[1],0,0]])
+    # pos_end = [lims[0],0,0]
     
-    theta = np.linspace(0,2*np.pi, 300)
-    theta = np.matlib.repmat(theta, 1, 300).flatten()
+    tick_ends = np.array([[-1,0],[1,0],[0,-1],[0,1]])*tick_length 
+    tick_ends = repmat(tick_ends,tick_array.size,1)
+    tick_array = np.repeat(tick_array,4)
+    points = np.zeros((tick_array.size,3))
+    points[:,0] = tick_array
+    points[:,1:3] = tick_ends 
     
-    Y = r * np.cos(theta)
-    Z = r * np.sin(theta)
     
-    Y[np.floor(X)%2==0] *= .8
-    Z[np.floor(X)%2==0] *= .8
-
-    
-    points = np.column_stack([X, Y, Z])
     if val == "Y":
         points = rot_mat(points, angle=90, translate=False, axis='Z')
+        ends = rot_mat(ends, angle=90, translate=False, axis='Z')
     elif val == "Z":
         points = rot_mat(points, angle=90, translate=False, axis="Y")
+        ends = rot_mat(ends,angle=90, translate=False, axis='Y')
         
     if coord_sys != 'GSM':
         points = transform(points, time, 'GSM', coord_sys, 'car', 'car')
+        
+    
     
     ############################################################
     ####### start of the code to use programmable source #######
     ############################################################
+        
+        
+    ### start of vtk
     import vtk
-    if False:
-        # this is never meant to run. it is only to get rid of error message
-        # that output is not defined. output is defined when running
-        # this script in the programmable source text box. 
-        output = ''
-    # communication between "script" and "script (RequestInformation)"
-    executive = self.GetExecutive()
-    outInfo = executive.GetOutputInformation(0)
-    exts = [executive.UPDATE_EXTENT().Get(outInfo, i) for i in range(6)]
-    dims = [exts[1]+1, exts[3]+1, exts[5]+1]
+    import paraview.simple as pvs
     
-    # setting the sgrid exent
-    output.SetExtent(exts)
-    
-    # setting up the points and allocate the number of points
-    pts = vtk.vtkPoints()
-    pts.Allocate(dims[0] * dims[1] * dims[2])
+    pdo = self.GetPolyDataOutput()
+    pdo.Allocate(points.shape[0] + ends.shape[0] , 1)
+    pts = vtk.vtkPoints() 
     
     # color sections
-    # lut = pvs.GetColorTransferFunction('Magnetosphere Surface')
-    # value = int(len(lut.Annotations)/2)
-    # colors = vtk.vtkUnsignedCharArray()
-    # colors.SetNumberOfComponents(1)
-    # colors.SetName("Magnetosphere Surface")
-    
-    # insert points into vtkPoints
-    i = 0
-    for point in points:
-        pts.InsertPoint(i, point[0], point[1], point[2])
-        i += 1
-        # colors.InsertNextTuple([value])
+    colors = vtk.vtkIntArray()
+    colors.SetNumberOfComponents(1)
+    colors.SetName("{} axes".format(coord_sys))
 
-    output.SetPoints(pts)
-    # output.GetPointData().AddArray(colors)
+    if val == 'X':
+        scalar_value = 0
+    elif val == 'Y':
+        scalar_value = 1
+    elif val == 'Z':
+        scalar_value = 2
+        
+    tick_value = -1
+    
+    start = True
+    id_counter = 0
+    for tick in points:
+        pts.InsertPoint(id_counter,tick[0],tick[1],tick[2])
+        colors.InsertNextTuple([tick_value])
+        if start:
+            start = False
+            tick_line = vtk.vtkPolyLine() 
+            
+            tick_line.GetPointIds().SetNumberOfIds(2)
+            tick_line.GetPointIds().SetId(0,id_counter)
+        else:
+            start = True
+            tick_line.GetPointIds().SetId(1,id_counter)
+            pdo.InsertNextCell(tick_line.GetCellType(), tick_line.GetPointIds())
+        id_counter += 1
+    
+    axis_polyline = vtk.vtkPolyLine()
+    axis_polyline.GetPointIds().SetNumberOfIds(2)
+    pts.InsertPoint(id_counter,ends[0,0],ends[0,1],ends[0,2])
+    pts.InsertPoint(id_counter+1,ends[1,0],ends[1,1],ends[1,2])
+    axis_polyline.GetPointIds().SetId(0,id_counter)
+    axis_polyline.GetPointIds().SetId(1,id_counter+1)
+    colors.InsertNextTuple([scalar_value])
+    colors.InsertNextTuple([scalar_value])
+    pdo.InsertNextCell(axis_polyline.GetCellType(), axis_polyline.GetPointIds())
+    
+    pdo.SetPoints(pts)
+    pdo.GetPointData().AddArray(colors)
     
 
 def neutralsheet(time=None, psi=None, 
@@ -2641,9 +2675,9 @@ if "kwargs" in vars():
                       return_sheet=kwargs['return_sheet'])
     
     elif kwargs['obj'] == 'axis':
-        _axis(self, output, time = kwargs['time'], val=kwargs['val'],
+        _axis(self, time=kwargs['time'], val=kwargs['val'],
               coord_sys=kwargs['coord_sys'], lims=kwargs['lims'],
-              tick_spacing=kwargs['label'], label=kwargs['label'])
+              tick_spacing=kwargs['tick_spacing'], tick_length=kwargs['tick_length'],label=kwargs['label'])
     
     elif kwargs['obj'] == 'Plasmapause':
         _plasmapause(self, output, N=kwargs['N'] , time=kwargs['time'],

@@ -10,6 +10,14 @@ Usage:
 demo_time = [2015, 1, 1, 0, 0]
 demo_coord = 'GSM'
 
+# stylize background
+renderView = pvs.GetActiveViewOrCreate('RenderView')
+renderView.UseGradientBackground = 1
+renderView.Background2 = [0.07023727779049363, 0.07129015030136568, 0.471976806286717]
+renderView.Background = [0.0865796902418555, 0.35515373464560923, 0.48921950102998396]
+renderView = pvs.GetActiveViewOrCreate('RenderView')
+renderView.OrientationAxesVisibility = 0
+
 # Plasmapause does not have a time parameter. 
 # throw time not being used unless changing coord systems
 ppauseDisp, renderView, ppauseSource = objects2.plasmapause(N=25,
@@ -18,7 +26,7 @@ ppauseDisp, renderView, ppauseSource = objects2.plasmapause(N=25,
 conDis, renderView, contourFilter = objects2.contour(ppauseSource, isosurface=[1.5])
 objects2.screenshot(obj=contourFilter)
 
-# # # #objects2.trajectory() # Plot a particle trajectory from Blake's code (not urgent)
+#objects2.trajectory() # Plot a particle trajectory from Blake's code (not urgent)
 
 neutDisplay, renderView, neutSource =  objects2.neutralsheet(time = demo_time, coord_sys=demo_coord)
 objects2.screenshot(obj=neutSource)
@@ -78,25 +86,34 @@ earthDisp, renderView, earthSource = objects2.earth(demo_time, coord_sys=demo_co
 objects2.screenshot(obj=earthSource)
 
 
-latDis, renderView, latSource = objects2.latitude_lines(time=demo_time, coord_sys=demo_coord, tube_radius=None)
-latDisTube, renderView, latTubeFilter = objects2.tube(latSource)
+latDis, renderView, latSource = objects2.latitude_lines(time=demo_time, coord_sys=demo_coord)
+latDisTube, renderView, latTubeFilter = objects2.tube(latSource,tube_radius=0.02)
 objects2.screenshot(obj=latTubeFilter)
-lonDis, renderView, lonSource = objects2.longitude_lines(time=demo_time, coord_sys=demo_coord, tube_radius=None)
-lonDisTue, renderView, lonTubeFilter = objects2.tube(lonSource)
+lonDis, renderView, lonSource = objects2.longitude_lines(time=demo_time, coord_sys=demo_coord)
+lonDisTue, renderView, lonTubeFilter = objects2.tube(lonSource, tube_radius=0.02)
 objects2.screenshot(obj=lonTubeFilter)
 
-axisDis, renderView, axisSource = objects2.axis(time=demo_time, val='Y', lims=[-55,55],coord_sys=demo_coord)
-objects2.axis(time=demo_time, val='X', lims=[-55,25], coord_sys=demo_coord)
-objects2.axis(time=demo_time, val='Z', lims=[-55,55], coord_sys=demo_coord)
-objects2.plane(time=demo_time, val='XY', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)
-objects2.plane(time=demo_time, val='XZ', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)
-objects2.plane(time=demo_time, val='YZ', extend=[[-55,55],[-55,55]], coord_sys=demo_coord)
 
-# stylize background
-renderView = pvs.GetActiveViewOrCreate('RenderView')
-renderView.UseGradientBackground = 1
-renderView.Background2 = [0.07023727779049363, 0.07129015030136568, 0.471976806286717]
-renderView.Background = [0.0865796902418555, 0.35515373464560923, 0.48921950102998396]
+yAxisDis, renderView, yAxisSource = objects2.axis(time=demo_time, val='Y', lims=[-15,15],coord_sys=demo_coord)
+yDisTube, renderView, yTubeFilter = objects2.tube(yAxisSource, vary_radius='By Scalar', tube_radius=0.05)
+objects2.screenshot(obj=yTubeFilter)
+xAxisDis, renderView, xAxisSource = objects2.axis(time=demo_time, val='X', lims=[-15,15], coord_sys=demo_coord)
+xDisTube, renderView, xTubeFilter = objects2.tube(xAxisSource, vary_radius='By Scalar', tube_radius=0.05)
+objects2.screenshot(obj=xTubeFilter)
+zAxisDis, renderView, zAxisSource = objects2.axis(time=demo_time, val='Z', lims=[-15,15], coord_sys=demo_coord)
+zDisTube, renderView, zTubeFilter = objects2.tube(zAxisSource, vary_radius='By Scalar', tube_radius=0.05)
+objects2.screenshot(obj=zTubeFilter)
+
+# objects2.screenshot(fName='axes')
+## have the demo show regular small ticks and then the x,y ticks longer to create a grid, z-axis ticks still small
+# try to get the ticks to be a different thickness then the axis 
+
+
+# objects2.plane(time=demo_time, val='XY', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)
+# objects2.plane(time=demo_time, val='XZ', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)
+# objects2.plane(time=demo_time, val='YZ', extend=[[-55,55],[-55,55]], coord_sys=demo_coord)
+
+
 
 if False:
 
