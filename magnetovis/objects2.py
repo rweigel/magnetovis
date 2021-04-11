@@ -16,7 +16,8 @@ import numpy as np
     # t = run time in seconds
     # dt = time step in seconds
 
-def rot_mat(points, angle=-4, (h,k)= (0,0), translate=True, axis='Z'):
+
+def rot_mat(points, angle=-4, h=0,k= 0, translate=True, axis='Z'):
     deg = np.deg2rad(angle)
     
     if translate:
@@ -1262,8 +1263,8 @@ def objs_wrapper(**kwargs):
         programmableSourceDisplay.Representation = kwargs['representation']
         
         LUT = pvs.GetColorTransferFunction('{} axes'.format(kwargs['coord_sys']))
-        LUT.IndexedColors = [1,0,0, 1,1,0.5, 0,1,0.1, 1,1,1]
-        LUT.Annotations = ['0','X','1','Y','2','Z','-1','ticks']
+        LUT.IndexedColors = [1,0,0, 1,1,0.5, 0,1,0.1]
+        LUT.Annotations = ['0','X','1','Y','2','Z',]
         LUT.InterpretValuesAsCategories = 1
         LUT.AnnotationsInitialized = 1
         
@@ -1577,7 +1578,7 @@ def screenshot(obj=None, renderView=None, fName=None, pAxes=False,
     import paraview.simple as pvs 
 
     if not renderView:
-		renderView = pvs.GetActiveViewOrCreate('RenderView')
+        renderView = pvs.GetActiveViewOrCreate('RenderView')
     
     base_path = os.path.join(os.path.dirname(os.path.dirname(__file__)))
     if not os.path.isdir(os.path.join(base_path, 'figures')):
@@ -2529,8 +2530,8 @@ def _axis(self, time, val, coord_sys, lims,
         
     ends = np.array([[lims[0],0,0],[lims[1],0,0]])
     # pos_end = [lims[0],0,0]
-    
-    tick_ends = np.array([[-1,0],[1,0],[0,-1],[0,1]])*tick_length 
+    # 0,-1,0    0,1,0
+    tick_ends = np.array([[-1,0],[1,0],[0,-1],[0,1]])* tick_length
     tick_ends = repmat(tick_ends,tick_array.size,1)
     tick_array = np.repeat(tick_array,4)
     points = np.zeros((tick_array.size,3))
