@@ -5,13 +5,14 @@ def vtk_export(out_filename, points,
                     dataset = 'UNSTRUCTURED_GRID',
                     connectivity = {},
                     point_data = None,
+                    cell_data = None,
                     texture = None,
                     point_data_name = 'point_data',
+                    cell_data_name = 'cell_data',
                     title='Title',
                     ftype='BINARY',
                     debug=True):
     """
-    
     Parameters
     ----------
     out_filename : string
@@ -38,35 +39,27 @@ def vtk_export(out_filename, points,
     -------
     None.
     """
-
-    #if grid == 'STRUCTURED_GRID':
-    #    Nx,Ny,Nz = connectivity
-
     if dataset == 'POLYDATA' and connectivity == 'LINES':
-        connectivity = {'LINES' : np.zeros(points.shape[0])}
+        connectivity = {'LINES' : np.array([points.shape[0]])}
 
     if dataset == 'STRUCTURED_GRID' and type(connectivity) != dict:
         connectivity = {'DIMENSIONS' : tuple(connectivity)}
 
-    assert(out_filename[0] == '/') #!!!!!!!!!!!!!!!!!
-    f = open(out_filename,'w')
+    f = open(out_filename,'wb')
     if debug:
         print("Writing " + out_filename)
-    f.write('# vtk DataFile Version 3.0\n')
-    f.write(title + '\n')
-    f.write(ftype + '\n')
-    f.write('DATASET ' + dataset + '\n')
+    f.write(b'# vtk DataFile Version 3.0\n')
+    f.write(b'%s\n'%(bytearray(title, 'utf-8')))
+    f.write(b'%s\n'%(bytearray(ftype, 'utf-8')))
+    f.write(b'DATASET %s\n'%(bytearray(dataset, 'utf-8')))
 
     num_points = points.shape[0]
     if dataset == 'STRUCTURED_GRID':
         Nx,Ny,Nz = connectivity['DIMENSIONS']
-        f.write('DIMENSIONS ' + str(Nx) + ' ' + str(Ny) + ' ' + str(Nz) + '\n' )
+        f.write(b'DIMENSIONS %d %d %d\n'%(Nx, Ny, Nz))
         assert(Nx*Ny*Nz == num_points)
-        #f.write('POINTS '+str(Nx*Ny*Nz)+' float\n')
-    #if dataset == 'POLYDATA' or dataset == 'UNSTRUCTURED_GRID':
-        #f.write('\nPOINTS '+str(num_points)+' float\n')
 
-    f.write('POINTS ' + str(num_points) + ' float\n')
+    f.write(b'POINTS %d float\n'%(num_points))
 
     if ftype=='BINARY':
         points = np.array(points, dtype='>f')
@@ -74,16 +67,63 @@ def vtk_export(out_filename, points,
     elif ftype=='ASCII':
         np.savetxt(f, points)
 
-    f.write('\n')
+    f.write(b'\n')
 
     for key in connectivity.keys():
-        #if key == 'CELLS':
+        if key == 'CELLS':
+            celltypes = {#TODO fix whitespace
+                            'VERTEX'         : 1 ,
+                            'POLY_VERTEX'    : 2 ,
+                            'LINE'           : 3 ,
+                            'POLY_LINE'      : 4 ,
+                            'TRIANGLE'       : 5 ,
+                            'TRIANGLE_STRIP' : 6 ,
+                            'POLYGON'        : 7 ,
+                            'PIXEL'          : 8 ,
+                            'QUAD'           : 9 ,
+                            'TETRA'          : 10,
+                            'VOXEL'          : 11,
+                            'HEXAHEDRON'     : 12,
+                            'WEDGE'          : 13,
+                            'PYRAMID'        : 14
+                        }
+            ctypes = list(connectivity['CELLS'].keys())
+            for i in range(len(ctypes)):
+                ctype = ctypes[i]
+                cint = celltypes[ctype]
+                cnum = connectivity['CELLS'][ctype].shape[0]
+                cnpts = connectivity['CELLS'][ctype].shape[1]
+                if i==0:
+                    carr = np.column_stack([ cnpts*np.ones(cnum, dtype=int),
+                                             connectivity['CELLS'][ctype]
+                                           ])
+                    ct_arr = cint*np.ones(cnum, dtype=int)
+                else:
+                    carr = np.vstack([ carr,
+                                       np.column_stack([ cnpts*np.ones(cnum, dtype=int),
+                                                         connectivity['CELLS'][ctype]
+                                                       ])
+                                     ])
+                    ct_arr.append(cint*np.ones(cnum, dtype=int))
+
+            f.write(b'CELLS %d %d\n'%(ct_arr.size,carr.size))
+            if ftype=='BINARY':
+                carr = np.array(carr, dtype=">i4")
+                f.write(carr.tobytes())
+            else:
+                np.savetxt(f,carr,fmt='%d')
+            f.write(b'CELL_TYPES %d\n'%(ct_arr.size))
+            if ftype=='BINARY':
+                ct_arr = np.array(ct_arr, dtype=">i4")
+                f.write(ct_arr.tobytes())
+            else:
+                np.savetxt(f,ct_arr,fmt='%d')
+
         #if key == 'TRIANGLE_STRIPS':
-        
         if key == 'LINES':
             num_curves = len(connectivity['LINES'])
-            f.write("LINES {} {} \n".format(num_curves, num_points + num_curves))
-            lines = np.zeros(num_points+num_curves)
+            f.write(b'LINES %d %d\n'%(num_curves, num_points + num_curves))
+            lines = np.zeros(num_points+num_curves, dtype=int)
             i = 0
             j = 0
             for header in connectivity['LINES']:
@@ -98,7 +138,7 @@ def vtk_export(out_filename, points,
             elif ftype=='ASCII':
                 np.savetxt(f, lines, fmt='%d')
 
-        if key == 'HYPERBOLOID TRIANGLE':
+        if key == 'HYPERBOLOID TRIANGLE':  # TODO make work with b' '  
             assert(ftype == 'ASCII')
             extra_circle = 1
             closing_points = 2
@@ -136,35 +176,59 @@ def vtk_export(out_filename, points,
                     f.write(line)
                     triangle_line = ''
             f.write('\n')
-            
-
-
 
     if point_data is not None:
-        '''
-        if dataset == 'STRUCTURED_GRID':
-            f.write('POINT_DATA ' + str(Nx*Ny*Nz) + '\n')
-        if grid == 'POLYDATA':
-            f.write('POINT_DATA ' + str(num_points) + '\n')
-        '''
-        f.write('POINT_DATA ' + str(num_points) + '\n')
+        if isinstance(point_data_name, list):
 
-        if texture == 'SCALARS':
-            f.write('SCALARS ' + point_data_name + ' float 1\n') # number with float???
-            f.write('LOOKUP_TABLE default\n')
+            f.write(b'POINT_DATA %d\n'%(num_points))
+            for i in range(len(point_data_name)):
+                point_data_name_ELEMENT = point_data_name[i]
+                point_data_ELEMENT = point_data[i]
+                texture_ELEMENT = texture[i]
+
+                if texture_ELEMENT == 'SCALARS':
+                    f.write(b'SCALARS %s float 1\n'%(bytearray(point_data_name_ELEMENT, 'utf-8'))) # number with float???
+                    f.write(b'LOOKUP_TABLE default\n')
+                if texture_ELEMENT == 'VECTORS':
+                    f.write(b'VECTORS %s float\n'%(bytearray(point_data_name_ELEMENT, 'utf-8')))
+                if texture_ELEMENT == 'TEXTURE_COORDINATES':
+                    f.write(b'TEXTURE_COORDINATES %s 2 float\n'%(bytearray(point_data_name_ELEMENT, 'utf-8'))) # http://www.earthmodels.org/data-and-tools/topography/paraview-topography-by-texture-mapping
+                if ftype=='BINARY':
+                    point_data_ELEMENT = np.array(point_data_ELEMENT, dtype='>f')
+                    f.write(point_data_ELEMENT.tobytes())
+                elif ftype=='ASCII':
+                    np.savetxt(f, point_data_ELEMENT)
+
+        else:
+            f.write(b'POINT_DATA %d\n'%(num_points))
+
+            if texture == 'SCALARS':
+                f.write(b'SCALARS %s float 1\n'%(bytearray(point_data_name, 'utf-8'))) # number with float???
+                f.write(b'LOOKUP_TABLE default\n')
+            if texture == 'VECTORS':
+                f.write(b'VECTORS %s float\n'%(bytearray(point_data_name, 'utf-8')))
+            if texture == 'TEXTURE_COORDINATES':
+                f.write(b'TEXTURE_COORDINATES %s 2 float\n'%(bytearray(point_data_name, 'utf-8'))) # http://www.earthmodels.org/data-and-tools/topography/paraview-topography-by-texture-mapping
+
+            if ftype=='BINARY':
+                point_data = np.array(point_data, dtype='>f')
+                f.write(point_data.tobytes())
+            elif ftype=='ASCII':
+                np.savetxt(f, point_data)
+
+    if cell_data is not None:
+        f.write(b'CELL_DATA %d\n'%(cell_data.shape[0]))
         if texture == 'VECTORS':
-            f.write('VECTORS ' + point_data_name + ' float\n')
-        if texture == 'TEXTURE_COORDINATES':
-            f.write('TEXTURE_COORDINATES ' + point_data_name + ' 2 float\n') # http://www.earthmodels.org/data-and-tools/topography/paraview-topography-by-texture-mapping
-
+            f.write(b'VECTORS %s float\n'%(bytearray(cell_data_name, 'utf-8')))
+        else:
+            raise ValueError ('TODO implement')
         if ftype=='BINARY':
-            point_data = np.array(point_data, dtype='>f')
-            f.write(point_data.tobytes())
-        elif ftype=='ASCII':
-            np.savetxt(f, point_data)
+            cell_data = np.array(cell_data, dtype='>f')
+            f.write(cell_data.tobytes())
+        else:
+            np.savetxt(f, cell_data, fmt = '%.3f')
 
     f.close()
     if debug:
         print("Wrote " + out_filename)
         print("Open in ParaView on command line using magnetovis.sh --data=" + out_filename)
-
