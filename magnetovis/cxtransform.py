@@ -11,7 +11,7 @@ from magnetovis.util import tpad
 import spacepy.coordinates as sc
 from spacepy.time import Ticktock
 
-def rot_mat(points, angle=-4, (h,k)= (0,0)):
+def rot_mat(points, angle=-4, h=0, k=0):
     deg = np.deg2rad(angle)
     
     points = np.pad(points, ((0,0),(0,1)), 'constant', constant_values=1)

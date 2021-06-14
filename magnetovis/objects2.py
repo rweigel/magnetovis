@@ -17,7 +17,7 @@ import numpy as np
     # dt = time step in seconds
 
 
-def rot_mat(points, angle=-4, h=0,k= 0, translate=True, axis='Z'):
+def rot_mat(points, angle=-4, h=0, k=0, translate=True, axis='Z'):
     deg = np.deg2rad(angle)
     
     if translate:
@@ -94,7 +94,7 @@ def earth(time,
             out_dir=tempfile.gettempdir(),
             topo_url='http://mag.gmu.edu/git-data/magnetovis/topography/world.topo.2004{0:02d}.3x5400x2700.png',
             debug=False):
-    """Show Earth sphere in a given coordinat system with a topographic overlay"""
+    """Show Earth sphere in a given coordinate system with a topographic overlay"""
 
     def writevtk(time, coord_sys=coord_sys,
                     Nt=100, Np=100,
@@ -151,15 +151,16 @@ def earth(time,
         return fnameVTK
     
     urlPNG = topo_url.format(time[1])
-    print(urlPNG)
+
     filePNG = os.path.join(out_dir, os.path.split(topo_url)[1].format(time[1]))
+
     import util # i needed to add this line to make it work
     from hapiclient.util import urlretrieve
+
     # Download topographic overlay file if not found.
     if not os.path.exists(filePNG):
         if debug:
             print("Downloading " + urlPNG)
-        # TODO: Use d/l function in hapiclient.util
         urlretrieve(urlPNG, filePNG)
         if debug:
             print("Downloaded " + urlPNG + "\nto\n" + filePNG)
@@ -992,6 +993,7 @@ def plasmapause(N, representation='Surface', model='Gallagher_Craven_Comfort88',
                         coord_sys=coord_sys, log_den=log_den, time=time,
                         renderView=renderView, render=render, show=show, 
                         obj='Plasmapause')
+
     
 def _neutralsheet(self, output, time, psi, 
                  Rh, G, Lw, d,
@@ -1231,8 +1233,8 @@ def objs_wrapper(**kwargs):
 
     import paraview.simple as pvs
     import re
-    import cxtransform as cx
-    from util import tstr
+    import magnetovis.cxtransform as cx
+    from magnetovis.util import tstr
     
     valid_rep = ['Surface', '3D Glyphs', 'Feature Edges', 
                    'Outline' 'Point Gaussian', 'Points', 'Surface With Edges',
@@ -1566,141 +1568,6 @@ def tube(obj, tube_radius=.1, vary_radius='Off', radius_factor=4.0, renderView=N
 
     return tubeDis, renderView, tubeFilter
 
-def screenshot(obj=None, renderView=None, fName=None, pAxes=False,
-                              camera=None):
-	
-	# option 2 create a new renderView
-	# input option and 
-	# https://www.paraview.org/Wiki/ParaView/Python_Scripting
-	# https://discourse.paraview.org/t/feature-request-clone-renderview/2370/3
-	# https://docs.paraview.org/en/latest/UsersGuide/displayingData.html
-    
-    import paraview.simple as pvs 
-
-    if not renderView:
-        renderView = pvs.GetActiveViewOrCreate('RenderView')
-    
-    base_path = os.path.join(os.path.dirname(os.path.dirname(__file__)))
-    if not os.path.isdir(os.path.join(base_path, 'figures')):
-                os.mkdir(os.path.join(base_path,'figures'))
-                
-    # tempObjDisplay.SetScalarBarVisibility(tempRenderView, True)
-    if not pAxes:
-        renderView.OrientationAxesVisibility = 0
-    if obj:
-        
-        objDisplay = pvs.GetRepresentation(proxy=obj, view=renderView) # with this we don't need to  pass around objectDisplay variable
-        tempLayout = pvs.CreateLayout('Temp Layout')
-        tempRenderView = pvs.CreateRenderView()
-        pvs.AssignViewToLayout(view=tempRenderView, layout=tempLayout, hint=0)
-        pvs.SetActiveView(tempRenderView)
-        pvs.SetActiveSource(obj)
-    
-    	# show data in view
-        tempObjDisplay = pvs.Show(obj, tempRenderView)
-        for prop in objDisplay.ListProperties():
-    		# print('\n')
-    		# print(property)
-    		# print(display.GetPropertyValue(property))
-    		# RepresentationTypesInfo gives a Runtime Error message. this is a list of strings
-    		# BlockColor and Block Opacity both give attribute error. they are blank {}
-    		# ColorArrayName produces TypeError: SetElement argument 2: string or None required. this gives [None, ''] might have to use color transfer function
-    		# OpacityArray produces TypeError: SetElement argument 2: string or None required. this gives ['POINTS', 'Normals']
-    		# SetScaleArray producecs TypeError: SetElement argument 2: string or None required. this gives ['POINTS', 'Normals']
-    
-            try:
-                if prop == 'ColorArrayName': # or prop=='SetScaleArray' or prop=='OpacityArray'
-                    tempObjDisplay.ColorArrayName = [objDisplay.ColorArrayName[0], str(objDisplay.ColorArrayName[1])] # objDisplay.GetPropertyValue(prop)[1]
-                    # print('\nthis is inside the try colorArrayName: ', tempObjDisplay.ColorArrayName)
-                    # tempObjDisplay.ColorArrayName[0] = objDisplay.ColorArrayName[0]
-                    # print('\n\nStill inside but now trying to get points',tempObjDisplay.ColorArrayName,'\n\n')
-                    # pvs.ColorBy(tempObjDisplay, tempObjDisplay.ColorArrayName)
-                elif prop == 'OpacityArray':
-                    tempObjDisplay.OpacityArray = objDisplay.GetPropertyValue(prop)[1]
-                elif prop == 'SetScaleArray':
-                    tempObjDisplay.SetScaleArray = objDisplay.GetPropertyValue(prop)[1]
-                elif prop == 'BlockOpacity' or prop == 'BlockColor':
-                    # print('{} Does not currently have a value'.format(prop))
-                    if len(objDisplay.BlockOpacity) == 0:
-                        pass 
-                    if len(objDisplay.BlockColor) == 0:
-                        pass
-                elif prop == 'RepresentationTypesInfo':
-                    pass 
-                else:
-                    tempObjDisplay.SetPropertyWithName(prop, objDisplay.GetPropertyValue(prop))
-            except RuntimeError as err:
-                print(prop)
-                print('RunTimeError: {}'.format(err))
-                print('Issue Copying: {}'.format(prop))
-            except TypeError as err:
-                print('TypeError: {}'.format(err))
-                print('Issue Copying: {}'.format(prop))
-            except AttributeError as err:
-                print('AttributeError: {}'.format(err))
-                print('Issue Copying: {}'.format(prop))
-                
-        tempRenderView.UseGradientBackground = 1
-        tempRenderView.Background2 = [0.07023727779049363, 0.07129015030136568, 0.471976806286717]
-        tempRenderView.Background = [0.0865796902418555, 0.35515373464560923, 0.48921950102998396]
-        
-        if not fName:
-            for name_id, pObject in pvs.GetSources().items():
-                if pObject.__eq__(obj):
-                    fName = name_id[0]
-        
-        fName_full = os.path.join(base_path,'figures',fName+'.png')
-        fName_full = fName_full.replace(' ','_').replace(':','')
-        
-        ## checking to see if there is a need for a legend
-        # conclude legend is not needed if the min value in the color array 
-        # is the same as the max value in the color array
-        color_array_name = tempObjDisplay.ColorArrayName
-        if color_array_name[1] != '':
-    
-            smin, smax = obj.GetPointDataInformation()[color_array_name[1]].GetRange()
-            if smin != smax:
-    
-                tempObjDisplay.SetScalarBarVisibility(tempRenderView, True)
-                
-        if not camera:
-            tempRenderView.ResetCamera()
-            tempCamera = pvs.GetActiveCamera()
-            tempCamera.Azimuth(30) # Horizontal rotation
-            tempCamera.Elevation(30) # Vertical rotation
-        
-        tempRenderView.OrientationAxesVisibility = 0
-        pvs.SaveScreenshot(fName_full, tempRenderView, ImageResolution=[1800, 1220])
-    
-    	  # destroy temps 
-        del tempObjDisplay
-        del objDisplay
-        pvs.Delete(tempRenderView)
-        del tempRenderView
-        pvs.RemoveLayout(tempLayout)
-        del tempLayout
-
-        pvs.SetActiveView(renderView)
-        pvs.Show(proxy=obj, view=renderView)
-        
-    else: 
-        assert fName != None, 'fName cannot be None when full_view is True'
-        fName_full = os.path.join(base_path,'figures',fName+'.png')
-
-        if not camera:
-            renderView.ResetCamera()
-            camera = pvs.GetActiveCamera()
-            camera.Azimuth(30) # Horizontal rotation
-            camera.Elevation(30) # Vertical rotation
-        
-        pvs.SaveScreenshot(fName_full, renderView, ImageResolution=[1800, 1220])
-        
-        
-        
-    
-        
-    
-    
 def _satellite(self, time_o, time_f, satellite_id, coord_sys, region_colors):
     
     import vtk
@@ -2453,14 +2320,14 @@ def magnetopause(time, Bz=None, Psw=None, model='Shue97', coord_sys='GSM',
                  color=[0,1,0,0.5], representation='Surface',
                  out_dir=tempfile.gettempdir(), png_fn=None,
                  renderView=None, render=True, show=True, 
-                 fName=None, camera=None, take_screenshot=False,
+                 fileName=None, camera=None, take_screenshot=False,
                  return_x_max = False):
     
     return objs_wrapper(time=time, Bz=Bz, Psw=Psw, model=model, coord_sys=coord_sys,
                  color=color, representation=representation,
                  out_dir=out_dir, png_fn=png_fn, renderView=renderView, render=render,
                  show=show, 
-                 fName=fName, camera=camera, take_screenshot=take_screenshot,
+                 fileName=fileName, camera=camera, take_screenshot=take_screenshot,
                  return_x_max=return_x_max, obj='Magnetopause')
     
 def bowshock(time, model='Fairfield71', Bz = None, Psw = None,

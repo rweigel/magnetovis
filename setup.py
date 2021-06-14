@@ -4,7 +4,8 @@ from setuptools import setup, find_packages
 
 install_requires = [
                         "numpy",
-                        "spacepy"
+                        "spacepy",
+                        "hapiclient"
                     ]
 
 if sys.version_info[0] < 3:

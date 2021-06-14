@@ -1,4 +1,4 @@
-This project is in a "pre-alpha" stage. Expect major changes and inconsistencies between the documentation and code.
+This project is in a "pre-alpha" stage. Expect major changes and inconsistencies between the documentation and code. This project is not ready for general use. Development is on-going.
 
 # About
 
@@ -6,15 +6,13 @@ This project is in a "pre-alpha" stage. Expect major changes and inconsistencies
 
 See the demo files in https://github.com/rweigel/magnetovis for example usage.
 
-This project is not ready for general use. Development is on-going.
-
 # Install
 
 An existing installation of [ParaView](https://www.paraview.org/download/) is required. 
 
-The set-up script in `magnetovis` will check for compatability between the Python version distributed with the ParaView version that are installed and the Python version used for the `magnetovis` installation using `pip`.
+The set-up script in `magnetovis` will check for compatability between the Python version distributed with the ParaView version that is installed and the Python version used for the `magnetovis` installation using `pip`.
 
-Installation has been tested only on OS-X. 
+Installation has been only tested on OS-X. 
 
 ## User
 

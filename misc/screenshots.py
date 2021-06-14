@@ -5,16 +5,22 @@ is provided in the argument, takes a screen shot, then brings back all those obj
 that were visible.
 
 The second method creates a new template and render view. It imports the object from
-the previous renderview into the newly created one. it transfers over the display properties
-to the new render view (this part still gives a little problem), takes a screenshot,
-then deletes the new template and renderview. 
+the previous render view into the newly created one and transfers over the display properties
+to the new render view (this part still has issues), takes a screenshot, then deletes
+the new template and renderview.
+
+# option 2 create a new renderView
+# input option and 
+# https://www.paraview.org/Wiki/ParaView/Python_Scripting
+# https://discourse.paraview.org/t/feature-request-clone-renderview/2370/3
+# https://docs.paraview.org/en/latest/UsersGuide/displayingData.html
 
 """
 
 import paraview.simple as pvs
 import os
 
-def sphere(r, representation, renderView=None, fName=None):
+def sphere(r, representation, renderView=None, fileName=None):
 	sphere = pvs.Sphere()
 	sphere.Radius = r 
 	if not renderView:
@@ -24,12 +30,12 @@ def sphere(r, representation, renderView=None, fName=None):
 	sphereDisplay.Representation = representation
 
 	if False:
-		screenshot_hide_show(object=sphere, renderView=renderView, fName=fName)
+		screenshot_hide_show(object=sphere, renderView=renderView, fileName=fileName)
 	if True:
-		screenshot_new_renderView(object=sphere, renderView=renderView, fName=fName)
+		screenshot_new_renderView(object=sphere, renderView=renderView, fileName=fileName)
 
 
-def screenshot_hide_show(renderView=None, object=None, fName=None, tempCamera=None):
+def screenshot_hide_show(renderView=None, object=None, fileName=None, tempCamera=None):
 
 	visible_objs = []
 
@@ -48,7 +54,7 @@ def screenshot_hide_show(renderView=None, object=None, fName=None, tempCamera=No
 		tempCamera.Azimuth(30)
 		tempCamera.Elevation(30)
 
-	pvs.SaveScreenshot(fName, renderView, ImageResolution=[1800, 1220])
+	pvs.SaveScreenshot(fileName, renderView, ImageResolution=[1800, 1220])
 
 	tempCamera.SetPosition(originalCam.GetPositon())
 	tempCamera.SetFolcalPoint(originalCam.GetFocalPoint())
@@ -58,7 +64,7 @@ def screenshot_hide_show(renderView=None, object=None, fName=None, tempCamera=No
 
 	# pvs.ShowAll()
 
-def screenshot_new_renderView(object=None, renderView=None, fName=None, camera=None):
+def screenshot_new_renderView(object=None, renderView=None, fileName=None, camera=None):
 	
 	# option 2 create a new renderView
 	# input option and 
@@ -109,7 +115,7 @@ def screenshot_new_renderView(object=None, renderView=None, fName=None, camera=N
 		tempCamera.SetFocalPoint(camera)
 
 	fname = fname.repalce(' ','_').replace(':','')
-	pvs.SaveScreenshot(fName, tempRenderView, ImageResolution=[1800, 1220])
+	pvs.SaveScreenshot(fileName, tempRenderView, ImageResolution=[1800, 1220])
 	
 	# # destroy temps 
 	pvs.Delete(tempRenderView)
@@ -123,8 +129,8 @@ def screenshot_new_renderView(object=None, renderView=None, fName=None, camera=N
 
 r = 2
 representation = 'Surface With Edges'
-fName = os.path.join(os.getcwd(),'testimg.png')
-sphere(r, representation, fName=fName)
+fileName = os.path.join(os.getcwd(),'testimg.png')
+sphere(r, representation, fileName=fileName)
 
 
 
@@ -265,3 +271,47 @@ if False:
 	#### uncomment the following to render all views
 	# RenderAllViews()
 	# alternatively, if you want to write images, you can use SaveScreenshot(...).
+
+if False:
+
+	from magnetovis import objects2
+
+	figure_path = '/Users/weigel/git/magnetovis/docs/figures/'
+
+	renderView, obj = objects2.cutplane()
+	# https://kitware.github.io/paraview-docs/latest/python/paraview.simple.html#paraview.simple.SaveScreenshot
+	SaveScreenshot(sys.path.join(figure_path, 'magnetovis_demo2_cutplane.png',
+					renderView1, ImageResolution=[2648, 2354]))
+
+
+	renderView, obj = objects2.axes()
+	# https://kitware.github.io/paraview-docs/latest/python/paraview.simple.html#paraview.simple.SaveScreenshot
+	SaveScreenshot(sys.path.join(figure_path, 'magnetovis_demo2_axes.png',
+					renderView1, ImageResolution=[2648, 2354]))
+
+
+if False:
+
+	debug = False
+	time = [2000, 1, 1, 0, 0, 0]
+
+	from magnetovis import objects
+
+	objects.earth(time, debug=debug)
+
+	objects.earth(time, show=False, debug=debug)
+
+	import paraview.simple as pvs
+	renderView = pvs.GetActiveViewOrCreate('RenderView')
+	sphereDisplay, renderView, sphereVTK = objects.earth(time, renderView=renderView, show=False, debug=debug)
+
+	renderView.CameraViewUp = [0, 1, 0]
+	renderView.CameraFocalPoint = [0, 0, 0]
+	renderView.CameraViewAngle = 45
+	renderView.CameraPosition = [0,0,5]
+
+	#pvs.Show(sphereVTK, renderView)
+	pvs.Show()
+
+	#save screenshot
+	pvs.WriteImage("test.png")

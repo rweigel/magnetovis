@@ -13,23 +13,24 @@ demo_coord = 'GSM'
 # stylize background
 renderView = pvs.GetActiveViewOrCreate('RenderView')
 renderView.UseGradientBackground = 1
-renderView.Background2 = [0.07023727779049363, 0.07129015030136568, 0.471976806286717]
-renderView.Background = [0.0865796902418555, 0.35515373464560923, 0.48921950102998396]
+renderView.Background2 = [0.070, 0.07, 0.47]
+renderView.Background =  [0.087, 0.36, 0.49]
 renderView = pvs.GetActiveViewOrCreate('RenderView')
 renderView.OrientationAxesVisibility = 0
 
+
+#objects2.trajectory() # Plot a particle trajectory from Blake's code (not urgent)
+
+neutDisplay, renderView, neutSource = objects2.neutralsheet(time = demo_time, coord_sys=demo_coord)
+objects2.screenshot(obj=neutSource)
+
 # Plasmapause does not have a time parameter. 
-# throw time not being used unless changing coord systems
+# TODO: Raise warning that time not being used unless changing coord systems
 ppauseDisp, renderView, ppauseSource = objects2.plasmapause(N=25,
                                                             time=[1984,1,1,0,0],
                                                             coord_sys=demo_coord)
 conDis, renderView, contourFilter = objects2.contour(ppauseSource, isosurface=[1.5])
 objects2.screenshot(obj=contourFilter)
-
-#objects2.trajectory() # Plot a particle trajectory from Blake's code (not urgent)
-
-neutDisplay, renderView, neutSource =  objects2.neutralsheet(time = demo_time, coord_sys=demo_coord)
-objects2.screenshot(obj=neutSource)
 
 plasShDisp, renderView, plasShSource = objects2.plasmasheet(time = demo_time, coord_sys=demo_coord,)
 objects2.screenshot(obj=plasShSource)
