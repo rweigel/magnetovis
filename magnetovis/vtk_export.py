@@ -3,12 +3,9 @@ import numpy as np
 
 def vtk_export(out_filename, points,
                     dataset = 'UNSTRUCTURED_GRID',
-                    connectivity = {},
+                    connectivity = None,
                     point_data = None,
                     cell_data = None,
-                    texture = None,
-                    point_data_name = 'point_data',
-                    cell_data_name = 'cell_data',
                     title='Title',
                     ftype='BINARY',
                     debug=True):
@@ -24,21 +21,35 @@ def vtk_export(out_filename, points,
         The default is 'UNSTRUCTURED_GRID'.
     connectivity : dictionary, optional
         details all connectivity types involved with this dataset. The default is {} (empty dictionary).
-    point_data : TYPE, optional
-        DESCRIPTION. The default is None.
-    texture : string, optional
-        
-    point_data_name : TYPE, optional
-        DESCRIPTION. The default is 'point data'.
-    title : TYPE, optional
-        DESCRIPTION. The default is 'Title'.
-    ftype : TYPE, optional
-        DESCRIPTION. The default is 'BINARY'.
+    point_data : list of dictionaries, optional
+        The default is None.
+        keys : "array", "name", "texture"
+    cell_data: list of dictionaries, optional
+        The default is None.
+        keys : "array", "name", "texture"
+    title : string, optional
+        The default is 'Title'.
+    ftype : string, optional
+        The default is 'BINARY'.
 
+    Note : some of the above arguments can instead be keyword strings that implement common behavior.
+           e.g.: dataset='POLYDATA', connectivity='LINES'
+ 
     Returns
     -------
     None.
+
+    point_data = [{"array": ..., "name":"rho", "texture":"SCALARS"}, {"array": ..., "name":"b", "texture":"VECTORS"}]
     """
+    if connectivity is None:
+        connectivity = {}
+
+    if isinstance(point_data, dict):
+        point_data = [point_data,]
+
+    if isinstance(cell_data, dict):
+        cell_data = [cell_data,]
+
     if dataset == 'POLYDATA' and connectivity == 'LINES':
         connectivity = {'LINES' : np.array([points.shape[0]])}
 
@@ -178,55 +189,44 @@ def vtk_export(out_filename, points,
             f.write('\n')
 
     if point_data is not None:
-        if isinstance(point_data_name, list):
-
-            f.write(b'POINT_DATA %d\n'%(num_points))
-            for i in range(len(point_data_name)):
-                point_data_name_ELEMENT = point_data_name[i]
-                point_data_ELEMENT = point_data[i]
-                texture_ELEMENT = texture[i]
-
-                if texture_ELEMENT == 'SCALARS':
-                    f.write(b'SCALARS %s float 1\n'%(bytearray(point_data_name_ELEMENT, 'utf-8'))) # number with float???
-                    f.write(b'LOOKUP_TABLE default\n')
-                if texture_ELEMENT == 'VECTORS':
-                    f.write(b'VECTORS %s float\n'%(bytearray(point_data_name_ELEMENT, 'utf-8')))
-                if texture_ELEMENT == 'TEXTURE_COORDINATES':
-                    f.write(b'TEXTURE_COORDINATES %s 2 float\n'%(bytearray(point_data_name_ELEMENT, 'utf-8'))) # http://www.earthmodels.org/data-and-tools/topography/paraview-topography-by-texture-mapping
-                if ftype=='BINARY':
-                    point_data_ELEMENT = np.array(point_data_ELEMENT, dtype='>f')
-                    f.write(point_data_ELEMENT.tobytes())
-                elif ftype=='ASCII':
-                    np.savetxt(f, point_data_ELEMENT)
-
-        else:
-            f.write(b'POINT_DATA %d\n'%(num_points))
+        f.write(b'POINT_DATA %d\n'%(num_points))
+        for data in point_data:
+            name = data['name']
+            array = data['array']
+            texture = data['texture']
 
             if texture == 'SCALARS':
-                f.write(b'SCALARS %s float 1\n'%(bytearray(point_data_name, 'utf-8'))) # number with float???
+                f.write(b'SCALARS %s float 1\n'%(bytearray(name, 'utf-8'))) # number with float???
                 f.write(b'LOOKUP_TABLE default\n')
             if texture == 'VECTORS':
-                f.write(b'VECTORS %s float\n'%(bytearray(point_data_name, 'utf-8')))
+                f.write(b'VECTORS %s float\n'%(bytearray(name, 'utf-8')))
             if texture == 'TEXTURE_COORDINATES':
-                f.write(b'TEXTURE_COORDINATES %s 2 float\n'%(bytearray(point_data_name, 'utf-8'))) # http://www.earthmodels.org/data-and-tools/topography/paraview-topography-by-texture-mapping
-
+                f.write(b'TEXTURE_COORDINATES %s 2 float\n'%(bytearray(name, 'utf-8'))) # http://www.earthmodels.org/data-and-tools/topography/paraview-topography-by-texture-mapping
             if ftype=='BINARY':
-                point_data = np.array(point_data, dtype='>f')
-                f.write(point_data.tobytes())
+                array = np.array(array, dtype='>f')
+                f.write(array.tobytes())
             elif ftype=='ASCII':
-                np.savetxt(f, point_data)
+                np.savetxt(f, array)
 
     if cell_data is not None:
         f.write(b'CELL_DATA %d\n'%(cell_data.shape[0]))
-        if texture == 'VECTORS':
-            f.write(b'VECTORS %s float\n'%(bytearray(cell_data_name, 'utf-8')))
-        else:
-            raise ValueError ('TODO implement')
-        if ftype=='BINARY':
-            cell_data = np.array(cell_data, dtype='>f')
-            f.write(cell_data.tobytes())
-        else:
-            np.savetxt(f, cell_data, fmt = '%.3f')
+        for data in cell_data:
+            name = data['name']
+            array = data['array']
+            texture = data['texture']
+
+            if texture == 'SCALARS':
+                f.write(b'SCALARS %s float 1\n'%(bytearray(name, 'utf-8'))) # number with float???
+                f.write(b'LOOKUP_TABLE default\n')
+            if texture == 'VECTORS':
+                f.write(b'VECTORS %s float\n'%(bytearray(name, 'utf-8')))
+            if texture == 'TEXTURE_COORDINATES':
+                f.write(b'TEXTURE_COORDINATES %s 2 float\n'%(bytearray(name, 'utf-8'))) # http://www.earthmodels.org/data-and-tools/topography/paraview-topography-by-texture-mapping
+            if ftype=='BINARY':
+                array = np.array(array, dtype='>f')
+                f.write(array.tobytes())
+            elif ftype=='ASCII':
+                np.savetxt(f, array)
 
     f.close()
     if debug:
