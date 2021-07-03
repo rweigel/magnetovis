@@ -10,7 +10,7 @@ tmpdir = tempfile.gettempdir()
 if True:
     '''
     # vtk DataFile Version 3.0
-    Unstructured Grid - Pyramid
+    Pyramid Points
     ASCII
     DATASET UNSTRUCTURED_GRID
 
@@ -30,14 +30,14 @@ if True:
                         [0.5, 0.2, 1.0]])
 
     vtk_export(out_filename, points,
-                        title='Unstructured Grid - Pyramid',
+                        title='Pyramid Points',
                         ftype=ftype)
 
 
 if True:
     '''
     # vtk DataFile Version 3.0
-    Unstructured Grid - Pyramid
+    Pyramid Points and Cells
     ASCII
     DATASET UNSTRUCTURED_GRID
 
@@ -63,15 +63,14 @@ if True:
                         [0.0, 1.0, 0.0],
                         [0.5, 0.2, 1.0]])
 
-    connectivity = {}
+    connectivity = {'CELLS' : {'PYRAMID' : np.array([[0, 1, 2, 3, 4]])} }
 
     vtk_export(out_filename, points,
                         dataset = 'UNSTRUCTURED_GRID',
                         connectivity = connectivity,
-                        point_data = None,
-                        point_data_name = 'point data',
-                        title='Title',
+                        title='Pyramid Points and Cells',
                         ftype=ftype)
+
 
 if True:
     '''
@@ -97,11 +96,13 @@ if True:
                         [1, 0.5, 0],
                         [2, 0.2, 0]] )
     Nx, Ny, Nz = 3, 2, 1
+
     vtk_export(out_filename, points,
                         dataset = 'STRUCTURED_GRID',
                         connectivity = {'DIMENSIONS' : (Nx,Ny,Nz)},
                         title='Structured Grid Example C',
                         ftype=ftype)
+
 
 if True:
     '''
@@ -130,16 +131,16 @@ if True:
                         [1, 0, 0],
                         [0, 1, 0],
                         [1, 1, 0]] )
-    point_data = np.array([0, 0, 3, 3])
+    point_data = {"name":'point_scalars', "array":np.array([0, 0, 3, 3]), "texture":'SCALARS'}
     Nx, Ny, Nz = 2, 2, 1
+
     vtk_export(out_filename, points,
                     dataset = 'STRUCTURED_GRID',
                     connectivity = {'DIMENSIONS' : (Nx,Ny,Nz)},
                     point_data = point_data,
-                    texture = 'SCALARS',
-                    point_data_name = 'point_scalars',
                     title='Dataset attribute example',
                     ftype=ftype)
+
 
 if True:
     '''
