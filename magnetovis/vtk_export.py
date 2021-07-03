@@ -82,7 +82,7 @@ def vtk_export(out_filename, points,
 
     for key in connectivity.keys():
         if key == 'CELLS':
-            celltypes = {#TODO fix whitespace
+            celltypes = {
                             'VERTEX'         : 1 ,
                             'POLY_VERTEX'    : 2 ,
                             'LINE'           : 3 ,
@@ -130,7 +130,6 @@ def vtk_export(out_filename, points,
             else:
                 np.savetxt(f,ct_arr,fmt='%d')
 
-        #if key == 'TRIANGLE_STRIPS':
         if key == 'LINES':
             num_curves = len(connectivity['LINES'])
             f.write(b'LINES %d %d\n'%(num_curves, num_points + num_curves))
@@ -149,84 +148,29 @@ def vtk_export(out_filename, points,
             elif ftype=='ASCII':
                 np.savetxt(f, lines, fmt='%d')
 
-        if key == 'HYPERBOLOID TRIANGLE':  # TODO make work with b' '  
-            assert(ftype == 'ASCII')
-            extra_circle = 1
-            closing_points = 2
-            head_count = 1
-            extra_point = 1
-            points_on_circle = 0
-            points_on_circle = connectivity[key]
-            
-            num_circles = int(num_points/points_on_circle)
-            
-            triangle_line = ''
-            lines_of_triangles = num_circles - extra_circle
-            head_triangle = 2 * points_on_circle + closing_points
-            points_on_triangle_strips = (2 
-                                        * points_on_circle 
-                                        + closing_points 
-                                        + head_count) * lines_of_triangles
-            f.write('\n')
-            f.write('TRIANGLE_STRIPS {} {}\n'.format(lines_of_triangles, 
-                                                     points_on_triangle_strips))
-            for i in range(num_points - points_on_circle):
-                triangle_line = triangle_line + ' {} {}'.format(i, i+points_on_circle)
-                
-                if (i+1) % int(points_on_circle) == 0:
-                    if i == points_on_circle: 
-                        f_repeat_point = 0
-                        l_repeat_point = f_repeat_point + points_on_circle
-                    else: 
-                        f_repeat_point = i - points_on_circle + extra_point
-                        l_repeat_point = f_repeat_point + points_on_circle
-                    line = '{} {} {} {}\n'.format(head_triangle, 
-                                               triangle_line,
-                                               f_repeat_point,
-                                               l_repeat_point)
-                    f.write(line)
-                    triangle_line = ''
-            f.write('\n')
+    def writedata(name, array, texture):
+        if texture == 'SCALARS':
+            f.write(b'SCALARS %s float 1\n'%(bytearray(name, 'utf-8'))) # number with float???
+            f.write(b'LOOKUP_TABLE default\n')
+        if texture == 'VECTORS':
+            f.write(b'VECTORS %s float\n'%(bytearray(name, 'utf-8')))
+        if texture == 'TEXTURE_COORDINATES':
+            f.write(b'TEXTURE_COORDINATES %s 2 float\n'%(bytearray(name, 'utf-8'))) # http://www.earthmodels.org/data-and-tools/topography/paraview-topography-by-texture-mapping
+        if ftype=='BINARY':
+            array = np.array(array, dtype='>f')
+            f.write(array.tobytes())
+        elif ftype=='ASCII':
+            np.savetxt(f, array)
 
     if point_data is not None:
         f.write(b'POINT_DATA %d\n'%(num_points))
         for data in point_data:
-            name = data['name']
-            array = data['array']
-            texture = data['texture']
-
-            if texture == 'SCALARS':
-                f.write(b'SCALARS %s float 1\n'%(bytearray(name, 'utf-8'))) # number with float???
-                f.write(b'LOOKUP_TABLE default\n')
-            if texture == 'VECTORS':
-                f.write(b'VECTORS %s float\n'%(bytearray(name, 'utf-8')))
-            if texture == 'TEXTURE_COORDINATES':
-                f.write(b'TEXTURE_COORDINATES %s 2 float\n'%(bytearray(name, 'utf-8'))) # http://www.earthmodels.org/data-and-tools/topography/paraview-topography-by-texture-mapping
-            if ftype=='BINARY':
-                array = np.array(array, dtype='>f')
-                f.write(array.tobytes())
-            elif ftype=='ASCII':
-                np.savetxt(f, array)
+            writedata(data['name'], data['array'], data['texture'])
 
     if cell_data is not None:
         f.write(b'CELL_DATA %d\n'%(cell_data.shape[0]))
-        for data in cell_data:
-            name = data['name']
-            array = data['array']
-            texture = data['texture']
-
-            if texture == 'SCALARS':
-                f.write(b'SCALARS %s float 1\n'%(bytearray(name, 'utf-8'))) # number with float???
-                f.write(b'LOOKUP_TABLE default\n')
-            if texture == 'VECTORS':
-                f.write(b'VECTORS %s float\n'%(bytearray(name, 'utf-8')))
-            if texture == 'TEXTURE_COORDINATES':
-                f.write(b'TEXTURE_COORDINATES %s 2 float\n'%(bytearray(name, 'utf-8'))) # http://www.earthmodels.org/data-and-tools/topography/paraview-topography-by-texture-mapping
-            if ftype=='BINARY':
-                array = np.array(array, dtype='>f')
-                f.write(array.tobytes())
-            elif ftype=='ASCII':
-                np.savetxt(f, array)
+        for data in point_data:
+            writedata(data['name'], data['array'], data['texture'])
 
     f.close()
     if debug:
