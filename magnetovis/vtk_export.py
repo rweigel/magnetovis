@@ -117,7 +117,8 @@ def vtk_export(out_filename, points,
                                      ])
                     ct_arr.append(cint*np.ones(cnum, dtype=int))
 
-            f.write(b'CELLS %d %d\n'%(ct_arr.size,carr.size))
+            num_cells = ct_arr.size
+            f.write(b'CELLS %d %d\n'%(num_cells, carr.size))
             if ftype=='BINARY':
                 carr = np.array(carr, dtype=">i4")
                 f.write(carr.tobytes())
@@ -148,7 +149,7 @@ def vtk_export(out_filename, points,
             elif ftype=='ASCII':
                 np.savetxt(f, lines, fmt='%d')
 
-    def writedata(name, array, texture):
+    def writedata(name, array, texture): #todo integer values??
         if texture == 'SCALARS':
             f.write(b'SCALARS %s float 1\n'%(bytearray(name, 'utf-8'))) # number with float???
             f.write(b'LOOKUP_TABLE default\n')
@@ -168,8 +169,8 @@ def vtk_export(out_filename, points,
             writedata(data['name'], data['array'], data['texture'])
 
     if cell_data is not None:
-        f.write(b'CELL_DATA %d\n'%(cell_data.shape[0]))
-        for data in point_data:
+        f.write(b'CELL_DATA %d\n'%(num_cells))
+        for data in cell_data:
             writedata(data['name'], data['array'], data['texture'])
 
     f.close()
