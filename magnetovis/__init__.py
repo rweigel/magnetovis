@@ -1,4 +1,4 @@
-# Allow "from magnetovis import screenshot"
-from magnetovis.screenshot import screenshot
+# Allow "from magnetovis import screenshot_object"
+from magnetovis.screenshot_object import screenshot_object
 
 from magnetovis.objects2 import *

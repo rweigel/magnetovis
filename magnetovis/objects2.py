@@ -556,10 +556,10 @@ def _latitude_lines(self, time, coord_sys='GSM', increment=15, color=[1,0,0]):
     import vtk
     from magnetovis import cxtransform as cx
     
-    lon = np.arange(0,360 + 5, 5)#360/npts) # [0, 90, 180, 270]
-    lat = np.arange(-90,90 + increment,increment) # [-90, -45, 0, 45, 90]
-    lon_repeat = len(lat) # 5
-    lat_repeat = len(lon) # 4
+    lon = np.arange(0, 360 + 5, 5)
+    lat = np.arange(-90, 90 + increment, increment)
+    lon_repeat = len(lat)
+    lat_repeat = len(lon)
     lon = np.matlib.repmat(lon, 1, lon_repeat).flatten()
     lat = np.repeat(lat,lat_repeat)
     r = np.ones(lon_repeat*lat_repeat)
@@ -568,8 +568,6 @@ def _latitude_lines(self, time, coord_sys='GSM', increment=15, color=[1,0,0]):
     
     points = cx.transform(sph_coords, time, 'GSM', coord_sys, ctype_in='sph', ctype_out='car')
     
-
-    
     ### start of vtk
     
     pdo = self.GetPolyDataOutput()
@@ -577,10 +575,10 @@ def _latitude_lines(self, time, coord_sys='GSM', increment=15, color=[1,0,0]):
     pts = vtk.vtkPoints()
     lon_size = np.unique(lon).size
     lat_size = np.unique(lat).size
-    for i in range(lat_size): # 4
+    for i in range(lat_size):
         polyline = vtk.vtkPolyLine()
         polyline.GetPointIds().SetNumberOfIds(lon_size)
-        for j in range(lon_size): # 5
+        for j in range(lon_size):
             pts_index = j+i*lon_size
             pts.InsertPoint(pts_index, points[pts_index,0], points[pts_index,1], points[pts_index,2] )
             polyline.GetPointIds().SetId(j,pts_index)
@@ -642,7 +640,7 @@ def _longitude_lines(self, time, coord_sys='GSM', increment=15, color=[1,0,0]):
 def latitude_lines(time, coord_sys='GEO', increment=15, color=[0,0,1],
                    representation='Surface', renderView=None,
                    render=True, show=True, show_annotations=False):
-                   
+
     return objs_wrapper(time=time, coord_sys=coord_sys, increment=increment,
                 color=color, representation=representation,
                 renderView=renderView, render=render, show=show,
@@ -1231,16 +1229,18 @@ def _plasmasheet(self, output, time, psi,
 
 def objs_wrapper(**kwargs):
 
-    import paraview.simple as pvs
     import re
+    import paraview.simple as pvs
+
     import magnetovis.cxtransform as cx
     from magnetovis.util import tstr
     
     valid_rep = ['Surface', '3D Glyphs', 'Feature Edges', 
-                   'Outline' 'Point Gaussian', 'Points', 'Surface With Edges',
-                   'Wireframe', 'Volume']
-    assert kwargs['representation'] in valid_rep,\
-    """representation must be one of the following {}""".format(valid_rep)
+                'Outline' 'Point Gaussian', 'Points', 
+                'Surface With Edges', 'Wireframe', 'Volume']
+
+    assert kwargs['representation'] in valid_rep,   \
+        """representation must be one of the following {}""".format(valid_rep)
     
     path = os.path.join(os.getcwd() + "/magnetovis/objects2.py")    
     programmableSource = pvs.ProgrammableSource()
@@ -1254,7 +1254,6 @@ def objs_wrapper(**kwargs):
     if kwargs['obj'] == 'axis':
         
         scalar_data = '{} axes'.format(kwargs['coord_sys'])
-        
         
         programmableSource.Script = "kwargs="+str(kwargs)+";execfile('{}',globals(),locals())".format(path)
         
@@ -1554,7 +1553,7 @@ def tube(obj, tube_radius=.1, vary_radius='Off', radius_factor=4.0, renderView=N
         if obj.__eq__(value):
             title = key[0]
 
-    tubeFilter = pvs.Tube(obj, guiName='tube - '+title)
+    tubeFilter = pvs.Tube(obj, guiName='tube - ' + title)
     tubeFilter.Radius = tube_radius
     tubeFilter.VaryRadius = vary_radius 
     tubeFilter.RadiusFactor = radius_factor 
@@ -2371,7 +2370,7 @@ def satellite(time_o, time_f, satellite_id,
 
 def axis(time, val, coord_sys='GSM', lims=[-20,20], tick_spacing=1, tick_length=1,
          label=True, representation = 'Surface',
-         renderView=None,render=True,show=True, debug=False):
+         renderView=None, render=True, show=True, debug=False):
 
     return objs_wrapper(time=time, val=val, coord_sys=coord_sys, 
                  lims=lims, tick_spacing=tick_spacing, tick_length=tick_length,
@@ -2390,7 +2389,7 @@ def _axis(self, time, val, coord_sys, lims,
     assert lims[0] < lims[1], 'first element of lims must be smaller than the second'
     
     if lims[0] > 0 or lims[1] <0:
-        tick_array = np.arange(lims[0],lims[1],tick_spacing)
+        tick_array = np.arange(lims[0], lims[1], tick_spacing)
     else:
         tick_array = np.concatenate((np.arange(0,lims[0]-tick_spacing,-tick_spacing),np.arange(0,lims[1]+tick_spacing,tick_spacing)))
         tick_array = np.sort(np.unique(tick_array))

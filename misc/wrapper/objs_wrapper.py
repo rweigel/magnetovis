@@ -1,6 +1,6 @@
 def objs_wrapper(**kwargs):
-    import paraview.simple as pvs
     import os
+    import paraview.simple as pvs
     file = os.path.join(os.getcwd(), 'objs.py')
 
 	# create a new 'Programmable Source'

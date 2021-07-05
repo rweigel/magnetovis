@@ -1,4 +1,4 @@
-def screenshot(
+def screenshot_object(
                 obj=None,
                 renderView=None,
                 camera=None,
@@ -8,20 +8,32 @@ def screenshot(
                 Background = [0.086, 0.36, 0.49],
                 Background2 = [0.070, 0.071, 0.47],
                 pAxes=False):
-    
+    """Take a screenshot of a single object."""
+
+
     """See misc/screenshots.py for links and a discussion on options for creating screenshots""" 
-    """TODO: Document why this is used instead of SaveScreenshot"""
 
     import os
     import paraview.simple as pvs 
 
+    Azimuth = 30
+    Elevation = 30
+
     if not renderView:
         renderView = pvs.GetActiveViewOrCreate('RenderView')
     
-    base_path = os.path.join(os.path.dirname(os.path.dirname(__file__)))
-    if not os.path.isdir(os.path.join(base_path, 'figures')):
-                os.mkdir(os.path.join(base_path,'figures'))
-                
+    if not fileName:
+        base_path = os.path.join(os.path.dirname(os.path.dirname(__file__)))
+        if not os.path.isdir(os.path.join(base_path, 'figures')):
+            os.mkdir(os.path.join(base_path,'figures'))
+        for name_id, pObject in pvs.GetSources().items():
+            if pObject.__eq__(obj):
+                fileName = name_id[0]
+        fileName_full = os.path.join(base_path, 'figures', fileName + '.png')
+        fileName_full = fileName_full.replace(' - ', '-').replace(' ', '_').replace(':', '')
+    else:
+        fileName_full = fileName
+
     # tempObjDisplay.SetScalarBarVisibility(tempRenderView, True)
     if not pAxes:
         renderView.OrientationAxesVisibility = 0
@@ -83,15 +95,6 @@ def screenshot(
         tempRenderView.Background = Background
         tempRenderView.Background2 = Background2
 
-        if not fileName:
-            for name_id, pObject in pvs.GetSources().items():
-                if pObject.__eq__(obj):
-                    fileName = name_id[0]
-        
-        # TODO: Check if directory exists
-        fileName_full = os.path.join(base_path, 'figures', fileName + '.png')
-        fileName_full = fileName_full.replace(' - ', '-').replace(' ', '_').replace(':', '')
-        
         # Check to see if there is a need for a legend. Conclude legend is not
         # needed if the min value in the color array is the same as the max.
         color_array_name = tempObjDisplay.ColorArrayName
@@ -104,8 +107,8 @@ def screenshot(
         if not camera:
             tempRenderView.ResetCamera()
             tempCamera = pvs.GetActiveCamera()
-            tempCamera.Azimuth(30)      # Horizontal rotation
-            tempCamera.Elevation(30)    # Vertical rotation
+            tempCamera.Azimuth(Azimuth)      # Horizontal rotation
+            tempCamera.Elevation(Elevation)    # Vertical rotation
         
         tempRenderView.OrientationAxesVisibility = 0
         pvs.SaveScreenshot(fileName_full, tempRenderView, ImageResolution=ImageResolution)
@@ -123,13 +126,12 @@ def screenshot(
         
     else: 
         assert fileName != None, 'fileName cannot be None when full_view is True'
-        fileName_full = os.path.join(base_path, 'figures', fileName + '.png')
 
         if not camera:
             renderView.ResetCamera()
             camera = pvs.GetActiveCamera()
-            camera.Azimuth(30)      # Horizontal rotation
-            camera.Elevation(30)    # Vertical rotation
+            camera.Azimuth(Azimuth)      # Horizontal rotation
+            camera.Elevation(Elevation)    # Vertical rotation
         
         pvs.SaveScreenshot(fileName_full, renderView, ImageResolution=ImageResolution)
 

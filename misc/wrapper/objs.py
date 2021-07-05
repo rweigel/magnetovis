@@ -31,27 +31,27 @@ def _line(self, numPts):
    pdo.InsertNextCell(aPolyLine.GetCellType(), aPolyLine.GetPointIds())
 
 
-def wrapper(**kwargs):
+def wrapper(renderView=None, **kwargs):
    import paraview.simple as pvs 
-   print(__file__)
 
    # create a new 'Programmable Source'
    programmableSource1 = pvs.ProgrammableSource()
-   # Properties modified on programmableSource1
-   programmableSource1.Script = "kwargs=" +  str(kwargs) + ";execfile('" + __file__ + "',globals(),locals())"
+
+   # Generate programmable source script. The script is this file with 
+   # a dict named 'kwargs' prepended. When this script is executed and
+   # 'kwargs' is defined, the function _line(self, nPts=kwargs['nPts'])
+   # is called.
+   programmableSource1.Script = "kwargs=" +  str(kwargs) + ";execfile('" + __file__ + "', globals(),locals())"
    
    if not 'RenderView' in kwargs:
       renderView1 = pvs.GetActiveViewOrCreate('RenderView')
    else:
       renderView1 = kwargs['renderView']
    
-   # show data in view
+   # show data
    programmableSource1Display = pvs.Show(programmableSource1, renderView1)
 
-   # trace defaults for the display properties.
-   programmableSource1Display.Representation = 'Surface'
-
-   # update the view to ensure updated data information
+   # update the view
    renderView1.Update()
 
 def line(nPts=10):
