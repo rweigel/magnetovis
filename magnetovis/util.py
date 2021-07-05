@@ -170,9 +170,12 @@ def compatability_check(debug=False):
     elif sys.platform.startswith("linux"):
 
         if sys.version_info[0] < 3:
-            from backports import configparser
+            import ConfigParser
+            config = ConfigParser.ConfigParser()
         else:
             import configparser
+            config = configparser.ConfigParser()
+
 
         config_file = os.path.expanduser('~') + '/.magnetovis.conf'
         PARAVIEWPATH = ''
@@ -189,10 +192,9 @@ def compatability_check(debug=False):
         if PARAVIEWPATH == '' and os.path.exists(config_file):
             if debug:
                 print('File ' + config_file + ' found')
-            config = configparser.ConfigParser()
             config.read(config_file)
-            if 'PARAVIEWPATH' in config['DEFAULT']:
-                PARAVIEWPATH = os.path.expanduser(config['DEFAULT']['PARAVIEWPATH'])
+            try:
+                PARAVIEWPATH = os.path.expanduser(config.get('DEFAULT', 'PARAVIEWPATH'))
                 if debug:
                     print('Found PARAVIEWPATH = ' + PARAVIEWPATH + ' in [DEFAULT] section of ' + config_file + '.')
                 if os.path.exists(PARAVIEWPATH):
@@ -201,10 +203,9 @@ def compatability_check(debug=False):
                 else:
                     print(PARAVIEWPATH + ' not found.')
                     PARAVIEWPATH = ''
-                    #sys.exit(1)
-            else:
+            except:
                 if debug:
-                    print('PARAVIEWPATH variable not found in ' + config_file + '.')
+                    print('unable to get PARAVIEWPATH variable in ' + config_file + ' file')
 
         if PARAVIEWPATH == '':
             PVPYTHON = ''
