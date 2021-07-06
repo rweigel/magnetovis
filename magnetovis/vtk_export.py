@@ -1,6 +1,20 @@
+import os
 import numpy as np
 
+def cleanUponError(writefile):
+    def clean_writefile(*args, **kwargs):
+        if os.path.exists(args[0]) and ('debug' in kwargs.keys()) and kwargs['debug']:
+            print(f'warning: overwiting existing {args[0]}')
 
+        try:
+            writefile(*args, **kwargs)
+        except:
+            os.remove(args[0])
+            raise Exception (f'removing bad file {args[0]}')
+
+    return clean_writefile
+
+@cleanUponError
 def vtk_export(out_filename, points,
                     dataset = 'UNSTRUCTURED_GRID',
                     connectivity = None,
@@ -150,6 +164,9 @@ def vtk_export(out_filename, points,
                 np.savetxt(f, lines, fmt='%d')
 
     def writedata(name, array, texture): #todo integer values??
+        if ' ' in name:
+            raise ValueError ('names of point and cell data cannot contain spaces')
+
         if texture == 'SCALARS':
             f.write(b'SCALARS %s float 1\n'%(bytearray(name, 'utf-8'))) # number with float???
             f.write(b'LOOKUP_TABLE default\n')
