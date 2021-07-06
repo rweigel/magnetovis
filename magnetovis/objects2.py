@@ -1,10 +1,9 @@
 import os
 import sys
 import tempfile
-# it's never used so I should take this away. 
-# from magnetovis import util
 import numpy as np
 
+from magnetovis import util
 
 #def trajectory([L, theta, phi], [phase_angle, pitch_angle, E], dt=..., e_over_m=...)
 
@@ -103,7 +102,8 @@ def earth(time,
 
         import numpy as np
 
-        import cxtransform as cx
+        #import cxtransform as cx
+        from hxform import hxform as hx
         from vtk_export import vtk_export
 
 
@@ -132,11 +132,8 @@ def earth(time,
         z = R*np.cos(B2)
         XYZr = np.column_stack((x, y, z))
 
-        # TODO: Use this:
-        # XYZr = cx.transform(XYZ, time, 'GEO', coord_sys)
         if coord_sys != 'GSM':
-            XYZr = cx.transform(XYZr, time, 'GEO', coord_sys)
-#        XYZr = cx.GEOtoGSM(XYZ, time, 'car', 'car')
+            XYZr = hx.transform(XYZr, time, 'GEO', coord_sys)
 
         vtk_export(fnameVTK, XYZr,
                     dataset = 'STRUCTURED_GRID',
@@ -154,7 +151,6 @@ def earth(time,
 
     filePNG = os.path.join(out_dir, os.path.split(topo_url)[1].format(time[1]))
 
-    import util # i needed to add this line to make it work
     from hapiclient.util import urlretrieve
 
     # Download topographic overlay file if not found.
@@ -554,7 +550,8 @@ def _latitude_lines(self, time, coord_sys='GSM', increment=15, color=[1,0,0]):
     import numpy as np
     import numpy.matlib
     import vtk
-    from magnetovis import cxtransform as cx
+    from hxform import hxform as hx
+    #from magnetovis import cxtransform as cx
     
     lon = np.arange(0, 360 + 5, 5)
     lat = np.arange(-90, 90 + increment, increment)
@@ -566,7 +563,7 @@ def _latitude_lines(self, time, coord_sys='GSM', increment=15, color=[1,0,0]):
     
     sph_coords = np.column_stack((r,lat,lon))
     
-    points = cx.transform(sph_coords, time, 'GSM', coord_sys, ctype_in='sph', ctype_out='car')
+    points = hx.transform(sph_coords, time, 'GSM', coord_sys, ctype_in='sph', ctype_out='car')
     
     ### start of vtk
     
@@ -598,7 +595,8 @@ def _longitude_lines(self, time, coord_sys='GSM', increment=15, color=[1,0,0]):
     import numpy as np
     import numpy.matlib
     import vtk
-    from magnetovis import cxtransform as cx
+    from hxform import hxform as hx
+    #from magnetovis import cxtransform as cx
     
     lon = np.arange(0,360 + increment, increment) #360/npts) # [0, 90, 180, 270]
     lat = np.arange(-90,90 + 5, 5) # [-90, -45, 0, 45, 90]
@@ -609,7 +607,7 @@ def _longitude_lines(self, time, coord_sys='GSM', increment=15, color=[1,0,0]):
     r = np.ones(lon_repeat*lat_repeat)
     
     sph_coords = np.column_stack((r,lat,lon))
-    points = cx.transform(sph_coords, time, 'GSM', coord_sys, ctype_in='sph', ctype_out='car')
+    points = hx.transform(sph_coords, time, 'GSM', coord_sys, ctype_in='sph', ctype_out='car')
     
     ### start of vtk
     
@@ -659,11 +657,16 @@ def longitude_lines(time, coord_sys='GEO', increment=15, color=[0,.5,1],
 
 def plane(time, val, extend=[[-40,40],[-40,40]], coord_sys='GSM', labels=True,
           renderView=None, render=True, show=True,):
+
     # val='XY', 'XZ', 'YZ'
-    import paraview.simple as pvs
+
+    import datetime
     import numpy as np
-    from util import tstr
-    from cxtransform import transform
+    import paraview.simple as pvs
+
+    from magnetovis.util import tstr
+    from hxform import hxform as hx
+    #from cxtransform import transform
     
     assert isinstance(extend, list or tuple or np.ndarray), \
         'extend has to be either an list, tuple, or numpy.ndarray'
@@ -680,21 +683,25 @@ def plane(time, val, extend=[[-40,40],[-40,40]], coord_sys='GSM', labels=True,
     if val == 'XY':
         c1 = 0
         c2 = 1
+        color = [1, 0, 0]
     elif val == 'XZ':
         c1 = 0
         c2 = 2
+        color = [1, 1, 0.5]
     elif val == 'YZ':
         c1 = 1
         c2 = 2
+        color = [0, 1, 0.1]
     else:
         assert False, 'val should be "XY", "XZ", or "YZ"'
+
     exarray = np.zeros((3,3))    
     exarray[:,c1] = col1
     exarray[:,c2] = col2
 
     if coord_sys != 'GSM':
         assert time != None, 'If coord_sys in not GSM then time cannot be None'
-        exarray = transform(exarray, time, 'GSM', coord_sys, 'car', 'car')
+        exarray = hx.transform(exarray, time, 'GSM', coord_sys, 'car', 'car')
 
     plane = pvs.Plane()
     
@@ -707,9 +714,22 @@ def plane(time, val, extend=[[-40,40],[-40,40]], coord_sys='GSM', labels=True,
     
     planeDisplay = pvs.Show(plane, renderView)
     planeDisplay.Representation = 'Surface'
-    planeDisplay.Opacity = 0.5
+    #planeDisplay.Opacity = 0.5
+
+    scalar_data = '{} axes'.format(val)
+
+    LUT = pvs.GetColorTransferFunction('{} plane'.format(val))
+    LUT.IndexedColors = color
+    LUT.Annotations = ['0',val]
+    LUT.InterpretValuesAsCategories = 1
+    LUT.AnnotationsInitialized = 1
+
+    planeDisplay.LookupTable = LUT
+    planeDisplay.OpacityArray = ['POINTS', scalar_data]
+    planeDisplay.ColorArrayName = ['POINTS', scalar_data]
+    #planeDisplay.SetScalarBarVisibility(renderView, True)
     
-    pvs.RenameSource('{}-plane {} {}'.format(val, coord_sys, tstr(time, length=5)))  
+    pvs.RenameSource('{}-plane {} {}'.format(val, coord_sys, util.tstr(time, length=5)))
     
     if not show:
         pvs.Hide()
@@ -881,7 +901,8 @@ def _plasmapause(self, output, N, coord_sys, time):
     import numpy.matlib
     import vtk 
     from copy import deepcopy
-    from magnetovis import cxtransform as cx
+    from hxform import hxform as hx
+    #from magnetovis import cxtransform as cx
     
     def logDen(r, theta, phi):
         a1 = 1.4
@@ -936,7 +957,7 @@ def _plasmapause(self, output, N, coord_sys, time):
     P_cartesian[:,2] = P[:,0]*np.sin(P[:,1])                 # z = r sin(theta)
     
     if coord_sys != 'SM':
-        P_cartesian = cx.transform(P_cartesian, time, 'SM', coord_sys, 'car', 'car')
+        P_cartesian = hx.transform(P_cartesian, time, 'SM', coord_sys, 'car', 'car')
        
     ind = np.arange(N**3).reshape((N,N,N)) # ind is (50,50,50) going from 0-124999
         #PERIODIC IN PHI DIRECTION (indexed by k)
@@ -1034,14 +1055,15 @@ def _neutralsheet(self, output, time, psi,
     """
     import numpy as np
     import numpy.matlib
-    from magnetovis import cxtransform as cx
+    from hxform import hxform as hx
+    #from magnetovis import cxtransform as cx
     import paraview.simple as pvs
     
     # retrieving psi value based on time.
     if psi == None:
         assert time != None, \
             'if psi is None then time cannot be None.'
-        dipole = cx.MAGtoGSM(np.array([0., 0., 1.]), time, 'car', 'sph') # [radius, latitude,longitude]
+        dipole = hx.MAGtoGSM(np.array([0., 0., 1.]), time, 'car', 'sph') # [radius, latitude,longitude]
         psi = 90 - dipole[1]
         psi = np.deg2rad(psi)
 
@@ -1071,7 +1093,7 @@ def _neutralsheet(self, output, time, psi,
     print('created Tsyganenko 1995 currentsheet model')
     
     if coord_sys != 'GSM':
-        points = cx.transform(points, time, 'GSM', 
+        points = hx.transform(points, time, 'GSM', 
                               coord_sys, 'car', 'car')
     
 
@@ -1150,14 +1172,15 @@ def _plasmasheet(self, output, time, psi,
     
     import numpy as np
     import numpy.matlib
-    from magnetovis import cxtransform as cx
+    from hxform import hxform as hx
+    #from magnetovis import cxtransform as cx
     import paraview.simple as pvs
     from magnetovis.objects2 import _neutralsheet
     
     if psi == None:
         assert time != None, \
             'if psi is None then time cannot be None.'
-        dipole = cx.MAGtoGSM(np.array([0., 0., 1.]), time, 'car', 'sph') # [radius, latitude,longitude]
+        dipole = hx.MAGtoGSM(np.array([0., 0., 1.]), time, 'car', 'sph') # [radius, latitude,longitude]
         psi = 90 - dipole[1]
         psi = np.deg2rad(psi)
 
@@ -1179,7 +1202,7 @@ def _plasmasheet(self, output, time, psi,
           +' above and below')
     
     if coord_sys != 'GSM':
-        points = cx.transform(points, time, 'GSM', 
+        points = hx.transform(points, time, 'GSM', 
                               coord_sys, 'car', 'car')
     
     ############################################################
@@ -1231,10 +1254,17 @@ def objs_wrapper(**kwargs):
 
     import re
     import paraview.simple as pvs
-
-    import magnetovis.cxtransform as cx
     from magnetovis.util import tstr
-    
+    from hxform import hxform as hx
+
+    def script(kwargs):
+        # https://stackoverflow.com/questions/436198/what-is-an-alternative-to-execfile-in-python-3
+        if sys.version_info[0] < 3:
+            script_src = "kwargs="+str(kwargs)+";execfile('" + __file__ + "',globals(),locals())"
+        else:
+            script_src = "kwargs="+str(kwargs)+";exec(open('" + __file__ + "').read())"
+        return script_src
+
     valid_rep = ['Surface', '3D Glyphs', 'Feature Edges', 
                 'Outline' 'Point Gaussian', 'Points', 
                 'Surface With Edges', 'Wireframe', 'Volume']
@@ -1255,7 +1285,7 @@ def objs_wrapper(**kwargs):
         
         scalar_data = '{} axes'.format(kwargs['coord_sys'])
         
-        programmableSource.Script = "kwargs="+str(kwargs)+";execfile('{}',globals(),locals())".format(path)
+        programmableSource.Script = script(kwargs)
         
         if not kwargs['renderView']:
             renderView = pvs.GetActiveViewOrCreate('RenderView')
@@ -1263,7 +1293,7 @@ def objs_wrapper(**kwargs):
         programmableSourceDisplay = pvs.Show(programmableSource, renderView)
         programmableSourceDisplay.Representation = kwargs['representation']
         
-        LUT = pvs.GetColorTransferFunction('{} axes'.format(kwargs['coord_sys']))
+        LUT = pvs.GetColorTransferFunction(scalar_data)
         LUT.IndexedColors = [1,0,0, 1,1,0.5, 0,1,0.1]
         LUT.Annotations = ['0','X','1','Y','2','Z',]
         LUT.InterpretValuesAsCategories = 1
@@ -1273,18 +1303,17 @@ def objs_wrapper(**kwargs):
         programmableSourceDisplay.OpacityArray = ['POINTS', scalar_data]
         programmableSourceDisplay.ColorArrayName = ['POINTS', scalar_data]
         programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
-        
-        
+
         if not kwargs['show']:
             pvs.Hide(programmableSource, renderView)
             
         if kwargs['render']:
             pvs.Render()
             renderView.Update()
-            
+        
         title = "{}-axis {} {}".format(kwargs['val'], 
                                                   kwargs['coord_sys'],
-                                                  tstr(kwargs['time'],5))
+                                                  tstr(kwargs['time'], 5))
         
         renderView = pvs.GetActiveViewOrCreate('RenderView')
         programmableSourceDisplay = pvs.Show(programmableSource, renderView)
@@ -1316,7 +1345,7 @@ def objs_wrapper(**kwargs):
         outInfo.Set(executive.WHOLE_EXTENT(), 0, dims[0]-1 , 0, dims[1]-1 , 0, dims[2]-1)
         """.format(x_dim, y_dim, z_dim)
         
-        programmableSource.Script = "kwargs="+str(kwargs)+";execfile('{}',globals(),locals())".format(path)
+        programmableSource.Script = script(kwargs)
         
         if not kwargs['renderView']:
             renderView = pvs.GetActiveViewOrCreate('RenderView')
@@ -1360,7 +1389,7 @@ def objs_wrapper(**kwargs):
             
         elif kwargs['obj'] == 'Neutralsheet' or kwargs['obj'] == 'Plasmasheet':
             if kwargs['psi'] == None:
-                dipole = cx.MAGtoGSM(np.array([0., 0., 1.]), kwargs['time'], 'car', 'sph') # [radius, latitude,longitude]
+                dipole = hx.MAGtoGSM(np.array([0., 0., 1.]), kwargs['time'], 'car', 'sph') # [radius, latitude,longitude]
                 kwargs['psi'] = 90 - dipole[1]
                 time_str = ''
             else:
@@ -1395,7 +1424,7 @@ def objs_wrapper(**kwargs):
     if kwargs['obj'] == 'Plasmapause':
         
         programmableSource.OutputDataSetType = 'vtkUnstructuredGrid'
-        programmableSource.Script = 'kwargs='+str(kwargs)+";execfile('{}',globals(),locals())".format(path)
+        programmableSource.Script = script(kwargs)
         
         if not kwargs['renderView']:
             renderView = pvs.GetActiveViewOrCreate('RenderView')
@@ -1421,7 +1450,7 @@ def objs_wrapper(**kwargs):
         from hapiclient import hapi
         
         scalar_data = kwargs['satellite_id'] +  ' Spacecraft Region'    
-        programmableSource.Script = "kwargs="+str(kwargs)+";execfile('{}',globals(),locals())".format(path)
+        programmableSource.Script = script(kwargs)
         
         if not kwargs['renderView']:
             renderView = pvs.GetActiveViewOrCreate('RenderView')
@@ -1483,7 +1512,7 @@ def objs_wrapper(**kwargs):
             
     if kwargs['obj'] == "latitude" or kwargs['obj'] == 'longitude':
         scalar_data = 'lat_lon'
-        programmableSource.Script = "kwargs="+str(kwargs)+";execfile('{}',globals(),locals())".format(path)
+        programmableSource.Script = script(kwargs)
         
         if not kwargs['renderView']:
             renderView = pvs.GetActiveViewOrCreate('RenderView')
@@ -1613,7 +1642,9 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
     from datetime import datetime, timedelta
     import pytz 
     from magnetovis.util import tstr, time2datetime
-    from magnetovis.cxtransform import transform, rot_mat
+    from hxform import hxform as hx
+    #from magnetovis.cxtransform import transform, rot_mat
+    from magnetovis.objects2 import rot_mat
     import paraview.simple as pvs
 
     def mpause_Shue97(Bz, Psw, return_x_max = False):
@@ -1998,12 +2029,10 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
             if Psw == None:
                 if hapitime2datetime(start)[0].replace(tzinfo=pytz.UTC) < year_limit:
                     Psw = 2.04 
-                    print('Current Dataset OMNI_HRO2_1MIN does not go back further')
-                    print('than 1995. Using Nominal Value Psw=2')
+                    print('OMNI_HRO2_1MIN data not available before 1995. Using nominal value: Psw = 2 [nPa].')
                 elif all(np.isnan(data['Pressure'])):
                     Psw = 2.04 # nominal value. check later.
-                    print('No values of Pressure from OMNI_HRO2_1MIN dataset given.')
-                    print('using nominal value Psw=2 (nPa)')
+                    print('OMNI_HRO2_1MIN has not pressure values for this time interval. Using nominal value Psw = 2 [nPa].')
                 else:
                     nans = np.isnan(data['Pressure'])
                     pressure_OMNI = np.interp(t1, t1[~nans], data['Pressure'][~nans])
@@ -2028,8 +2057,8 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
         points = mpause_Sibeck_Lopez_Roelof1991(Bz, Psw)
     
     if coord_sys != 'GSE':
-        points = transform(points, time, 'GSE', coord_sys, 'car', 'car')
-        Bz = transform([0,0,Bz], time, 'GSE', coord_sys, 'car', 'car')[0]
+        points = hx.transform(points, time, 'GSE', coord_sys, 'car', 'car')
+        Bz = hx.transform([0,0,Bz], time, 'GSE', coord_sys, 'car', 'car')[0]
     
     points = np.array(rot_mat(points))
     ############################################################
@@ -2083,7 +2112,7 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model,
     from magnetovis.util import tstr, time2datetime
     from magnetovis.cxtransform import transform
     from magnetovis.objects2 import _magnetopause
-    from magnetovis.objects2 import rot_mat
+    from hxform import hxform as hx
     import numpy as np
     import paraview.simple as pvs
 
@@ -2189,8 +2218,10 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model,
             dataset    = 'OMNI_HRO2_1MIN';
             parameters = 'BZ_GSE,Pressure';
             opts = {'logging': True, 'usecache': True}
-            start = tstr(time2datetime(time) + timedelta(minutes=-30)) 
-            stop =  tstr(time2datetime(time) + timedelta(minutes= 30)) 
+            start = time2datetime(time) + timedelta(minutes=-30)
+            start = start.isoformat()
+            stop =  time2datetime(time) + timedelta(minutes= 30)
+            stop = stop.isoformat()
             data, meta = hapi(server, dataset, parameters, start, stop, **opts)
             
             time_arr = hapitime2datetime(data['Time'])
@@ -2384,11 +2415,12 @@ def _axis(self, time, val, coord_sys, lims,
     import numpy as np
     from numpy.matlib import repmat
     from magnetovis.objects2 import rot_mat
-    from magnetovis.cxtransform import transform
+    #from magnetovis.cxtransform import transform
+    from hxform import hxform as hx
     
-    assert lims[0] < lims[1], 'first element of lims must be smaller than the second'
+    assert lims[0] < lims[1], 'first element of lims have fewer elements than the second'
     
-    if lims[0] > 0 or lims[1] <0:
+    if lims[0] > 0 or lims[1] < 0:
         tick_array = np.arange(lims[0], lims[1], tick_spacing)
     else:
         tick_array = np.concatenate((np.arange(0,lims[0]-tick_spacing,-tick_spacing),np.arange(0,lims[1]+tick_spacing,tick_spacing)))
@@ -2413,15 +2445,14 @@ def _axis(self, time, val, coord_sys, lims,
         ends = rot_mat(ends,angle=90, translate=False, axis='Y')
         
     if coord_sys != 'GSM':
-        points = transform(points, time, 'GSM', coord_sys, 'car', 'car')
+        points = hx.transform(points, time, 'GSM', coord_sys, 'car', 'car')
         
     
     
     ############################################################
     ####### start of the code to use programmable source #######
     ############################################################
-        
-        
+
     ### start of vtk
     import vtk
     import paraview.simple as pvs

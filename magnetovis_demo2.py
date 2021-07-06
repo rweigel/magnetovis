@@ -10,6 +10,10 @@ Usage:
 demo_time = [2015, 1, 1, 0, 0]
 demo_coord = 'GSM'
 
+yAxisDis, renderView, yAxisSource = objects2.axis(time=demo_time, val='Y', lims=[-15,15],coord_sys=demo_coord)
+yDisTube, renderView, yTubeFilter = objects2.tube(yAxisSource, vary_radius='By Scalar', tube_radius=0.05)
+objects2.screenshot(obj=yTubeFilter)
+
 # stylize background
 renderView = pvs.GetActiveViewOrCreate('RenderView')
 renderView.UseGradientBackground = 1
@@ -18,8 +22,8 @@ renderView.Background =  [0.087, 0.36, 0.49]
 renderView = pvs.GetActiveViewOrCreate('RenderView')
 renderView.OrientationAxesVisibility = 0
 
-earthDisp, renderView, earthSource = objects2.earth(demo_time, coord_sys=demo_coord)
-objects2.screenshot(obj=earthSource)
+#earthDisp, renderView, earthSource = objects2.earth(demo_time, coord_sys=demo_coord)
+#objects2.screenshot(obj=earthSource)
 
 latDis, renderView, latSource = objects2.latitude_lines(time=demo_time, coord_sys=demo_coord)
 latDisTube, renderView, latTubeFilter = objects2.tube(latSource,tube_radius=0.02)

@@ -32,6 +32,7 @@ def _line(self, numPts):
 
 
 def wrapper(renderView=None, **kwargs):
+   import sys
    import paraview.simple as pvs 
 
    # create a new 'Programmable Source'
@@ -41,7 +42,11 @@ def wrapper(renderView=None, **kwargs):
    # a dict named 'kwargs' prepended. When this script is executed and
    # 'kwargs' is defined, the function _line(self, nPts=kwargs['nPts'])
    # is called.
-   programmableSource1.Script = "kwargs=" +  str(kwargs) + ";execfile('" + __file__ + "', globals(),locals())"
+   # https://stackoverflow.com/questions/436198/what-is-an-alternative-to-execfile-in-python-3
+   if sys.version_info[0] < 3:
+      programmableSource1.Script = "kwargs="+str(kwargs)+";execfile('" + __file__ + "',globals(),locals())"
+   else:
+      programmableSource1.Script = "kwargs="+str(kwargs)+";exec(open('" + __file__ + "').read())"
    
    if not 'RenderView' in kwargs:
       renderView1 = pvs.GetActiveViewOrCreate('RenderView')

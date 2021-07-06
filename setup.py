@@ -3,10 +3,10 @@ import sys
 from setuptools import setup, find_packages
 
 install_requires = [
-                        "numpy",
-                        "spacepy",
-                        "hapiclient"
-                    ]
+    "numpy",
+    "hapiclient",
+    "hxform @ git+https://github.com/rweigel/hxform@main#egg=hxform"
+]
 
 if sys.version_info[0] < 3:
     if sys.maxunicode > 65535:

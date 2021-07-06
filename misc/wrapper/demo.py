@@ -1,6 +1,9 @@
 # When executed, all result in n lines connected lines with n different colors showing in ParaView.
 # Magnetovis uses "Single file approach #2".
 
+# From this directory, execute
+#   magnetovis demo.py
+
 # Two file approach
 if False:
 	from objs_wrapper import objs_wrapper

@@ -2,72 +2,49 @@ import os
 import sys
 
 
-# TODO: Duplicated in Gary's
-def tpad(time, length=7):
-
-    # TODO: Check that time is valid
-    time = list(time)
-
-    assert(len(time) > 2)
-    
-    if len(time) > length:
-        time = time[0:length]
-    else:
-        pad = length - len(time)
-        time = time + pad*[0]
-
-    return tuple(time)
-
-
-# TODO: Duplicated in Gary's
 def tstr(time, length=7):
-    """Create date/time string of the convention to tag files with given array of integers
+    """Create ISO8601 date/time string
     
-    tstr((2000, 1, 1, 2)) # 2000:01:01T02:00:00
-    tstr((2000, 1, 1, 2, 3)) # 2000:01:01T02:03:00
-    tstr((2000, 1, 1, 2, 3, 4)) # 2000:01:01T02:03:04
-    tstr((2000, 1, 1, 2, 3, 4, 567)) # 2000:01:01T02:03:04.567
+    tstr((2000, 1, 1, 2)) # 2000-01-01T02:00:00
+    tstr((2000, 1, 1, 2, 3)) # 2000-01-01T02:03:00
+    tstr((2000, 1, 1, 2, 3, 4)) # 2000-01-01T02:03:04
+    tstr((2000, 1, 1, 2, 3, 4, 567)) # 2000-01-01T02:03:04.000567
     """
     import datetime
-    
-    if isinstance(time, datetime.date ):
-        return time.strftime("%Y-%m-%dT%H:%M:%SZ")
-    
-    else:
-        # ISO 8601
-        assert(len(time) > 2)
-    
-        if length == 7:
-            return '%04d-%02d-%02dT%02d:%02d:%02d.%03d' % tpad(time, length=length)
-        elif length == 6:
-            return '%04d-%02d-%02dT%02d:%02d:%02d' % tpad(time, length=length)        
-        elif length == 5:
-            return '%04d-%02d-%02dT%02d:%02d' % tpad(time, length=length)        
-        elif length == 4:
-            return '%04d-%02d-%02dT%02d' % tpad(time, length=length)        
-        elif length == 3:
-            return '%04d-%02d-%02d' % tpad(time, length=length)        
 
-# TODO: Duplicated in Gary's
+    assert(len(time) > 2)
+
+    time = datetime.datetime(*time)
+    time_str = time.isoformat()
+
+    if length == 7:
+        l = len("2000-01-01T02:03:04.000567")
+    elif length == 6:
+        l = len("2000-01-01T02:03:04")
+    elif length == 5:
+        l = len("2000-01-01T02:03")
+    elif length == 4:
+        l = len("2000-01-01T02")
+    elif length == 3:
+        l = len("2000-01-01")
+    
+    return time_str[0:l]
+
+
 def time2datetime(t):
     import datetime as dt
-    
+
+    t = list(t)
     for i in range(len(t)):
         if int(t[i]) != t[i]:
             raise ValueError("int(t[{0:d}] != t[{0:d}] = {1:f}".format(i, t[i]))\
-            
+        
+        t[i] = int(t[i])
+
     if len(t) < 3:
         raise ValueError('Time list/tuple must have 3 or more elements')
-    if len(t) == 3:
-        return dt.datetime(int(t[0]), int(t[1]), int(t[2]))    
-    if len(t) == 4:
-        return dt.datetime(int(t[0]), int(t[1]), int(t[2]), int(t[3]))    
-    if len(t) == 5:
-        return dt.datetime(int(t[0]), int(t[1]), int(t[2]), int(t[3]), int(t[4]))    
-    if len(t) == 6:
-        return dt.datetime(int(t[0]), int(t[1]), int(t[2]), int(t[3]), int(t[4]), int(t[5]))    
-    if len(t) == 7:
-        return dt.datetime(int(t[0]), int(t[1]), int(t[2]), int(t[3]), int(t[4]), int(t[5]), int(t[6]))    
+    else:
+        return dt.datetime(*t)
 
 
 def prompt(question, default=''):
