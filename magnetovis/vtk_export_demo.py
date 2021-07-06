@@ -1,7 +1,7 @@
 import os
 import tempfile
 import numpy as np
-from vtk_export import vtk_export
+from magnetovis.vtk_export import vtk_export
 
 ftype = 'ASCII' # Can be BINARY or ASCII
 
@@ -112,18 +112,18 @@ if True:
     DATASET STRUCTURED_GRID
     DIMENSIONS 2 2 1
     POINTS 4 float
-    0 0 0
-    1 0 0
-    0 1 0
-    1 1 0
+    0.000000000000000000e+00 0.000000000000000000e+00 0.000000000000000000e+00
+    1.000000000000000000e+00 0.000000000000000000e+00 0.000000000000000000e+00
+    0.000000000000000000e+00 1.000000000000000000e+00 0.000000000000000000e+00
+    1.000000000000000000e+00 1.000000000000000000e+00 0.000000000000000000e+00
 
     POINT_DATA 4
-    SCALARS point_scalars int 1
+    SCALARS point_scalars float 1
     LOOKUP_TABLE default
-    0
-    0
-    3
-    3
+    0.000000000000000000e+00
+    0.000000000000000000e+00
+    3.000000000000000000e+00
+    3.000000000000000000e+00
     '''
 
     out_filename = os.path.join(tmpdir,'structured_grid_scalars_demo.vtk')
