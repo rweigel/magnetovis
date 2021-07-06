@@ -274,17 +274,17 @@ if False:
 
 if False:
 
-	from magnetovis import objects2
+	from magnetovis import objects
 
 	figure_path = '/Users/weigel/git/magnetovis/docs/figures/'
 
-	renderView, obj = objects2.cutplane()
+	renderView, obj = mvs.cutplane()
 	# https://kitware.github.io/paraview-docs/latest/python/paraview.simple.html#paraview.simple.SaveScreenshot
 	SaveScreenshot(sys.path.join(figure_path, 'magnetovis_demo2_cutplane.png',
 					renderView1, ImageResolution=[2648, 2354]))
 
 
-	renderView, obj = objects2.axes()
+	renderView, obj = mvs.axes()
 	# https://kitware.github.io/paraview-docs/latest/python/paraview.simple.html#paraview.simple.SaveScreenshot
 	SaveScreenshot(sys.path.join(figure_path, 'magnetovis_demo2_axes.png',
 					renderView1, ImageResolution=[2648, 2354]))
@@ -297,13 +297,13 @@ if False:
 
 	from magnetovis import objects
 
-	objects.earth(time, debug=debug)
+	mvs.earth(time, debug=debug)
 
-	objects.earth(time, show=False, debug=debug)
+	mvs.earth(time, show=False, debug=debug)
 
 	import paraview.simple as pvs
 	renderView = pvs.GetActiveViewOrCreate('RenderView')
-	sphereDisplay, renderView, sphereVTK = objects.earth(time, renderView=renderView, show=False, debug=debug)
+	sphereDisplay, renderView, sphereVTK = mvs.earth(time, renderView=renderView, show=False, debug=debug)
 
 	renderView.CameraViewUp = [0, 1, 0]
 	renderView.CameraFocalPoint = [0, 0, 0]

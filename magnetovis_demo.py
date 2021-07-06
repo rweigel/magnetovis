@@ -3,16 +3,16 @@ import magnetovis as mvs
 
 """
 Usage:
-    magnetovis --script=magnetovis_demo2.py
+    magnetovis --script=magnetovis_demo.py
 """
 
 # these are the times and coordinate system of the demo
 demo_time = [2015, 1, 1, 0, 0]
 demo_coord = 'GSM'
 
-yAxisDis, renderView, yAxisSource = objects.axis(time=demo_time, val='Y', lims=[-15,15],coord_sys=demo_coord)
-yDisTube, renderView, yTubeFilter = objects.tube(yAxisSource, vary_radius='By Scalar', tube_radius=0.05)
-objects.screenshot(obj=yTubeFilter)
+yAxisDis, renderView, yAxisSource = mvs.axis(time=demo_time, val='Y', lims=[-15,15],coord_sys=demo_coord)
+yDisTube, renderView, yTubeFilter = mvs.tube(yAxisSource, vary_radius='By Scalar', tube_radius=0.05)
+mvs.screenshot_object(obj=yTubeFilter)
 
 # stylize background
 renderView = pvs.GetActiveViewOrCreate('RenderView')
@@ -22,56 +22,56 @@ renderView.Background =  [0.087, 0.36, 0.49]
 renderView = pvs.GetActiveViewOrCreate('RenderView')
 renderView.OrientationAxesVisibility = 0
 
-#earthDisp, renderView, earthSource = objects.earth(demo_time, coord_sys=demo_coord)
-#objects.screenshot(obj=earthSource)
+#earthDisp, renderView, earthSource = mvs.earth(demo_time, coord_sys=demo_coord)
+#mvs.screenshot_object(obj=earthSource)
 
-latDis, renderView, latSource = objects.latitude_lines(time=demo_time, coord_sys=demo_coord)
-latDisTube, renderView, latTubeFilter = objects.tube(latSource,tube_radius=0.02)
-objects.screenshot(obj=latTubeFilter)
-lonDis, renderView, lonSource = objects.longitude_lines(time=demo_time, coord_sys=demo_coord)
-lonDisTue, renderView, lonTubeFilter = objects.tube(lonSource, tube_radius=0.02)
-objects.screenshot(obj=lonTubeFilter)
+latDis, renderView, latSource = mvs.latitude_lines(time=demo_time, coord_sys=demo_coord)
+latDisTube, renderView, latTubeFilter = mvs.tube(latSource,tube_radius=0.02)
+mvs.screenshot_object(obj=latTubeFilter)
+lonDis, renderView, lonSource = mvs.longitude_lines(time=demo_time, coord_sys=demo_coord)
+lonDisTue, renderView, lonTubeFilter = mvs.tube(lonSource, tube_radius=0.02)
+mvs.screenshot_object(obj=lonTubeFilter)
 
 
-yAxisDis, renderView, yAxisSource = objects.axis(time=demo_time, val='Y', lims=[-15,15],coord_sys=demo_coord)
-yDisTube, renderView, yTubeFilter = objects.tube(yAxisSource, vary_radius='By Scalar', tube_radius=0.05)
-objects.screenshot(obj=yTubeFilter)
-xAxisDis, renderView, xAxisSource = objects.axis(time=demo_time, val='X', lims=[-15,15], coord_sys=demo_coord)
-xDisTube, renderView, xTubeFilter = objects.tube(xAxisSource, vary_radius='By Scalar', tube_radius=0.05)
-objects.screenshot(obj=xTubeFilter)
-zAxisDis, renderView, zAxisSource = objects.axis(time=demo_time, val='Z', lims=[-15,15], coord_sys=demo_coord)
-zDisTube, renderView, zTubeFilter = objects.tube(zAxisSource, vary_radius='By Scalar', tube_radius=0.05)
-objects.screenshot(obj=zTubeFilter)
+yAxisDis, renderView, yAxisSource = mvs.axis(time=demo_time, val='Y', lims=[-15,15],coord_sys=demo_coord)
+yDisTube, renderView, yTubeFilter = mvs.tube(yAxisSource, vary_radius='By Scalar', tube_radius=0.05)
+mvs.screenshot_object(obj=yTubeFilter)
+xAxisDis, renderView, xAxisSource = mvs.axis(time=demo_time, val='X', lims=[-15,15], coord_sys=demo_coord)
+xDisTube, renderView, xTubeFilter = mvs.tube(xAxisSource, vary_radius='By Scalar', tube_radius=0.05)
+mvs.screenshot_object(obj=xTubeFilter)
+zAxisDis, renderView, zAxisSource = mvs.axis(time=demo_time, val='Z', lims=[-15,15], coord_sys=demo_coord)
+zDisTube, renderView, zTubeFilter = mvs.tube(zAxisSource, vary_radius='By Scalar', tube_radius=0.05)
+mvs.screenshot_object(obj=zTubeFilter)
 
-# objects.screenshot(fileName='axes')
+# mvs.screenshot_object(fileName='axes')
 ## have the demo show regular small ticks and then the x,y ticks longer to create a grid, z-axis ticks still small
 # try to get the ticks to be a different thickness then the axis 
 
 
 
-#objects.trajectory() # Plot a particle trajectory from Blake's code (not urgent)
+#mvs.trajectory() # Plot a particle trajectory from Blake's code (not urgent)
 
-neutDisplay, renderView, neutSource = objects.neutralsheet(time = demo_time, coord_sys=demo_coord)
-objects.screenshot(obj=neutSource)
+neutDisplay, renderView, neutSource = mvs.neutralsheet(time = demo_time, coord_sys=demo_coord)
+mvs.screenshot_object(obj=neutSource)
 
 # Plasmapause does not have a time parameter. 
 # TODO: Raise warning that time not being used unless changing coord systems
-ppauseDisp, renderView, ppauseSource = objects.plasmapause(N=25,
+ppauseDisp, renderView, ppauseSource = mvs.plasmapause(N=25,
                                                             time=[1984,1,1,0,0],
                                                             coord_sys=demo_coord)
-conDis, renderView, contourFilter = objects.contour(ppauseSource, isosurface=[1.5])
-objects.screenshot(obj=contourFilter)
+conDis, renderView, contourFilter = mvs.contour(ppauseSource, isosurface=[1.5])
+mvs.screenshot_object(obj=contourFilter)
 
-plasShDisp, renderView, plasShSource = objects.plasmasheet(time = demo_time, coord_sys=demo_coord,)
-objects.screenshot(obj=plasShSource)
+plasShDisp, renderView, plasShSource = mvs.plasmasheet(time = demo_time, coord_sys=demo_coord,)
+mvs.screenshot_object(obj=plasShSource)
 
-mpauseDisplay, renderView, mpauseSource =objects.magnetopause(time=demo_time, coord_sys=demo_coord)
-objects.screenshot(obj=mpauseSource)
+mpauseDisplay, renderView, mpauseSource =mvs.magnetopause(time=demo_time, coord_sys=demo_coord)
+mvs.screenshot_object(obj=mpauseSource)
 
-bowDisp, renderView, bowSource = objects.bowshock(time=demo_time, coord_sys=demo_coord)
-objects.screenshot(obj=bowSource)
+bowDisp, renderView, bowSource = mvs.bowshock(time=demo_time, coord_sys=demo_coord)
+mvs.screenshot_object(obj=bowSource)
 
-satDisp, renderView, satSource = objects.satellite(time_o = '2005-01-01T00:00:00.000Z', 
+satDisp, renderView, satSource = mvs.satellite(time_o = '2005-01-01T00:00:00.000Z', 
                   time_f = '2005-01-06T00:15:00.000Z', 
                   satellite_id = 'geotail', coord_sys=demo_coord,
                   color=None, tube_radius=None,
@@ -89,9 +89,9 @@ satDisp, renderView, satSource = objects.satellite(time_o = '2005-01-01T00:00:00
                       'Intpl_Med' : (255./255, 255./255, 255./255, 0.7)  # white
                       }
                   )
-tubeDis, renderView, tubeFilter = objects.tube(satSource)
-objects.screenshot(obj=tubeFilter)
-satDisp, renderView, satSource = objects.satellite(time_o = '1984-01-01T00:00:00.000Z', 
+tubeDis, renderView, tubeFilter = mvs.tube(satSource)
+mvs.screenshot_object(obj=tubeFilter)
+satDisp, renderView, satSource = mvs.satellite(time_o = '1984-01-01T00:00:00.000Z', 
                   time_f = '1984-01-01T04:00:00.000Z', 
                   satellite_id = 'de1', coord_sys=demo_coord,
                   color=None, tube_radius=None,
@@ -110,13 +110,13 @@ satDisp, renderView, satSource = objects.satellite(time_o = '1984-01-01T00:00:00
                       }
                   )
 
-tubeDis, renderView, tubeFilter = objects.tube(satSource)
-objects.screenshot(obj=tubeFilter)
+tubeDis, renderView, tubeFilter = mvs.tube(satSource)
+mvs.screenshot_object(obj=tubeFilter)
 
 
-# objects.plane(time=demo_time, val='XY', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)
-# objects.plane(time=demo_time, val='XZ', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)
-# objects.plane(time=demo_time, val='YZ', extend=[[-55,55],[-55,55]], coord_sys=demo_coord)
+# mvs.plane(time=demo_time, val='XY', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)
+# mvs.plane(time=demo_time, val='XZ', extend=[[-55,25],[-55,55]], coord_sys=demo_coord)
+# mvs.plane(time=demo_time, val='YZ', extend=[[-55,55],[-55,55]], coord_sys=demo_coord)
 
 
 
@@ -137,7 +137,7 @@ if False:
       
   renderView.Update()
 
-# objects.cutplane()
+# mvs.cutplane()
 
 screenshot=False
 if screenshot:

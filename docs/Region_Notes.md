@@ -262,12 +262,12 @@ change in the "Position" window.
 copy the code below into a python file and save it. 
 ```python 
 import objects 
-objects.magnetopause(time=None, Bz=None, Psw=2.04, 
+mvs.magnetopause(time=None, Bz=None, Psw=2.04, 
                           model='Roelof_Lopez_Sibeck91', coord_sys='GSE', 
                           color=[0.1,0.8,0.3,0.5], choice='Psw',
                           representation='Surface')
     
-objects.satellite(time_o = '2002-01-01T19:50:00.000Z', 
+mvs.satellite(time_o = '2002-01-01T19:50:00.000Z', 
                   time_f = '2002-01-01T20:00:00.000Z', 
                   satellite_id = 'cluster1', coord_sys='GSE',
                   representation='Point Gaussian',
@@ -288,13 +288,13 @@ objects.satellite(time_o = '2002-01-01T19:50:00.000Z',
                       },
                   )
 
-objects.bowshock(time=None, Bz=None, Psw=2.04, 
+mvs.bowshock(time=None, Bz=None, Psw=2.04, 
                  model='Fairfield71', coord_sys='GSE', 
                  mpause_model='Roelof_Lopez_Sibeck91',
                  color=[0.1,0.8,0.3,0.7], choice='Psw',
                  representation='Surface')
     
-objects.satellite(time_o = '2002-01-02T11:05:00.000Z', 
+mvs.satellite(time_o = '2002-01-02T11:05:00.000Z', 
                   time_f = '2002-01-02T11:15:00.000Z', 
                   satellite_id = 'cluster1', coord_sys='GSE',
                   representation='Point Gaussian',
