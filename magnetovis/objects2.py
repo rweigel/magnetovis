@@ -102,9 +102,8 @@ def earth(time,
 
         import numpy as np
 
-        #import cxtransform as cx
         from hxform import hxform as hx
-        from vtk_export import vtk_export
+        from magnetovis.vtk_export import vtk_export
 
 
         fnameVTK = os.path.join(out_dir, 'earth-' + util.tstr(time, length=5) +'.vtk')
@@ -132,15 +131,14 @@ def earth(time,
         z = R*np.cos(B2)
         XYZr = np.column_stack((x, y, z))
 
-        if coord_sys != 'GSM':
+        if coord_sys != 'GEO':
             XYZr = hx.transform(XYZr, time, 'GEO', coord_sys)
 
+        {"name":'Angular_Coords_for_PNG', "array":UV, "texture":'TEXTURE_COORDINATES'}
         vtk_export(fnameVTK, XYZr,
                     dataset = 'STRUCTURED_GRID',
-                    connectivity = (Nt, Np, 1),
-                    point_data = UV,
-                    texture = 'TEXTURE_COORDINATES',
-                    point_data_name = 'TextureCoordinates',
+                    connectivity = {'DIMENSIONS':(Nt, Np, 1)},
+                    point_data = {"name":'Angular_Coords_for_PNG', "array":UV, "texture":'TEXTURE_COORDINATES'},
                     title='Earth',
                     ftype=ftype,
                     debug=debug)
@@ -148,13 +146,12 @@ def earth(time,
         return fnameVTK
     
     urlPNG = topo_url.format(time[1])
-
     filePNG = os.path.join(out_dir, os.path.split(topo_url)[1].format(time[1]))
-
-    from hapiclient.util import urlretrieve
 
     # Download topographic overlay file if not found.
     if not os.path.exists(filePNG):
+        raise RuntimeError (f'png {filePNG} doesnt exist, and havent implemented downloading from {urlPNG}')
+        from hapiclient.util import urlretrieve
         if debug:
             print("Downloading " + urlPNG)
         urlretrieve(urlPNG, filePNG)
