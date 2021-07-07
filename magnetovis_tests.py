@@ -10,20 +10,20 @@ Created on Fri Oct  9 12:06:23 2020
 
 from magnetovis import objects
 
-# objects.earth([2000, 1, 1, 0, 0, 0], debug=True)
+# mvs.earth([2000, 1, 1, 0, 0, 0], debug=True)
 
-# objects.latitude_lines([2000, 1, 1, 0, 0, 0], debug=True)
+# mvs.latitude_lines([2000, 1, 1, 0, 0, 0], debug=True)
 
-# objects.longitude_lines([2000, 1, 1, 0, 0, 0], debug=True)
+# mvs.longitude_lines([2000, 1, 1, 0, 0, 0], debug=True)
 
-# objects.magnetic_dipole([2000, 1, 1, 0, 0, 0])
+# mvs.magnetic_dipole([2000, 1, 1, 0, 0, 0])
 
-# objects.axis(None, 'x', length_positive=15., length_negative=15.)
+# mvs.axis(None, 'x', length_positive=15., length_negative=15.)
 
-# objects.axes(None)
+# mvs.axes(None)
 
 
-# objects.neutralsheet([2017, 11, 15, 3, 0, 0], coord_sys='GSM',
+# mvs.neutralsheet([2017, 11, 15, 3, 0, 0], coord_sys='GSM',
 #                       color=[1,0,0,0.5], representation='Wireframe')
 
 mpause_test = False
@@ -36,19 +36,19 @@ demo = True
 
 if demo:
     
-    objects.magnetopause(time=None, Bz=False, Psw=2.04, 
+    mvs.magnetopause(time=None, Bz=False, Psw=2.04, 
                           model='Sibeck_Lopez_Roelof91', coord_sys='GSE', 
                           color=[0.1,0.8,0.3,0.5],
                           representation='Surface')
     
-    objects.bowshock(time=None,Bz=False, Psw=2.04, 
+    mvs.bowshock(time=None,Bz=False, Psw=2.04, 
                       model='Fairfield71',
                       mpause_model='Sibeck_Lopez_Roelof91', coord_sys='GSE', 
                       color=[1,1,0,.5])
-    objects.plasmasheet([2002, 1, 1, 8, 18, 0], coord_sys='GSM',
+    mvs.plasmasheet([2002, 1, 1, 8, 18, 0], coord_sys='GSM',
                           color=[.6,.1,.07,0.5], representation='Surface')
     
-    objects.satellite(time_o = '2000-01-01T10:50:00.000Z', 
+    mvs.satellite(time_o = '2000-01-01T10:50:00.000Z', 
                       time_f = '2000-01-06T00:15:00.000Z', 
                       satellite_id = 'geotail', coord_sys='GSE',
                       representation='Point Gaussian',
@@ -69,14 +69,14 @@ if demo:
                           },
                       )
     
-    objects.plane([2000,1,1,0,0,0],'XY', [[-30,30],[-30,30]])
-    objects.plane([2000,1,1,0,0,0],'XZ', [[-30,30],[-30,30]])
-    objects.plane([2000,1,1,0,0,0],'YZ', [[-30,30],[-30,30]])
-    # objects.axis(None, 'x', length_positive=15., length_negative=15.)
-    objects.earth([2000, 1, 1, 0, 0, 0], debug=True)
+    mvs.plane([2000,1,1,0,0,0],'XY', [[-30,30],[-30,30]])
+    mvs.plane([2000,1,1,0,0,0],'XZ', [[-30,30],[-30,30]])
+    mvs.plane([2000,1,1,0,0,0],'YZ', [[-30,30],[-30,30]])
+    # mvs.axis(None, 'x', length_positive=15., length_negative=15.)
+    mvs.earth([2000, 1, 1, 0, 0, 0], debug=True)
 
 if satellites:
-    objects.satellite(time_o = '2000-01-01T10:50:00.000Z', 
+    mvs.satellite(time_o = '2000-01-01T10:50:00.000Z', 
                       time_f = '2000-01-06T00:15:00.000Z', 
                       satellite_id = 'geotail', coord_sys='GSE',
                       representation='Point Gaussian',
@@ -102,37 +102,37 @@ if satellites:
 if mpause_test:
     
     # checking Sibeck 91 combos - all passed 
-    objects.magnetopause(time=None, Bz=False, Psw=2.04, 
+    mvs.magnetopause(time=None, Bz=False, Psw=2.04, 
                           model='Sibeck_Lopez_Roelof91', coord_sys='GSE', 
                           color=[0.1,0.8,0.3,0.5],
                           representation='Surface')
-    # objects.magnetopause(time=None, Bz=2, Psw=False, 
+    # mvs.magnetopause(time=None, Bz=2, Psw=False, 
     #                       model='Sibeck_Lopez_Roelof91', coord_sys='GSE', 
     #                       color=[0.1,0.8,0.3,0.5],
     #                       representation='Surface')
-    # objects.magnetopause(time=[2002,1,1,20,2,0], Bz=False, Psw=None, 
+    # mvs.magnetopause(time=[2002,1,1,20,2,0], Bz=False, Psw=None, 
     #                       model='Sibeck_Lopez_Roelof91', coord_sys='GSE', 
     #                       color=[0.1,0.8,0.3,0.5], 
     #                       representation='Surface')
-    # objects.magnetopause(time=[2002,1,1,20,2,0], Bz=None, Psw=False, 
+    # mvs.magnetopause(time=[2002,1,1,20,2,0], Bz=None, Psw=False, 
     #                       model='Sibeck_Lopez_Roelof91', coord_sys='GSE', 
     #                       color=[0.1,0.8,0.3,0.5], 
     #                       representation='Surface')
     
     # # checking non-sibeck 91 work - all passed 
-    # objects.magnetopause(time=None, Bz=3, Psw=2.04, 
+    # mvs.magnetopause(time=None, Bz=3, Psw=2.04, 
     #                       model='Roelof_Sibeck93', coord_sys='GSE', 
     #                       color=[0.1,0.8,0.3,0.5],
     #                       representation='Surface')
-    # objects.magnetopause(time=[2002,1,1,20,2,0], Bz=2, Psw=None, 
+    # mvs.magnetopause(time=[2002,1,1,20,2,0], Bz=2, Psw=None, 
     #                       model='Roelof_Sibeck93', coord_sys='GSE', 
     #                       color=[0.1,0.8,0.3,0.5], 
     #                       representation='Surface')
-    # objects.magnetopause(time=[2002,1,1,20,2,0], Bz=None, Psw=5, 
+    # mvs.magnetopause(time=[2002,1,1,20,2,0], Bz=None, Psw=5, 
     #                       model='Roelof_Sibeck93', coord_sys='GSE', 
     #                       color=[0.1,0.8,0.3,0.5], 
     #                       representation='Surface')
-    # objects.magnetopause(time=[2002,1,1,20,2,0], Bz=None, Psw=None, 
+    # mvs.magnetopause(time=[2002,1,1,20,2,0], Bz=None, Psw=None, 
     #                       model='Roelof_Sibeck93', coord_sys='GSE', 
     #                       color=[0.1,0.8,0.3,0.5], 
     #                       representation='Surface')
@@ -140,8 +140,8 @@ if mpause_test:
 
 
 if plane:
-    # objects.plane([2000,1,1,0,0,0],'XZ', extend=[[10,15],[4,15]])
-    objects.plane([2000,1,1,0,0,0],'XZ')
+    # mvs.plane([2000,1,1,0,0,0],'XZ', extend=[[10,15],[4,15]])
+    mvs.plane([2000,1,1,0,0,0],'XZ')
 
 
 
@@ -185,13 +185,13 @@ if bowshock_tipsod_test:
     '''
     # 2000 Psw Bz = None
     
-    objects.bowshock(time=None, Bz=False, Psw=2.04, 
+    mvs.bowshock(time=None, Bz=False, Psw=2.04, 
                      model='Fairfield71', coord_sys='GSE', 
                      mpause_model='Sibeck_Lopez_Roelof91',
                      color=[0.1,0.8,0.3,0.7], 
                      representation='Surface')
     
-    objects.satellite(time_o = '2002-01-02T10:50:00.000Z', 
+    mvs.satellite(time_o = '2002-01-02T10:50:00.000Z', 
                       time_f = '2002-01-02T11:15:00.000Z', 
                       satellite_id = 'cluster1', coord_sys='GSE',
                       representation='Point Gaussian',
@@ -221,22 +221,22 @@ if bowshock_test:
     # check to make sure Bz is a boolean. Zero creates problem - interpreted as boolean
     
     # checking all bowshock combos - passed
-    objects.bowshock(time=None,Bz=False, Psw=2.04, 
+    mvs.bowshock(time=None,Bz=False, Psw=2.04, 
                       model='Fairfield71',
                       mpause_model='Sibeck_Lopez_Roelof91', coord_sys='GSE', 
                       color=[1,1,0,.5])
     
-    # objects.bowshock(time=None,Bz=-2, Psw=False, 
+    # mvs.bowshock(time=None,Bz=-2, Psw=False, 
     #                   model='Fairfield71',
     #                   mpause_model='Sibeck_Lopez_Roelof91', coord_sys='GSE', 
     #                   color=[1,1,0,1])    
     
-    # objects.bowshock(time=[2002,1,1,20,2,0],Bz=0, Psw=False, 
+    # mvs.bowshock(time=[2002,1,1,20,2,0],Bz=0, Psw=False, 
     #                   model='Fairfield71', 
     #                   mpause_model='Sibeck_Lopez_Roelof91', coord_sys='GSE', 
     #                   color=[1,1,0,1])
     
-    # objects.bowshock(time=[2002,1,1,20,2,0],Bz=False, Psw=None, 
+    # mvs.bowshock(time=[2002,1,1,20,2,0],Bz=False, Psw=None, 
     #                   model='Fairfield71',
     #                   mpause_model='Sibeck_Lopez_Roelof91', coord_sys='GSE', 
     #                   color=[1,1,0,1])
@@ -245,10 +245,10 @@ if bowshock_test:
 
 
 if plasma_sh:
-    objects.plasmasheet([2002, 1, 1, 8, 18, 0], coord_sys='GSM',
+    mvs.plasmasheet([2002, 1, 1, 8, 18, 0], coord_sys='GSM',
                           color=[1,0,0,0.5], representation='Wireframe')
 
-    objects.satellite(time_o = '2002-01-01T06:47:00.000Z', 
+    mvs.satellite(time_o = '2002-01-01T06:47:00.000Z', 
                       time_f = '2002-01-01T08:16:00.000Z', 
                       satellite_id = 'cluster1', coord_sys='GSM',
                       representation='Point Gaussian',
@@ -269,7 +269,7 @@ if plasma_sh:
                           },
                       )
     
-    objects.satellite(time_o = '2017-01-01T01:22:00.000Z', 
+    mvs.satellite(time_o = '2017-01-01T01:22:00.000Z', 
                       time_f = '2017-01-01T01:37:00.000Z', 
                       satellite_id = 'aerocube6a', coord_sys='GSM',
                       representation='Point Gaussian',
@@ -290,7 +290,7 @@ if plasma_sh:
                           },
                       )
     
-    objects.satellite(time_o = '2008-01-01T00:39:00.000Z', 
+    mvs.satellite(time_o = '2008-01-01T00:39:00.000Z', 
                       time_f = '2008-01-01T00:58:00.000Z', 
                       satellite_id = 'aim', coord_sys='GSM',
                       representation='Point Gaussian',
@@ -311,7 +311,7 @@ if plasma_sh:
                           },
                       )
     
-    objects.satellite(time_o = '2017-01-01T20:08:00.000Z', 
+    mvs.satellite(time_o = '2017-01-01T20:08:00.000Z', 
                       time_f = '2017-01-01T20:59:00.000Z', 
                       satellite_id = 'themisa', coord_sys='GSM',
                       representation='Point Gaussian',
@@ -332,7 +332,7 @@ if plasma_sh:
                           },
                       )
     
-    objects.satellite(time_o = '2017-01-23T08:00:00.000Z', 
+    mvs.satellite(time_o = '2017-01-23T08:00:00.000Z', 
                       time_f = '2017-01-23T09:12:00.000Z', 
                       satellite_id = 'geotail', coord_sys='GSM',
                       representation='Point Gaussian',

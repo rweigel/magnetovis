@@ -2,7 +2,7 @@ import sys
 import os
 #sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 sys.path.append(os.path.join(os.path.dirname('__file__'), '..'))
-from magnetovis import objects2
+from magnetovis import objects
 import paraview.simple as pvs
 
 """
