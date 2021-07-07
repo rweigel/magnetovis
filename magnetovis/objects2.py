@@ -84,7 +84,8 @@ def trajectory():
     # read http://mag.gmu.edu/git-data/magnetovis/trajectory/demo.vtk and plot it
     pass
 
-
+#$ cd ~/.local/progs/ParaView-5.9.1-MPI-Linux-Python3.8-64bit/lib/python3.8/
+#$ ln -s ./__pycache__/_sysconfigdata__linux_x86_64-linux-gnu.cpython-38.pyc _sysconfigdata__linux_x86_64-linux-gnu.pyc
 def earth(time,
             coord_sys='GSM',
             renderView=None,
@@ -104,7 +105,6 @@ def earth(time,
 
         from hxform import hxform as hx
         from magnetovis.vtk_export import vtk_export
-
 
         fnameVTK = os.path.join(out_dir, 'earth-' + util.tstr(time, length=5) +'.vtk')
         if os.path.exists(fnameVTK):
@@ -149,9 +149,8 @@ def earth(time,
     filePNG = os.path.join(out_dir, os.path.split(topo_url)[1].format(time[1]))
 
     # Download topographic overlay file if not found.
+    from hapiclient.util import urlretrieve
     if not os.path.exists(filePNG):
-        raise RuntimeError (f'png {filePNG} doesnt exist, and havent implemented downloading from {urlPNG}')
-        from hapiclient.util import urlretrieve
         if debug:
             print("Downloading " + urlPNG)
         urlretrieve(urlPNG, filePNG)
