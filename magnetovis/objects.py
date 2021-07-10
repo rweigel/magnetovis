@@ -1298,7 +1298,7 @@ def objs_wrapper(**kwargs):
         programmableSourceDisplay.OpacityArray = ['POINTS', scalar_data]
         programmableSourceDisplay.ColorArrayName = ['POINTS', scalar_data]
         # won't need once I am able to put text notations on the axis
-        # programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
+        programmableSourceDisplay.SetScalarBarVisibility(renderView, False)
 
         if not kwargs['show']:
             pvs.Hide(programmableSource, renderView)
@@ -1552,7 +1552,7 @@ def objs_wrapper(**kwargs):
 
     return programmableSourceDisplay, renderView, programmableSource
 
-def contour(obj, isosurface, display=None, color_by=None):
+def contour(obj, isosurface, display=None, color_by=None, show_legend=True):
     import paraview.simple as pvs
 
     for key, value in pvs.GetSources().items():
@@ -1566,12 +1566,13 @@ def contour(obj, isosurface, display=None, color_by=None):
     renderView = pvs.GetActiveViewOrCreate("RenderView")
     pvs.Hide(obj, renderView)
     conDis = pvs.Show(contourFilter)
-    conDis.SetScalarBarVisibility(renderView, True)
+    conDis.SetScalarBarVisibility(renderView, show_legend)
 
 
     return conDis, renderView, contourFilter
 
-def tube(obj, tube_radius=.1, vary_radius='Off', radius_factor=4.0, renderView=None):
+def tube(obj, tube_radius=.1, vary_radius='Off', radius_factor=4.0,
+         show_legend=False, renderView=None):
     import paraview.simple as pvs
 
     for key, value in pvs.GetSources().items():
@@ -1588,7 +1589,7 @@ def tube(obj, tube_radius=.1, vary_radius='Off', radius_factor=4.0, renderView=N
 
     pvs.Hide(obj, renderView)
     tubeDis = pvs.Show(tubeFilter)
-    tubeDis.SetScalarBarVisibility(renderView, True)
+    tubeDis.SetScalarBarVisibility(renderView, show_legend)
 
     return tubeDis, renderView, tubeFilter
 
