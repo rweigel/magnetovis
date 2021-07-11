@@ -652,7 +652,7 @@ def longitude_lines(time, coord_sys='GEO', increment=15, color=[0,.5,1],
 
 
 def plane(time, val, extend=[[-40,40],[-40,40]], coord_sys='GSM', labels=True,
-          renderView=None, render=True, show=True,):
+          opacity=.25,renderView=None, render=True, show=True,):
 
     # val='XY', 'XZ', 'YZ'
 
@@ -662,7 +662,6 @@ def plane(time, val, extend=[[-40,40],[-40,40]], coord_sys='GSM', labels=True,
 
     from magnetovis.util import tstr
     from hxform import hxform as hx
-    #from cxtransform import transform
 
     assert isinstance(extend, list or tuple or np.ndarray), \
         'extend has to be either an list, tuple, or numpy.ndarray'
@@ -710,7 +709,7 @@ def plane(time, val, extend=[[-40,40],[-40,40]], coord_sys='GSM', labels=True,
 
     planeDisplay = pvs.Show(plane, renderView)
     planeDisplay.Representation = 'Surface'
-    planeDisplay.Opacity = 0.25
+    planeDisplay.Opacity = opacity
 
     scalar_data = '{} axes'.format(val)
 
