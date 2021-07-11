@@ -1271,10 +1271,6 @@ def objs_wrapper(**kwargs):
 
     mag_surfaces = ['Magnetopause','Bowshock','Neutralsheet', 'Plasmasheet']
 
-    if 'png_fn' in kwargs.keys():
-        if kwargs['png_fn']:
-            png_fn_fp = os.path.join(kwargs['out_dir'],kwargs['png_fn'])
-
     if kwargs['obj'] == 'axis':
 
         scalar_data = '{} axes'.format(kwargs['coord_sys'])
@@ -1313,6 +1309,20 @@ def objs_wrapper(**kwargs):
         renderView = pvs.GetActiveViewOrCreate('RenderView')
         programmableSourceDisplay = pvs.Show(programmableSource, renderView)
         programmableSourceDisplay.Representation = kwargs['representation']
+
+        # creating the in-graph text here
+        text = "{} [R_e] | {}".format(kwargs["val"],kwargs["coord_sys"])
+        text_obj = pvs.Text(registrationName="-- {}".format(text))
+        text_obj.Text = text
+        textDisplay = pvs.Show(text_obj, renderView, 'TextSourceRepresentation')
+        textDisplay.TextPropMode = 'Billboard 3D Text'
+        textDisplay.FontSize = 12
+        if kwargs['val'] == 'X':
+            textDisplay.BillboardPosition = [kwargs['lims'][1],0,0]
+        elif kwargs['val'] == 'Y':
+            textDisplay.BillboardPosition = [0,kwargs['lims'][1],0]
+        else:
+            textDisplay.BillboardPosition = [0,0,kwargs['lims'][1]]
 
 
 
