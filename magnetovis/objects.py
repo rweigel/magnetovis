@@ -23,9 +23,10 @@ def rotation_matrix(axis, theta):
     the given axis by theta radians.
     """
     axis = np.asarray(axis)
-    axis = axis / math.sqrt(np.dot(axis, axis))
-    a = math.cos(theta / 2.0)
-    b, c, d = -axis * math.sin(theta / 2.0)
+    axis = axis / np.sqrt(np.dot(axis, axis))
+    theta = np.deg2rad(theta)
+    a = np.cos(theta / 2.0)
+    b, c, d = -axis * np.sin(theta / 2.0)
     aa, bb, cc, dd = a * a, b * b, c * c, d * d
     bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
     return np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
@@ -1303,13 +1304,20 @@ def objs_wrapper(**kwargs):
         textDisplay = pvs.Show(text_obj, renderView, 'TextSourceRepresentation')
         textDisplay.TextPropMode = 'Billboard 3D Text'
         textDisplay.FontSize = 12
-        if kwargs['val'] == 'X':
-            textDisplay.BillboardPosition = [kwargs['lims'][1],0,0]
-        elif kwargs['val'] == 'Y':
-            textDisplay.BillboardPosition = [0,kwargs['lims'][1],0]
-        else:
-            textDisplay.BillboardPosition = [0,0,kwargs['lims'][1]]
 
+        txt_location = np.array([kwargs['lims'][1],0,0])
+        translate = np.array([0,0,2])
+        if kwargs['val'] != "X":
+            if kwargs['val'] == "Y":
+                rot_axis = (0,0,1)
+            else:
+                rot_axis = (0,-1,0) # rotation right hand rule on rotation axis
+            txt_location = np.dot(rotation_matrix(rot_axis,90), txt_location)
+        if kwargs['coord_sys'] != 'GSM':
+            txt_location = hx.transform(txt_location, kwargs['time'], 'GSM', kwargs['coord_sys'], 'car', 'car')[0]
+            translate = hx.transform(translate, kwargs['time'], 'GSM', kwargs['coord_sys'], 'car', 'car')[0]
+
+        textDisplay.BillboardPosition = txt_location + translate
 
 
     if kwargs['obj'] in mag_surfaces:
@@ -2411,9 +2419,9 @@ def _axis(self, time, val, coord_sys, lims,
         """
         theta = np.deg2rad(theta)
         axis = np.asarray(axis)
-        axis = axis / math.sqrt(np.dot(axis, axis))
-        a = math.cos(theta / 2.0)
-        b, c, d = -axis * math.sin(theta / 2.0)
+        axis = axis / np.sqrt(np.dot(axis, axis))
+        a = np.cos(theta / 2.0)
+        b, c, d = -axis * np.sin(theta / 2.0)
         aa, bb, cc, dd = a * a, b * b, c * c, d * d
         bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
         return np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
@@ -2442,7 +2450,7 @@ def _axis(self, time, val, coord_sys, lims,
         if val == "Y":
             rot_axis = (0,0,1)
         else:
-            rot_axis = (0,1,0)
+            rot_axis = (0,-1,0) # rotation right hand rule on rotation axis
         rot_mat = rotation_matrix(rot_axis, 90)
         points = np.dot(rot_mat, points.T).T
         ends = np.dot(ends, rot_mat)
