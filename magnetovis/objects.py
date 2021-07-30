@@ -16,35 +16,21 @@ from magnetovis import util
     # dt = time step in seconds
 
 
-def rot_mat(points, angle=-4, h=0, k=0, translate=True, axis='Z'):
-    deg = np.deg2rad(angle)
-
-    if translate:
-        points = np.pad(points, ((0,0),(0,1)), 'constant', constant_values=1)
-
-
-        rot_trans_mat = np.array(
-                    [[np.cos(deg), -np.sin(deg), 0, h],
-                     [np.sin(deg),  np.cos(deg), 0, k],
-                     [0          ,  0          , 1, 0],
-                     [0          ,  0          , 0, 0]]
-                    )
-
-        points = np.matmul(rot_trans_mat, points.transpose()).transpose()
-        points = np.delete(points, 3, 1)
-    else:
-        if axis == 'Z':
-            rot_mat = np.array(
-                [[np.cos(deg), -np.sin(deg), 0],
-                 [np.sin(deg),  np.cos(deg), 0],
-                 [0           , 0          , 1]])
-        if axis == 'Y':
-            rot_mat = np.array(
-                [[np.cos(deg), 0, -np.sin(deg)],
-                 [0          , 1,  0          ],
-                 [np.sin(deg), 0,  np.cos(deg)]])
-        points = np.matmul(rot_mat, points.transpose()).transpose()
-    return points
+# from: https://stackoverflow.com/questions/6802577/rotation-of-3d-vector/6802723#6802723
+def rotation_matrix(axis, theta):
+    """
+    Return the rotation matrix associated with counterclockwise rotation about
+    the given axis by theta radians.
+    """
+    axis = np.asarray(axis)
+    axis = axis / math.sqrt(np.dot(axis, axis))
+    a = math.cos(theta / 2.0)
+    b, c, d = -axis * math.sin(theta / 2.0)
+    aa, bb, cc, dd = a * a, b * b, c * c, d * d
+    bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
+    return np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
+                     [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
+                     [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
 
 
 def cutplane(run='DIPTSUR2', time=(2019,9,2,4,10,0,0), plane='xz', var='p',
@@ -1649,7 +1635,6 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
     import pytz
     from magnetovis.util import tstr, time2datetime
     from hxform import hxform as hx
-    from magnetovis.objects import rot_mat
     import paraview.simple as pvs
 
     def mpause_Shue97(Bz, Psw, return_x_max = False):
@@ -2065,7 +2050,10 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
         points = hx.transform(points, time, 'GSE', coord_sys, 'car', 'car')
         Bz = hx.transform([0,0,Bz], time, 'GSE', coord_sys, 'car', 'car')[0]
 
-    points = np.array(rot_mat(points))
+    # todo make sure that this rotation for all of them or just one. 
+    # according to sscweb magnetopause fortran code there is a 4 degree abberation for 
+    points = np.dot(rotation_matrix((0,0,1), -4 ), points.T ).T
+
     ############################################################
     ####### start of the code to use programmable source #######
     ############################################################
@@ -2286,23 +2274,19 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model,
     if return_title:
         return (time_str, Bz_str, Psw_str)
 
-    if model == 'Fairfield71':
-        points = bowshock_Fairfield71(Bz, Psw, mpause_model=mpause_model)
-
-
-
-
-    # Although Fairfield 1971 state that the abberation
-    # is 4 degrees later Fairfield revised the number to be 4.82 degrees
+    # Fairfield 1971 stated that the abberation
+    # is 4 degrees. Later Fairfield revised the number to be 4.82 degrees
+    # after the rotation the new axis of symmetry has moved 0.313 from 
+    # the new positive y-axis (post rotation)
     # according to Tipsod Fortran code notes.
     if model == 'Fairfield71':
-        points = rot_mat(points, angle=-4.82)
-        # deg = np.deg2rad(-4.82)
-        # a = 0#0.3131
-        # h, k = 0,0#-a*np.sin(deg), a*np.cos(deg)
+        rot_deg = -4.82
+        translate = np.array([[0, 0.313, 0]])
 
     else:
-        points = rot_mat(points)
+        rot_deg = -4
+        translate = np.array([[0,0,0]])
+    points = np.dot(rotation_matrix((0,0,1), rot_deg,), points.T).T + np.dot(rotation_matrix((0,0,1), rot_deg, translate.T)).T
 
     if coord_sys != 'GSE':
         points = hx.transform(points, time, 'GSE', coord_sys, 'car', 'car')
@@ -2418,8 +2402,23 @@ def _axis(self, time, val, coord_sys, lims,
 
     import numpy as np
     from numpy.matlib import repmat
-    from magnetovis.objects import rot_mat
     from hxform import hxform as hx
+
+    def rotation_matrix(axis, theta):
+        """
+        Return the rotation matrix associated with counterclockwise rotation about
+        the given axis by theta radians.
+        """
+        theta = np.deg2rad(theta)
+        axis = np.asarray(axis)
+        axis = axis / math.sqrt(np.dot(axis, axis))
+        a = math.cos(theta / 2.0)
+        b, c, d = -axis * math.sin(theta / 2.0)
+        aa, bb, cc, dd = a * a, b * b, c * c, d * d
+        bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
+        return np.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
+                         [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
+                         [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
 
     assert lims[0] < lims[1], 'first element of lims have fewer elements than the second'
 
@@ -2439,12 +2438,14 @@ def _axis(self, time, val, coord_sys, lims,
     points[:,0] = tick_array
     points[:,1:3] = tick_ends
 
-    if val == "Y":
-        points = rot_mat(points, angle=90, translate=False, axis='Z')
-        ends = rot_mat(ends, angle=90, translate=False, axis='Z')
-    elif val == "Z":
-        points = rot_mat(points, angle=90, translate=False, axis='Y')
-        ends = rot_mat(ends,angle=90, translate=False, axis='Y')
+    if val != "X":
+        if val == "Y":
+            rot_axis = (0,0,1)
+        else:
+            rot_axis = (0,1,0)
+        rot_mat = rotation_matrix(rot_axis, 90)
+        points = np.dot(rot_mat, points.T).T
+        ends = np.dot(ends, rot_mat)
 
     if coord_sys != 'GSM':
         ends = hx.transform(ends, time, 'GSM', coord_sys, 'car', 'car')
