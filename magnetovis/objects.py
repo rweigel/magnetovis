@@ -93,7 +93,7 @@ def earth(time,
         from hxform import hxform as hx
         from magnetovis.vtk_export import vtk_export
 
-        fnameVTK = os.path.join(out_dir, 'earth-' + util.tstr(time, length=5) +'.vtk')
+        fnameVTK = os.path.join(out_dir, 'earth-' + coord_sys + '-' + util.tstr(time, length=5) +'.vtk')
         if os.path.exists(fnameVTK):
             return fnameVTK
 
