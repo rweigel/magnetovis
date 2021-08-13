@@ -16,12 +16,11 @@ from magnetovis import util
     # dt = time step in seconds
 
 
-# from: https://stackoverflow.com/questions/6802577/rotation-of-3d-vector/6802723#6802723
 def rotation_matrix(axis, theta):
     """
-    Return the rotation matrix associated with counterclockwise rotation about
-    the given axis by theta radians.
+    Rotation matrix for CCW rotation about axis by theta radians.
     """
+    # from: https://stackoverflow.com/questions/6802577/rotation-of-3d-vector/6802723#6802723
     axis = np.asarray(axis)
     axis = axis / np.sqrt(np.dot(axis, axis))
     theta = np.deg2rad(theta)
