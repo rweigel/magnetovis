@@ -43,6 +43,10 @@ if sys.platform == 'darwin':
     if lib_dynload not in my_env["PYTHONPATH"]:
         my_env["PYTHONPATH"] = lib_dynload + ":" + my_env["PYTHONPATH"]
 
+# quick fix
+my_env['PYTHONPATH'] = my_env['PYTHONPATH'] + ":" + '/Users/agutarr2/hxform'
+
+
 # The following prints the equivalent of what is being executed.
 print("Executing PYTHONPATH=" + my_env["PYTHONPATH"] + " " + syscom)
 try:

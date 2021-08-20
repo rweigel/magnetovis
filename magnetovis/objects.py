@@ -83,6 +83,8 @@ def earth(time,
             debug=False):
     """Show Earth sphere in a given coordinate system with a topographic overlay"""
 
+    from hxform import hxform as hx
+
     def writevtk(time, coord_sys=coord_sys,
                     Nt=100, Np=100,
                     out_dir=out_dir, debug=debug, ftype='BINARY'):
@@ -90,7 +92,7 @@ def earth(time,
 
         import numpy as np
 
-        from hxform import hxform as hx
+
         from magnetovis.vtk_export import vtk_export
 
         fnameVTK = os.path.join(out_dir, 'earth-' + util.tstr(time, length=5) +'.vtk')
@@ -118,8 +120,11 @@ def earth(time,
         z = R*np.cos(B2)
         XYZr = np.column_stack((x, y, z))
 
-        if coord_sys != 'GEO':
-            XYZr = hx.transform(XYZr, time, 'GEO', coord_sys)
+        # does not work with textured coordinates
+        # this also does not work https://discourse.paraview.org/t/trouble-transforming-texture-mapped-objects/1038/2
+        # if coord_sys != 'GEO':
+        #     XYZr = hx.transform(XYZr, time, 'GEO', coord_sys
+
 
         {"name":'Angular_Coords_for_PNG', "array":UV, "texture":'TEXTURE_COORDINATES'}
         vtk_export(fnameVTK, XYZr,
@@ -181,6 +186,31 @@ def earth(time,
     textureProxy.UpdateVTKObjects()
     sphereDisplay.Texture = textureProxy
 
+    # z_arr = [0,0,1]
+    # x, y, z = hx.transform(z_arr, time, 'GEO', coord_sys)[0]
+    # r, lat, lon = hx.CtoS(x,y,z)
+    x_arr = [1,0,0]
+    _, _, lon = hx.transform(x_arr,time,'GEO', coord_sys,'car','sph')
+    print(f'this is from one step {lon}')
+
+    z_arr = [0,0,1]
+    _, lat, _ = hx.transform(z_arr,[time[0],time[1],time[2],0,0], 'GEO', coord_sys,'car','sph')
+    lat = 90-lat
+    print(lat)
+    x_rot = lat*np.sin(np.deg2rad(lon))
+    y_rot = lat*np.cos(np.deg2rad(lon))
+    sphereDisplay.Orientation = [x_rot,y_rot,lon]
+    # if coord_sys != 'GEO':
+    #     x_arr = [1,0,0]
+    #     x, y, z = hx.transform(x_arr, time, 'GEO', coord_sys)[0]
+    #     r, lat, lon_f = hx.CtoS(x,y,z)
+    #     z_arr = [0,0,1]
+    #     x,y,z = hx.transform(z_arr, time, 'GEO', coord_sys)[0]
+    #     r, lat_f, lon = hx.CtoS(x,y,z)
+    #     sphereDisplay.Orientation = [lat_f,0,lon_f]
+
+
+    # sphereDisplay.Orientation = [45,25,90]
     if not show:
         pvs.Hide(sphereVTK, renderView)
 
@@ -1313,9 +1343,9 @@ def objs_wrapper(**kwargs):
             else:
                 rot_axis = (0,-1,0) # rotation right hand rule on rotation axis
             txt_location = np.dot(rotation_matrix(rot_axis,90), txt_location)
-        if kwargs['coord_sys'] != 'GSM':
-            txt_location = hx.transform(txt_location, kwargs['time'], 'GSM', kwargs['coord_sys'], 'car', 'car')[0]
-            translate = hx.transform(translate, kwargs['time'], 'GSM', kwargs['coord_sys'], 'car', 'car')[0]
+        if kwargs['coord_sys'] != 'GSE':
+            txt_location = hx.transform(txt_location, kwargs['time'], 'GEO', kwargs['coord_sys'], 'car', 'car')[0]
+            translate = hx.transform(translate, kwargs['time'], 'GEO', kwargs['coord_sys'], 'car', 'car')[0]
 
         textDisplay.BillboardPosition = txt_location + translate
 
@@ -1575,6 +1605,7 @@ def contour(obj, isosurface, display=None, color_by=None, show_legend=True):
     return conDis, renderView, contourFilter
 
 def tube(obj, tube_radius=.1, vary_radius='Off', radius_factor=4.0,
+         opacity = 0.3,
          show_legend=False, renderView=None):
     import paraview.simple as pvs
 
@@ -1593,6 +1624,7 @@ def tube(obj, tube_radius=.1, vary_radius='Off', radius_factor=4.0,
     pvs.Hide(obj, renderView)
     tubeDis = pvs.Show(tubeFilter)
     tubeDis.SetScalarBarVisibility(renderView, show_legend)
+    tubeDis.Opacity = opacity
 
     return tubeDis, renderView, tubeFilter
 
@@ -2058,8 +2090,8 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
         points = hx.transform(points, time, 'GSE', coord_sys, 'car', 'car')
         Bz = hx.transform([0,0,Bz], time, 'GSE', coord_sys, 'car', 'car')[0]
 
-    # todo make sure that this rotation for all of them or just one. 
-    # according to sscweb magnetopause fortran code there is a 4 degree abberation for 
+    # todo make sure that this rotation for all of them or just one.
+    # according to sscweb magnetopause fortran code there is a 4 degree abberation for
     points = np.dot(rotation_matrix((0,0,1), -4 ), points.T ).T
 
     ############################################################
@@ -2284,7 +2316,7 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model,
 
     # Fairfield 1971 stated that the abberation
     # is 4 degrees. Later Fairfield revised the number to be 4.82 degrees
-    # after the rotation the new axis of symmetry has moved 0.313 from 
+    # after the rotation the new axis of symmetry has moved 0.313 from
     # the new positive y-axis (post rotation)
     # according to Tipsod Fortran code notes.
     if model == 'Fairfield71':
@@ -2455,9 +2487,9 @@ def _axis(self, time, val, coord_sys, lims,
         points = np.dot(rot_mat, points.T).T
         ends = np.dot(ends, rot_mat)
 
-    if coord_sys != 'GSM':
-        ends = hx.transform(ends, time, 'GSM', coord_sys, 'car', 'car')
-        points = hx.transform(points, time, 'GSM', coord_sys, 'car', 'car')
+    if coord_sys != 'GSE':
+        ends = hx.transform(ends, time, 'GSE', coord_sys, 'car', 'car')
+        points = hx.transform(points, time, 'GSE', coord_sys, 'car', 'car')
 
 
     ############################################################
