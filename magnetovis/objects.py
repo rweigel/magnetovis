@@ -140,7 +140,8 @@ def _dipole_field(self, output, time, extend, NxNyNz, coord_sys):
     B = np.zeros(points.shape)
     B[:,0] = 3*M*points[:,0]*points[:,2]/r**5 # Bx = 3*M*x*z/r^5
     B[:,1] = 3*M*points[:,1]*points[:,2]/r**5 # By = 3*M*y*z/r^5
-    B[:,2] = M*(3*points[:,2]-r**2)/r**5  # Bz = M(3*z^2 - r^2)/r^5
+    B[:,2] = M*(3*points[:,2]**2-r**2)/r**5  # Bz = M(3*z^2 - r^2)/r^5
+    print(B)
     S = structured_grid(output, points, B) # S is programmable source
 
     return S
