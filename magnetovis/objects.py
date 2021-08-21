@@ -66,6 +66,89 @@ def cutplane(run='DIPTSUR2', time=(2019,9,2,4,10,0,0), plane='xz', var='p',
         # Render all display objects in renderView
         pvs.Render()
 
+# def structured_grid(P, F):
+#
+#     P is Nx3 matrix, F is Nx1 or Nx3.
+#
+#     if F is 1 column, it is scalar
+#     else vector, with each row a vector.
+#
+#     return structured grid source
+
+def _dipole_field(self, output, time, extend, NxNyNz, coord_sys):
+    """
+    extend [[x0,y0,z0],[x1,y1,z1]] points of the corner across the diagonol of the grid
+    NxNyNz: number of points along each axis
+    """
+    import numpy as np
+    from numpy.matlib import repmat
+    from hxform import hxform as hx
+
+    def structured_grid(output, points, F):
+        import vtk
+        if False:
+            # this is never meant to run. it is only to get rid of error message
+            # that output is not defined. output is defined when running
+            # this script in the programmable source text box.
+            output = ''
+        # communication between "script" and "script (RequestInformation)"
+        executive = self.GetExecutive()
+        outInfo = executive.GetOutputInformation(0)
+        exts = [executive.UPDATE_EXTENT().Get(outInfo, i) for i in range(6)]
+        dims = [exts[1]+1, exts[3]+1, exts[5]+1]
+
+        # setting the sgrid extent
+        output.SetExtent(exts)
+
+        # setting up the points and allocate the number points
+        pts = vtk.vtkPoints()
+        pts.Allocate(dims[0] * dims[1] * dims[2])
+
+        vec = vtk.vtkUnsignedLongArray()
+        vec.SetNumberOfComponents(3)
+        vec.SetName('B field')
+
+        # insert points into vtkPoints
+        npoints = points.shape[0]
+        for id, point, f in zip(range(npoints), points,F):
+            pts.InsertPoint(id, point[0], point[1], point[2])
+            vec.InsertNextTuple(f)
+
+
+
+        output.SetPoints(pts)
+        output.GetPointData().AddArray(vec)
+
+
+    extend = np.array(extend)
+    x = np.linspace(extend[0,0],extend[1,0], NxNyNz[0])
+    y = np.linspace(extend[0,1],extend[1,1], NxNyNz[1])
+    z = np.linspace(extend[0,2],extend[1,2], NxNyNz[2])
+    x_size = x.size
+    y_size = y.size
+    z_size = z.size
+
+    x = np.matlib.repmat(x,z_size*y_size,1).flatten()
+    y = np.repeat(repmat(y,x_size,1).flatten(),z_size)
+    z = np.repeat(z,x_size*y_size)
+    points = np.column_stack((x,y,z))
+    print(f'this is points.shape {points.shape}')
+    r = np.linalg.norm(points,axis=1)
+
+    if coord_sys != 'GSM':
+        points = hx.transform(points, time, 'GSM', coord_sys)
+    B = np.zeros(points.shape)
+    B[:,0] = 3*M*points[:,0]*points[:,2]/r**5 # Bx = 3*M*x*z/r^5
+    B[:,1] = 3*M*points[:,1]*points[:,2]/r**5 # By = 3*M*y*z/r^5
+    B[:,2] = M*(3*points[:,2]-r**2)/r**5  # Bz = M(3*z^2 - r^2)/r^5
+    S = structured_grid(output, points, B) # S is programmable source
+
+    return S
+
+def dipole_field(time, extend=[[-20.-20,-20],[20,20,20]], NxNyNz=[21,21,21], coord_sys='GSM',M=7.788E22):
+    return objs_wrapper(time=time, extend=extend, NxNyNz=NxNyNz,
+                        coord_sys=coord_sys, M=M, representation='Outline',
+                        obj='dipole field')
 
 def trajectory():
     # read http://mag.gmu.edu/git-data/magnetovis/trajectory/demo.vtk and plot it
@@ -1279,11 +1362,11 @@ def objs_wrapper(**kwargs):
         return script_src
 
     valid_rep = ['Surface', '3D Glyphs', 'Feature Edges',
-                'Outline' 'Point Gaussian', 'Points',
+                'Outline', 'Point Gaussian', 'Points',
                 'Surface With Edges', 'Wireframe', 'Volume']
 
     assert kwargs['representation'] in valid_rep,   \
-        """representation must be one of the following {}""".format(valid_rep)
+        """representation must be one of the following {}, chosen {}""".format(valid_rep, kwargs['representation'])
 
     programmableSource = pvs.ProgrammableSource()
 
@@ -1578,6 +1661,26 @@ def objs_wrapper(**kwargs):
         programmableSourceDisplay.OpacityArray = ['POINTS', scalar_data]
         programmableSourceDisplay.ColorArrayName = ['POINTS', scalar_data]
         programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
+
+    if kwargs['obj'] == 'dipole field':
+        print()
+        for key, value in kwargs.items():
+            print(key, value)
+        Nx,Ny,Nz = kwargs['NxNyNz']
+        programmableSource.OutputDataSetType = 'vtkStructuredGrid'
+        programmableSource.ScriptRequestInformation = f"""
+        executive = self.GetExecutive()
+        outInfo = executive.GetOutputInformation(0)
+        outInfo.Set(executive.WHOLE_EXTENT(), 0, {Nx-1}, 0, {Ny-1}, 0, {Nz-1})
+        """
+        programmableSource.Script = script(kwargs)
+
+        renderView = pvs.GetActiveViewOrCreate('RenderView')
+        programmableSourceDisplay = pvs.Show(programmableSource, renderView)
+        programmableSourceDisplay.Representation = kwargs['representation']
+
+        # temp title
+        title = f'{kwargs["coord_sys"]} M={kwargs["M"]}'
 
     pvs.RenameSource(title, programmableSource)
 
@@ -2578,6 +2681,10 @@ if False:
 
 
 if "kwargs" in vars():
+
+    if kwargs['obj'] == 'dipole field':
+        _dipole_field(self, output, time=kwargs['time'], extend=kwargs['extend'], NxNyNz=kwargs['NxNyNz'],
+                      coord_sys=kwargs['coord_sys'])
 
     if kwargs['obj'] == 'satellite':
         _satellite(self, time_o=kwargs['time_o'], time_f=kwargs['time_f'],
