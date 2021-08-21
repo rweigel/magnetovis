@@ -122,8 +122,8 @@ def earth(time,
 
         # does not work with textured coordinates
         # this also does not work https://discourse.paraview.org/t/trouble-transforming-texture-mapped-objects/1038/2
-        # if coord_sys != 'GEO':
-        #     XYZr = hx.transform(XYZr, time, 'GEO', coord_sys
+        if coord_sys != 'GEO':
+            XYZr = hx.transform(XYZr, time, 'GEO', coord_sys)
 
 
         {"name":'Angular_Coords_for_PNG', "array":UV, "texture":'TEXTURE_COORDINATES'}
@@ -189,17 +189,17 @@ def earth(time,
     # z_arr = [0,0,1]
     # x, y, z = hx.transform(z_arr, time, 'GEO', coord_sys)[0]
     # r, lat, lon = hx.CtoS(x,y,z)
-    x_arr = [1,0,0]
-    _, _, lon = hx.transform(x_arr,time,'GEO', coord_sys,'car','sph')
-    print(f'this is from one step {lon}')
-
-    z_arr = [0,0,1]
-    _, lat, _ = hx.transform(z_arr,[time[0],time[1],time[2],0,0], 'GEO', coord_sys,'car','sph')
-    lat = 90-lat
-    print(lat)
-    x_rot = lat*np.sin(np.deg2rad(lon))
-    y_rot = lat*np.cos(np.deg2rad(lon))
-    sphereDisplay.Orientation = [x_rot,y_rot,lon]
+    # x_arr = [1,0,0]
+    # _, _, lon = hx.transform(x_arr,time,'GEO', coord_sys,'car','sph')
+    # print(f'this is from one step {lon}')
+    #
+    # z_arr = [0,0,1]
+    # _, lat, _ = hx.transform(z_arr,[time[0],time[1],time[2],0,0], 'GEO', coord_sys,'car','sph')
+    # lat = 90-lat
+    # print(lat)
+    # x_rot = lat*np.sin(np.deg2rad(lon))
+    # y_rot = lat*np.cos(np.deg2rad(lon))
+    # sphereDisplay.Orientation = [x_rot,y_rot,lon]
     # if coord_sys != 'GEO':
     #     x_arr = [1,0,0]
     #     x, y, z = hx.transform(x_arr, time, 'GEO', coord_sys)[0]
@@ -575,8 +575,8 @@ def _latitude_lines(self, time, coord_sys='GSM', increment=15, color=[1,0,0]):
     r = np.ones(lon_repeat*lat_repeat)
 
     sph_coords = np.column_stack((r,lat,lon))
-
-    points = hx.transform(sph_coords, time, 'GSM', coord_sys, ctype_in='sph', ctype_out='car')
+    if coord_sys != 'GEO':
+        points = hx.transform(sph_coords, time, 'GEO', coord_sys, ctype_in='sph', ctype_out='car')
 
     ### start of vtk
 
@@ -620,7 +620,8 @@ def _longitude_lines(self, time, coord_sys='GSM', increment=15, color=[1,0,0]):
     r = np.ones(lon_repeat*lat_repeat)
 
     sph_coords = np.column_stack((r,lat,lon))
-    points = hx.transform(sph_coords, time, 'GSM', coord_sys, ctype_in='sph', ctype_out='car')
+    if coord_sys != 'GEO':
+        points = hx.transform(sph_coords, time, 'GEO', coord_sys, ctype_in='sph', ctype_out='car')
 
     ### start of vtk
 
@@ -1343,10 +1344,9 @@ def objs_wrapper(**kwargs):
             else:
                 rot_axis = (0,-1,0) # rotation right hand rule on rotation axis
             txt_location = np.dot(rotation_matrix(rot_axis,90), txt_location)
-        if kwargs['coord_sys'] != 'GSE':
-            txt_location = hx.transform(txt_location, kwargs['time'], 'GEO', kwargs['coord_sys'], 'car', 'car')[0]
-            translate = hx.transform(translate, kwargs['time'], 'GEO', kwargs['coord_sys'], 'car', 'car')[0]
-
+        if kwargs['coord_sys'] != 'GSM':
+            txt_location = hx.transform(txt_location, kwargs['time'], 'GSM', kwargs['coord_sys'], 'car', 'car')
+            translate = hx.transform(translate, kwargs['time'], 'GSM', kwargs['coord_sys'], 'car', 'car')
         textDisplay.BillboardPosition = txt_location + translate
 
 
@@ -1613,7 +1613,7 @@ def tube(obj, tube_radius=.1, vary_radius='Off', radius_factor=4.0,
         if obj.__eq__(value):
             title = key[0]
 
-    tubeFilter = pvs.Tube(obj, guiName='tube')
+    tubeFilter = pvs.Tube(obj, guiName='-- tube')
     tubeFilter.Radius = tube_radius
     tubeFilter.VaryRadius = vary_radius
     tubeFilter.RadiusFactor = radius_factor
@@ -2487,9 +2487,9 @@ def _axis(self, time, val, coord_sys, lims,
         points = np.dot(rot_mat, points.T).T
         ends = np.dot(ends, rot_mat)
 
-    if coord_sys != 'GSE':
-        ends = hx.transform(ends, time, 'GSE', coord_sys, 'car', 'car')
-        points = hx.transform(points, time, 'GSE', coord_sys, 'car', 'car')
+    if coord_sys != 'GSM':
+        ends = hx.transform(ends, time, 'GSM', coord_sys, 'car', 'car')
+        points = hx.transform(points, time, 'GSM', coord_sys, 'car', 'car')
 
 
     ############################################################
