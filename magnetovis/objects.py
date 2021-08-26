@@ -96,12 +96,12 @@ def _dipole_field(self, output, time, extend, NxNyNz, coord_sys):
         pts = vtk.vtkPoints()
         pts.Allocate(dims[0] * dims[1] * dims[2])
         pts.SetData(pvtk)
-
-        fvtk = dsa.numpyTovtkDataArray(F)
-        fvtk.SetName('B field')
-
         output.SetPoints(pts)
-        output.GetPointData().AddArray(fvtk)
+
+        for name, data in F.items():
+            fvtk = dsa.numpyTovtkDataArray(data)
+            fvtk.SetName(name)
+            output.GetPointData().AddArray(fvtk)
 
     extend = np.array(extend)
     xax = np.linspace(extend[0,0],extend[1,0], NxNyNz[0])
@@ -111,7 +111,7 @@ def _dipole_field(self, output, time, extend, NxNyNz, coord_sys):
     points = np.column_stack([X.flatten(), Y.flatten(), Z.flatten()])
 
     r = np.linalg.norm(points,axis=1)
-
+    data_arrays = {}
     if coord_sys != 'GSM':
         points = hx.transform(points, time, 'GSM', coord_sys)
     B = np.zeros(points.shape)
@@ -119,7 +119,10 @@ def _dipole_field(self, output, time, extend, NxNyNz, coord_sys):
     B[:,1] = 3*M*points[:,1]*points[:,2]/r**5 # By = 3*M*y*z/r^5
     B[:,2] = M*(3*points[:,2]**2-r**2)/r**5  # Bz = M(3*z^2 - r^2)/r^5
 
-    structured_grid(output, points, B) # S is programmable source
+    data_arrays['B_field'] = B
+    data_arrays['distance'] = r
+
+    structured_grid(output, points, data_arrays) # S is programmable source
 
 
 
