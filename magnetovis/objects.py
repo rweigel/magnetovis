@@ -66,26 +66,17 @@ def cutplane(run='DIPTSUR2', time=(2019,9,2,4,10,0,0), plane='xz', var='p',
         # Render all display objects in renderView
         pvs.Render()
 
-# def structured_grid(P, F):
-#
-#     P is Nx3 matrix, F is Nx1 or Nx3.
-#
-#     if F is 1 column, it is scalar
-#     else vector, with each row a vector.
-#
-#     return structured grid source
-
 def _dipole_field(self, output, time, extend, NxNyNz, coord_sys):
     """
-    extend [[x0,y0,z0],[x1,y1,z1]] points of the corner across the diagonol of the grid
+    extend [[x0,y0,z0],[x1,y1,z1]] points of the corner across the diagonal of the grid
     NxNyNz: number of points along each axis
     """
     import numpy as np
-    from numpy.matlib import repmat
     from hxform import hxform as hx
 
     def structured_grid(output, points, F):
         import vtk
+        from vtk.numpy_interface import dataset_adapter as dsa
         if False:
             # this is never meant to run. it is only to get rid of error message
             # that output is not defined. output is defined when running
@@ -101,38 +92,24 @@ def _dipole_field(self, output, time, extend, NxNyNz, coord_sys):
         output.SetExtent(exts)
 
         # setting up the points and allocate the number points
+        pvtk = dsa.numpyTovtkDataArray(points)
         pts = vtk.vtkPoints()
         pts.Allocate(dims[0] * dims[1] * dims[2])
+        pts.SetData(pvtk)
 
-        vec = vtk.vtkUnsignedLongArray()
-        vec.SetNumberOfComponents(3)
-        vec.SetName('B field')
-
-        # insert points into vtkPoints
-        npoints = points.shape[0]
-        for id, point, f in zip(range(npoints), points,F):
-            pts.InsertPoint(id, point[0], point[1], point[2])
-            vec.InsertNextTuple(f)
-
-
+        fvtk = dsa.numpyTovtkDataArray(F)
+        fvtk.SetName('B field')
 
         output.SetPoints(pts)
-        output.GetPointData().AddArray(vec)
-
+        output.GetPointData().AddArray(fvtk)
 
     extend = np.array(extend)
-    x = np.linspace(extend[0,0],extend[1,0], NxNyNz[0])
-    y = np.linspace(extend[0,1],extend[1,1], NxNyNz[1])
-    z = np.linspace(extend[0,2],extend[1,2], NxNyNz[2])
-    x_size = x.size
-    y_size = y.size
-    z_size = z.size
+    xax = np.linspace(extend[0,0],extend[1,0], NxNyNz[0])
+    yax = np.linspace(extend[0,1],extend[1,1], NxNyNz[1])
+    zax = np.linspace(extend[0,2],extend[1,2], NxNyNz[2])
+    Y, Z, X = np.meshgrid(yax, zax, xax)
+    points = np.column_stack([X.flatten(), Y.flatten(), Z.flatten()])
 
-    x = np.matlib.repmat(x,z_size*y_size,1).flatten()
-    y = np.repeat(repmat(y,x_size,1).flatten(),z_size)
-    z = np.repeat(z,x_size*y_size)
-    points = np.column_stack((x,y,z))
-    print(f'this is points.shape {points.shape}')
     r = np.linalg.norm(points,axis=1)
 
     if coord_sys != 'GSM':
@@ -141,14 +118,14 @@ def _dipole_field(self, output, time, extend, NxNyNz, coord_sys):
     B[:,0] = 3*M*points[:,0]*points[:,2]/r**5 # Bx = 3*M*x*z/r^5
     B[:,1] = 3*M*points[:,1]*points[:,2]/r**5 # By = 3*M*y*z/r^5
     B[:,2] = M*(3*points[:,2]**2-r**2)/r**5  # Bz = M(3*z^2 - r^2)/r^5
-    print(B)
-    S = structured_grid(output, points, B) # S is programmable source
 
-    return S
+    structured_grid(output, points, B) # S is programmable source
+
+
 
 def dipole_field(time, extend=[[-20.-20,-20],[20,20,20]], NxNyNz=[21,21,21], coord_sys='GSM',M=7.788E22):
     return objs_wrapper(time=time, extend=extend, NxNyNz=NxNyNz,
-                        coord_sys=coord_sys, M=M, representation='Outline',
+                        coord_sys=coord_sys, M=M, representation='3D Glyphs',
                         obj='dipole field')
 
 def trajectory():
@@ -1664,9 +1641,7 @@ def objs_wrapper(**kwargs):
         programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
 
     if kwargs['obj'] == 'dipole field':
-        print()
-        for key, value in kwargs.items():
-            print(key, value)
+
         Nx,Ny,Nz = kwargs['NxNyNz']
         programmableSource.OutputDataSetType = 'vtkStructuredGrid'
         programmableSource.ScriptRequestInformation = f"""
