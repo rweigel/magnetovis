@@ -1061,7 +1061,7 @@ def plasmapause(N, representation='Surface', model='Gallagher_Craven_Comfort88',
 
 def _neutralsheet(self, output, time, psi,
                  Rh, G, Lw, d,
-                 xlims, ylims,
+                 extend, NxNy,
                  coord_sys,
                  model,
                  return_sheet, array_scalar_value=1):
@@ -1101,7 +1101,6 @@ def _neutralsheet(self, output, time, psi,
     import numpy as np
     import numpy.matlib
     from hxform import hxform as hx
-    #from magnetovis import cxtransform as cx
     import paraview.simple as pvs
 
     # retrieving psi value based on time.
@@ -1113,15 +1112,14 @@ def _neutralsheet(self, output, time, psi,
         psi = np.deg2rad(psi)
 
 
-    dx = 100
-    dy = 100
-    X = np.linspace(xlims[0], xlims[1], dx)
-    Y = np.linspace(ylims[0], ylims[1], dy)
-    Ny = 100
-    Nx = 100
-
-    X = np.matlib.repmat(X,1 , Ny).flatten()
-    Y = np.repeat(Y, Nx)
+    extend = np.array(extend)
+    xax = np.linspace(extend[0,0],extend[1,0], NxNy[0])
+    yax = np.linspace(extend[1,0],extend[1,1], NxNy[1])
+    if return_sheet:
+        zax = np.linspace(-3,3,3)
+    else:
+        zax = np.zeros(yax.size)
+    Y, _, X =  np.meshgrid(yax, zax, xax)
 
     # Tsyganenko 1995 eq.
     z1 = 0.5 * np.tan(psi) \
@@ -1130,7 +1128,11 @@ def _neutralsheet(self, output, time, psi,
 
     z2 = - G * np.sin(psi) * Y**4/(Y**4 + Lw**4)
     Z = z1 + z2
-    points = np.column_stack([X, Y, Z])
+
+    if return_sheet:
+        Z[0,:] = Z[1,:]-3
+        Z[2,:] = Z[1,:]+3
+    points = np.column_stack([X.flatten(), Y.flatten(), Z.flatten()])
 
     if return_sheet:
         return points, psi
@@ -1161,8 +1163,11 @@ def _neutralsheet(self, output, time, psi,
     output.SetExtent(exts)
 
     # setting up the points and allocate the number of points
+    pvtk = dsa.numpyTovtkDataArray(points)
     pts = vtk.vtkPoints()
     pts.Allocate(dims[0] * dims[1] * dims[2])
+    pts.SetData(pvtk)
+    output.SetPoints(pts)
 
     # color sections
     annotations_list = list(pvs.GetColorTransferFunction('Magnetosphere Surface').Annotations)
@@ -1170,19 +1175,11 @@ def _neutralsheet(self, output, time, psi,
         value = int(annotations_list[annotations_list.index('Neutralsheet')-1])
     else:
         value = int(1+len(annotations_list)/2)
-    colors = vtk.vtkUnsignedCharArray()
-    colors.SetNumberOfComponents(1)
-    colors.SetName("Magnetosphere Surface")
 
-    # insert points into vtkPoints
-    i = 0
-    for point in points:
-        pts.InsertPoint(i, point[0], point[1], point[2])
-        i += 1
-        colors.InsertNextTuple([value])
-
-    output.SetPoints(pts)
-    output.GetPointData().AddArray(colors)
+    color_values = np.zeros(X.size) + value
+    cvtk = dsa.numpyTovtkDataArray(color_values)
+    cvtk.SetName("Magnetosphere Surface")
+    output.GetPointData().AddArray(cvtk)
 
 def plasmasheet(time, psi=None,
                  Rh=8, G=10, Lw=10, d=4,
@@ -1389,8 +1386,7 @@ def objs_wrapper(**kwargs):
             y_dim = 101
             z_dim = 101
         elif kwargs['obj'] == 'Neutralsheet':
-            x_dim = 200
-            y_dim = 50
+            x_dim, y_dim = kwargs['NxNy']
             z_dim = 1
         elif kwargs['obj'] == 'Plasmasheet':
             x_dim = 200
@@ -2598,7 +2594,7 @@ def _axis(self, time, val, coord_sys, lims,
 
 def neutralsheet(time=None, psi=None,
                  Rh=8, G=10, Lw=10, d=4,
-                 xlims = (-40,-5), ylims = (-15,15),
+                 extend=[[-40,-5],[-15,15]], NxNy=[40,40],
                  coord_sys='GSM',
                  model='tsyganenko95',
                  color=[1,0,0,0.5],
@@ -2609,8 +2605,9 @@ def neutralsheet(time=None, psi=None,
                  render=True,
                  show=True,
                  debug=False):
-    return objs_wrapper(time=time, psi=psi, Rh=Rh, G=G, Lw=Lw, d=d, xlims=xlims,
-                 ylims=ylims, coord_sys=coord_sys, model=model, color=color,
+    return objs_wrapper(time=time, psi=psi, Rh=Rh, G=G, Lw=Lw, d=d,
+                 extend=extend, NxNy=NxNy,
+                 coord_sys=coord_sys, model=model, color=color,
                  representation=representation,
                  out_dir=out_dir, png_fn=png_fn,
                  return_sheet=return_sheet,
@@ -2653,8 +2650,8 @@ if "kwargs" in vars():
     elif kwargs['obj'] == 'Neutralsheet':
         _neutralsheet(self, output, time=kwargs['time'], psi=kwargs['psi'],
                       Rh=kwargs['Rh'], G=kwargs['G'], Lw=kwargs['Lw'],
-                      d=kwargs['d'], xlims=kwargs['xlims'],
-                      ylims=kwargs['ylims'], coord_sys=kwargs['coord_sys'],
+                      d=kwargs['d'], extend=kwargs['extend'],
+                      NxNy=kwargs['NxNy'], coord_sys=kwargs['coord_sys'],
                       model=kwargs['model'],
                       return_sheet=kwargs['return_sheet'])
 
