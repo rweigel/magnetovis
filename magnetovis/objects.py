@@ -1183,7 +1183,7 @@ def _neutralsheet(self, output, time, psi,
 
 def plasmasheet(time, psi=None,
                  Rh=8, G=10, Lw=10, d=4,
-                 xlims = (-40,-5), ylims = (-15,15),
+                 extend=[[-40,-5],[-15,15]], NxNy=[40,40],
                  coord_sys='GSM',
                  model='tsyganenko95',
                  color = [.6,.3,.2,0.5],
@@ -1194,8 +1194,8 @@ def plasmasheet(time, psi=None,
                  render=True,
                  show=True):
 
-    return objs_wrapper(time=time, psi=psi, Rh=Rh, G=G, Lw=Lw, d=d, xlims=xlims,
-                 ylims=ylims, coord_sys=coord_sys, model=model, color=color,
+    return objs_wrapper(time=time, psi=psi, Rh=Rh, G=G, Lw=Lw, d=d, extend=extend,
+                 NxNy=NxNy, coord_sys=coord_sys, model=model, color=color,
                  representation=representation,
                  out_dir=out_dir, png_fn=png_fn,
                  return_sheet=return_sheet,
@@ -1205,7 +1205,7 @@ def plasmasheet(time, psi=None,
 
 def _plasmasheet(self, output, time, psi,
                  Rh, G, Lw, d,
-                 xlims, ylims,
+                 extend, NxNy,
                  coord_sys,
                  model,
                  return_sheet):
@@ -1213,9 +1213,7 @@ def _plasmasheet(self, output, time, psi,
     """Show plasma sheet volume"""
 
     import numpy as np
-    import numpy.matlib
     from hxform import hxform as hx
-    #from magnetovis import cxtransform as cx
     import paraview.simple as pvs
     from magnetovis.objects import _neutralsheet
 
@@ -1229,16 +1227,10 @@ def _plasmasheet(self, output, time, psi,
     psi_deg = np.copy(np.rad2deg(psi))
     psi_deg = np.around(psi_deg, decimals=3)
 
-    sheet, psi = _neutralsheet(self=False, output=False, time=time, psi=psi, Rh=Rh, G=G,
-                              Lw=Lw, d=d, xlims=xlims, ylims=ylims,
+    points, psi = _neutralsheet(self=False, output=False, time=time, psi=psi, Rh=Rh, G=G,
+                              Lw=Lw, d=d, extend=extend, NxNy=NxNy,
                               coord_sys=coord_sys, model=model,
                               return_sheet=True)
-
-    low_sheet = np.copy(sheet)
-    low_sheet[:,2] = sheet[:,2]-3
-    high_sheet = np.copy(sheet)
-    high_sheet[:,2] = sheet[:,2]+3
-    points = np.concatenate((low_sheet, sheet, high_sheet))
 
     print('created Tsyganenko 1995 current sheet model with 3 Re width'
           +' above and below')
@@ -1266,8 +1258,11 @@ def _plasmasheet(self, output, time, psi,
     output.SetExtent(exts)
 
     # setting up the points and allocate the number of points
+    pvtk = dsa.numpyTovtkDataArray(points)
     pts = vtk.vtkPoints()
     pts.Allocate(dims[0] * dims[1] * dims[2])
+    pts.SetData(pvtk)
+    output.SetPoints(pts)
 
     # color sections
     annotations_list = list(pvs.GetColorTransferFunction('Magnetosphere Surface').Annotations)
@@ -1276,20 +1271,11 @@ def _plasmasheet(self, output, time, psi,
     else:
         value = int(1+len(annotations_list)/2)
 
+    color_values = np.zeros(points.shape[0]) + value
+    cvtk = dsa.numpyTovtkDataArray(color_values)
+    cvtk.SetName("Magnetosphere Surface")
+    output.GetPointData().AddArray(cvtk)
 
-    colors = vtk.vtkUnsignedCharArray()
-    colors.SetNumberOfComponents(1)
-    colors.SetName("Magnetosphere Surface")
-
-    # insert points into vtkPoints
-    i = 0
-    for point in points:
-        pts.InsertPoint(i, point[0], point[1], point[2])
-        i += 1
-        colors.InsertNextTuple([value])
-
-    output.SetPoints(pts)
-    output.GetPointData().AddArray(colors)
 
 
 def objs_wrapper(**kwargs):
@@ -1389,9 +1375,8 @@ def objs_wrapper(**kwargs):
             x_dim, y_dim = kwargs['NxNy']
             z_dim = 1
         elif kwargs['obj'] == 'Plasmasheet':
-            x_dim = 200
-            y_dim = 50
-            z_dim = 3
+            x_dim, y_dim = kwargs['NxNy']
+            z_dim=3
 
         scalar_data = 'Magnetosphere Surface'
 
@@ -2658,8 +2643,8 @@ if "kwargs" in vars():
     elif kwargs['obj'] == 'Plasmasheet':
         _plasmasheet(self, output, time=kwargs['time'], psi=kwargs['psi'],
                       Rh=kwargs['Rh'], G=kwargs['G'], Lw=kwargs['Lw'],
-                      d=kwargs['d'], xlims=kwargs['xlims'],
-                      ylims=kwargs['ylims'], coord_sys=kwargs['coord_sys'],
+                      d=kwargs['d'], extend=kwargs['extend'],
+                      NxNy=kwargs['NxNy'], coord_sys=kwargs['coord_sys'],
                       model=kwargs['model'],
                       return_sheet=kwargs['return_sheet'])
 
