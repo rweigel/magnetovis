@@ -1749,6 +1749,9 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
 
         alpha = (0.58 - 0.010 * Bz) * (1 + 0.010 * Psw)  #  Eqn 14 of Shue et al. 1997
 
+        if return_x_max:
+            return r_0 * (2./(1+np.cos(0)))**alpha
+
         stopping_constant = 40/(2**alpha * r_0)
         theta_finder_array = np.arange(np.pi/2 , np.pi, 0.01)
         for theta in theta_finder_array:
