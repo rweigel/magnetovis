@@ -1311,7 +1311,7 @@ def objs_wrapper(**kwargs):
         return script_src
 
     valid_rep = ['Surface', '3D Glyphs', 'Feature Edges',
-                'Outline' 'Point Gaussian', 'Points',
+                'Outline', 'Point Gaussian', 'Points',
                 'Surface With Edges', 'Wireframe', 'Volume']
 
     assert kwargs['representation'] in valid_rep,   \
@@ -1663,7 +1663,7 @@ def tube(obj, tube_radius=.1, vary_radius='Off', radius_factor=4.0,
         if obj.__eq__(value):
             title = key[0]
 
-    tubeFilter = pvs.Tube(obj, guiName='tube')
+    tubeFilter = pvs.Tube(obj, guiName='-- tube')
     tubeFilter.Radius = tube_radius
     tubeFilter.VaryRadius = vary_radius
     tubeFilter.RadiusFactor = radius_factor
