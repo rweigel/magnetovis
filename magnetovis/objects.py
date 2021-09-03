@@ -2143,8 +2143,11 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
     output.SetExtent(exts)
 
     # setting up the points and allocate the number of points
+    pvtk = dsa.numpyTovtkDataArray(points)
     pts = vtk.vtkPoints()
     pts.Allocate(dims[0] * dims[1] * dims[2])
+    pts.SetData(pvtk)
+    output.SetPoints(pts)
 
     # color sections
     annotations_list = list(pvs.GetColorTransferFunction('Magnetosphere Surface').Annotations)
@@ -2152,19 +2155,10 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
         value = int(annotations_list[annotations_list.index('Magnetopause')-1])
     else:
         value = int(1+len(annotations_list)/2)
-    colors = vtk.vtkUnsignedCharArray()
-    colors.SetNumberOfComponents(1)
-    colors.SetName("Magnetosphere Surface")
-
-    # insert points into vtkPoints
-    i = 0
-    for point in points:
-        pts.InsertPoint(i, point[0], point[1], point[2])
-        i += 1
-        colors.InsertNextTuple([value])
-
-    output.SetPoints(pts)
-    output.GetPointData().AddArray(colors)
+    color_values = np.zeros(points.shape[0]) + value
+    cvtk = dsa.numpyTovtkDataArray(color_values)
+    cvtk.SetName("Magnetosphere Surface")
+    output.GetPointData().AddArray(cvtk)
 
 def _bowshock(self, output, time, model, Bz, Psw, mpause_model,
               coord_sys, return_title=False):
