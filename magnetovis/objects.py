@@ -2346,7 +2346,7 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model,
         translate = np.array([[0, 0.313, 0]])
         points = bowshock_Fairfield71(Bz, Psw, mpause_model)
 
-    points = np.dot(rotation_matrix((0,0,1), rot_deg,), points.T).T + np.dot(rotation_matrix((0,0,1), rot_deg, translate.T)).T
+    points = np.dot(rotation_matrix((0,0,1), rot_deg,), points.T).T + np.dot(rotation_matrix((0,0,1), rot_deg), translate.T).T
 
     if coord_sys != 'GSE':
         points = hx.transform(points, time, 'GSE', coord_sys, 'car', 'car')
