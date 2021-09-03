@@ -66,6 +66,70 @@ def cutplane(run='DIPTSUR2', time=(2019,9,2,4,10,0,0), plane='xz', var='p',
         pvs.Render()
 
 
+def _dipole_field(self, output, time, extend, NxNyNz, coord_sys):
+    """
+    extend [[x0,y0,z0],[x1,y1,z1]] points of the corner across the diagonal of the grid
+    NxNyNz: number of points along each axis
+    """
+    import numpy as np
+    from hxform import hxform as hx
+
+    def structured_grid(output, points, F):
+        import vtk
+        from vtk.numpy_interface import dataset_adapter as dsa
+        if False:
+            # this is never meant to run. it is only to get rid of error message
+            # that output is not defined. output is defined when running
+            # this script in the programmable source text box.
+            output = ''
+        # communication between "script" and "script (RequestInformation)"
+        executive = self.GetExecutive()
+        outInfo = executive.GetOutputInformation(0)
+        exts = [executive.UPDATE_EXTENT().Get(outInfo, i) for i in range(6)]
+        dims = [exts[1]+1, exts[3]+1, exts[5]+1]
+
+        # setting the sgrid extent
+        output.SetExtent(exts)
+
+        # setting up the points and allocate the number points
+        pvtk = dsa.numpyTovtkDataArray(points)
+        pts = vtk.vtkPoints()
+        pts.Allocate(dims[0] * dims[1] * dims[2])
+        pts.SetData(pvtk)
+        output.SetPoints(pts)
+
+        for name, data in F.items():
+            fvtk = dsa.numpyTovtkDataArray(data)
+            fvtk.SetName(name)
+            output.GetPointData().AddArray(fvtk)
+
+    extend = np.array(extend)
+    xax = np.linspace(extend[0,0],extend[1,0], NxNyNz[0])
+    yax = np.linspace(extend[0,1],extend[1,1], NxNyNz[1])
+    zax = np.linspace(extend[0,2],extend[1,2], NxNyNz[2])
+    Y, Z, X = np.meshgrid(yax, zax, xax)
+    points = np.column_stack([X.flatten(), Y.flatten(), Z.flatten()])
+
+    r = np.linalg.norm(points,axis=1)
+    data_arrays = {}
+    if coord_sys != 'GSM':
+        points = hx.transform(points, time, 'GSM', coord_sys)
+    B = np.zeros(points.shape)
+    B[:,0] = 3*M*points[:,0]*points[:,2]/r**5 # Bx = 3*M*x*z/r^5
+    B[:,1] = 3*M*points[:,1]*points[:,2]/r**5 # By = 3*M*y*z/r^5
+    B[:,2] = M*(3*points[:,2]**2-r**2)/r**5  # Bz = M(3*z^2 - r^2)/r^5
+
+    data_arrays['B_field'] = B
+    data_arrays['distance'] = r
+
+    structured_grid(output, points, data_arrays) # S is programmable source
+
+def dipole_field(time, M=7.788E22, coord_sys='GSM', extend=[[-21,-21,-21],[21,21,21]], NxNyNz=[22,22,22],):
+    return objs_wrapper(time=time, extend=extend, NxNyNz=NxNyNz,
+                        coord_sys=coord_sys, M=M, representation='Surface',
+                        obj='dipole field')
+
+
 def trajectory():
     # read http://mag.gmu.edu/git-data/magnetovis/trajectory/demo.vtk and plot it
     pass
@@ -1548,6 +1612,24 @@ def objs_wrapper(**kwargs):
         programmableSourceDisplay.ColorArrayName = ['POINTS', scalar_data]
         programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
 
+    if kwargs['obj'] == 'dipole field':
+
+        Nx,Ny,Nz = kwargs['NxNyNz']
+        programmableSource.OutputDataSetType = 'vtkStructuredGrid'
+        programmableSource.ScriptRequestInformation = f"""
+        executive = self.GetExecutive()
+        outInfo = executive.GetOutputInformation(0)
+        outInfo.Set(executive.WHOLE_EXTENT(), 0, {Nx-1}, 0, {Ny-1}, 0, {Nz-1})
+        """
+        programmableSource.Script = script(kwargs)
+
+        renderView = pvs.GetActiveViewOrCreate('RenderView')
+        programmableSourceDisplay = pvs.Show(programmableSource, renderView)
+        programmableSourceDisplay.Representation = kwargs['representation']
+
+        # temp title
+        title = f'dipole field {kwargs["coord_sys"]} M={kwargs["M"]}'
+
     pvs.RenameSource(title, programmableSource)
 
     renderView.ResetCamera()
@@ -2057,8 +2139,8 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
         points = hx.transform(points, time, 'GSE', coord_sys, 'car', 'car')
         Bz = hx.transform([0,0,Bz], time, 'GSE', coord_sys, 'car', 'car')[0]
 
-    # todo make sure that this rotation for all of them or just one. 
-    # according to sscweb magnetopause fortran code there is a 4 degree abberation for 
+    # todo make sure that this rotation for all of them or just one.
+    # according to sscweb magnetopause fortran code there is a 4 degree abberation for
     points = np.dot(rotation_matrix((0,0,1), -4 ), points.T ).T
 
     ############################################################
@@ -2283,7 +2365,7 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model,
 
     # Fairfield 1971 stated that the abberation
     # is 4 degrees. Later Fairfield revised the number to be 4.82 degrees
-    # after the rotation the new axis of symmetry has moved 0.313 from 
+    # after the rotation the new axis of symmetry has moved 0.313 from
     # the new positive y-axis (post rotation)
     # according to Tipsod Fortran code notes.
     if model == 'Fairfield71':
@@ -2545,6 +2627,10 @@ if False:
 
 
 if "kwargs" in vars():
+
+    if kwargs['obj'] == 'dipole field':
+        _dipole_field(self, output, time=kwargs['time'], extend=kwargs['extend'], NxNyNz=kwargs['NxNyNz'],
+                      coord_sys=kwargs['coord_sys'])
 
     if kwargs['obj'] == 'satellite':
         _satellite(self, time_o=kwargs['time_o'], time_f=kwargs['time_f'],
