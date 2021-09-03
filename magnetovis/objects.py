@@ -1704,6 +1704,7 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
     from datetime import datetime, timedelta
     import pytz
     from magnetovis.util import tstr, time2datetime
+    from magnetovis.objects import rotation_matrix
     from hxform import hxform as hx
     import paraview.simple as pvs
 
@@ -2010,93 +2011,89 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
         print('\n\n',np.shape(points),'\n\n')
         return points
 
-
-    year_limit = datetime(1995, 1, 1, tzinfo=pytz.utc)
-
     if not return_x_max:
-        if time == None:
-           assert Bz != None and Psw != None, 'If time is None then  '+\
-               'neither Psw or Bz can be None.'
-           assert coord_sys != None, 'If time is None then Coord_sys cannot ' +\
-               'be None.'
+        year_limit = datetime(1995, 1, 1, tzinfo=pytz.utc)
 
         if model == 'Sibeck_Lopez_Roelof91':
-            assert (isinstance(Psw,bool) and Psw == False) \
-                or (isinstance(Bz, bool) and  Bz == False), \
-                    'If model=Sibeck_Lopez_Roelof91 Psw or Bz has to be False but not both.'
-            ## TODO: recheck this 999 should not be there anymore
-            assert not (isinstance(Psw,bool) and Psw == False \
-                        and Bz == False and isinstance(Bz, bool)),\
-                'when model=Siebck_Lopez_Roelof Both Psw and Bz cannot be False.'
+            assert not (Psw == False and Bz == False),\
+                'when model=Siebck_Lopez_Roelof91 Both Psw and Bz cannot be False.'
+            assert (Psw == False) or (Bz == False),\
+                'When model=Siebeck_Lopez_Roelof91 either Psw of Bz has to be False'
 
+        # case 1: if time is below year limit then automatically set
+        # Bz or Psw to nominal values if they are none.
+        if time[0] < year_limit.year:
+            if Bz == None:
+                Bz = 0
+                print(f'using nominal value for Bz = 0 because year: {time[0]}')
+                print(f'chosen is below the year limit {year_limit.year}')
+            if Psw == None:
+                Psw = 2.04
+                print(f'using nominal value for Bz because year: {time[0]}')
+                print(f'chosen is below the year limit {year_limit.year}')
 
-        if time != None:
+        # case 2 if either Bz or Psw are None then use time and hapiclient
+        # to get Bz and Psw
+        if Bz == None or Psw == None:
             time_str = ""+tstr(time,5)
-            if Bz == None or Psw == None:
-                from hapiclient import hapi, hapitime2datetime
-                server     = 'https://cdaweb.gsfc.nasa.gov/hapi';
-                dataset    = 'OMNI_HRO2_1MIN';
-                parameters = 'BZ_GSE,Pressure';
-                opts = {'logging': True, 'usecache': True}
-                start = tstr(time2datetime(time) + timedelta(minutes=-30))
-                stop =  tstr(time2datetime(time) + timedelta(minutes= 30))
-                data, meta = hapi(server, dataset, parameters, start, stop, **opts)
-                time_arr = hapitime2datetime(data['Time'])
-                data['Pressure'][data['Pressure'] == 99.99] = np.nan
-                data['BZ_GSE'][data['BZ_GSE'] == 9999.99] = np.nan
-                unixZero = datetime(1970,1,1,tzinfo = time_arr[0].tzinfo)
-                t1 = np.empty(time_arr.shape)
-                time_to_interpolate = \
-                    (time2datetime(time).replace(tzinfo=pytz.UTC) - unixZero).total_seconds()
-                for i in range(len(time_arr)):
-                    t1[i] = (time_arr[i] - unixZero).total_seconds()
-            else:
-                if return_x_max == False:
-                    print('Ignoring time because Bz and Psw were given')
+            from hapiclient import hapi, hapitime2datetime
+            server     = 'https://cdaweb.gsfc.nasa.gov/hapi';
+            dataset    = 'OMNI_HRO2_1MIN';
+            parameters = 'BZ_GSE,Pressure';
+            opts = {'logging': True, 'usecache': True}
+            start = time2datetime(time) + timedelta(minutes=-30)
+            start = start.isoformat()
+            stop =  time2datetime(time) + timedelta(minutes= 30)
+            stop = stop.isoformat()
+            data, meta = hapi(server, dataset, parameters, start, stop, **opts)
+            time_arr = hapitime2datetime(data['Time'])
+            data['Pressure'][data['Pressure'] == 99.99] = np.nan
+            data['BZ_GSE'][data['BZ_GSE'] == 9999.99] = np.nan
+            unixZero = datetime(1970,1,1,tzinfo = time_arr[0].tzinfo)
+            t1 = np.empty(time_arr.shape)
+            time_to_interpolate = \
+                (time2datetime(time).replace(tzinfo=pytz.UTC) - unixZero).total_seconds()
+            for i in range(len(time_arr)):
+                t1[i] = (time_arr[i] - unixZero).total_seconds()
         else:
             time_str = ''
 
-        if Bz == False and isinstance(Bz, bool) \
-            and model == 'Sibeck_Lopez_Roelof91':
+        if Bz == None:
+            if all(np.isnan(data['BZ_GSE'])):
+                Bz = 0 # Nomnal Value
+                print('OMNI_HRO2_1MIN has no Bz values for time interval')
+                print(f'{start} - {stop}.')
+                print(f'Using nominal value Bz = {Bz} [nT].')
+            else:
+                nans = np.isnan(data['BZ_GSE'])
+                BZ_GSE_OMNI= np.interp(t1, t1[~nans], data['BZ_GSE'][~nans])
+                Bz = np.interp(time_to_interpolate, t1, BZ_GSE_OMNI)
+            Bz_str = 'Bz={:.3g}'.format(Bz)
+        elif Bz is False and model == 'Sibeck_Lopez_Roelof91':
             Bz = None
             Bz_str = ''
-            print('Ignoring Bz to produce magnetopause becuase Bz=999 and '+
+            print('Ignoring Bz to produce magnetopause becuase Bz=False and '+
                   'model = Sibeck_Lopez_Roelof91')
         else:
-            if Bz == None:
-                if hapitime2datetime(start)[0].replace(tzinfo=pytz.UTC) < year_limit:
-                    Bz = 0 # Nominal Value
-                    print('Current Dataset OMNI_HRO2_1MIN does not go back further')
-                    print('than 1995. Using Nominal Value Bz=0')
-                elif all(np.isnan(data['BZ_GSE'])):
-                    Bz = 0 # Nomnal Value
-                    print('No values of Bz from OMNI_HRO2_1MIN dataset given.')
-                    print('using nominal value Bz=0')
-                else:
-                    nans = np.isnan(data['BZ_GSE'])
-                    BZ_GSE_OMNI= np.interp(t1, t1[~nans], data['BZ_GSE'][~nans])
-                    Bz = np.interp(time_to_interpolate, t1, BZ_GSE_OMNI)
-
             Bz_str = 'Bz={:.3g}'.format(Bz)
 
-        if Psw == False and isinstance(Psw, bool) \
-            and model == 'Sibeck_Lopez_Roelof91':
+        if Psw == None:
+            if all(np.isnan(data['Pressure'])):
+                Psw = 2.04
+                print('OMNI_HRO2_1MIN has no pressure values for time interval')
+                print(f'{start} - {stop}.')
+                print(f'Using nominal value Psw = {Psw} [nPa].')
+            else:
+                nans = np.isnan(data['Pressure'])
+                pressure_OMNI = np.interp(t1, t1[~nans], data['Pressure'][~nans])
+                Psw = np.interp(time_to_interpolate, t1, pressure_OMNI)
+            Psw_str = 'Psw={:.3g}'.format(Psw)
+        elif Psw is False and model == 'Sibeck_Lopez_Roelof91':
             Psw = None
             Psw_str = ''
-            print('Ignoring Psw to produce magnetopause becuase Psw=999 and '+
+            print('Ignoring Psw to produce magnetopause becuase Psw=False and '+
                   'model = Sibeck_Lopez_Roelof91')
         else:
-            if Psw == None:
-                if hapitime2datetime(start)[0].replace(tzinfo=pytz.UTC) < year_limit:
-                    Psw = 2.04
-                    print('OMNI_HRO2_1MIN data not available before 1995. Using nominal value: Psw = 2 [nPa].')
-                elif all(np.isnan(data['Pressure'])):
-                    Psw = 2.04 # nominal value. check later.
-                    print('OMNI_HRO2_1MIN has not pressure values for this time interval. Using nominal value Psw = 2 [nPa].')
-                else:
-                    nans = np.isnan(data['Pressure'])
-                    pressure_OMNI = np.interp(t1, t1[~nans], data['Pressure'][~nans])
-                    Psw = np.interp(time_to_interpolate, t1, pressure_OMNI)
             Psw_str = 'Psw={:.3g}'.format(Psw)
 
     if return_title:
@@ -2119,6 +2116,9 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
     if coord_sys != 'GSE':
         points = hx.transform(points, time, 'GSE', coord_sys, 'car', 'car')
         Bz = hx.transform([0,0,Bz], time, 'GSE', coord_sys, 'car', 'car')[0]
+    elif time_str == '':
+        print('Time not used for either extracting Psw and Bz values')
+        print('or changing coordinate systems.')
 
     # todo make sure that this rotation for all of them or just one.
     # according to sscweb magnetopause fortran code there is a 4 degree abberation for
