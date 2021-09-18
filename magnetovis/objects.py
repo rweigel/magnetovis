@@ -2309,7 +2309,7 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model,
             BZ_GSE_OMNI= np.interp(t1, t1[~nans], data['BZ_GSE'][~nans])
             Bz = np.interp(time_to_interpolate, t1, BZ_GSE_OMNI)
         Bz_str = 'Bz={:.3g}'.format(Bz)
-    elif Bz is False and model == 'Sibeck_Lopez_Roelof91':
+    elif Bz is False and mpause_model == 'Sibeck_Lopez_Roelof91':
         Bz = None
         Bz_str = ''
         print('Ignoring Bz to produce magnetopause becuase Bz=False and '+
@@ -2328,7 +2328,7 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model,
             pressure_OMNI = np.interp(t1, t1[~nans], data['Pressure'][~nans])
             Psw = np.interp(time_to_interpolate, t1, pressure_OMNI)
         Psw_str = 'Psw={:.3g}'.format(Psw)
-    elif Psw is False and model == 'Sibeck_Lopez_Roelof91':
+    elif Psw is False and mpause_model == 'Sibeck_Lopez_Roelof91':
         Psw = None
         Psw_str = ''
         print('Ignoring Psw to produce magnetopause becuase Psw=False and '+
