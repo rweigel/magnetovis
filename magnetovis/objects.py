@@ -138,7 +138,7 @@ def _dipole_field(self, time, M, extend, NxNyNz, coord_sys):
     B[:,1] = 3*M*points[:,1]*points[:,2]/r**5 # By = 3*M*y*z/r^5
     B[:,2] = M*(3*points[:,2]**2-r**2)/r**5  # Bz = M(3*z^2 - r^2)/r^5
 
-    data_arrays['B-field'] = B
+    data_arrays['B-field (nT)'] = B
 
     ind = np.arange(N**3).reshape((N,N,N)) # ind is (N,N,N) going from 0-N^3-1
         #PERIODIC IN PHI DIRECTION (indexed by k)
@@ -158,7 +158,19 @@ def _dipole_field(self, time, M, extend, NxNyNz, coord_sys):
 
     unstructured_grid(points, data_arrays, V_Periodic)
 
-def dipole_field(time, M=7.788E22, coord_sys='GSM', extend=[[-21,-21,-21],[21,21,21]], NxNyNz=[22,22,22],):
+def dipole_field(time, M=-31000, coord_sys='GSM', extend=[[-21,-21,-21],[21,21,21]], NxNyNz=[22,22,22],):
+    """
+    Creates magnetic field vectors at the vertices of circular grid with
+    a cavity.
+
+    Parameters
+    ----------
+    time : array_like
+        array of ints in the form [YYYY,M,D,h,m]
+    M : float, default = -31000
+        The dipole moment in units of nano Tesla * R_e^3.
+        default of -31000 (nT Re^3) from https://ccmc.gsfc.nasa.gov/RoR_WWW/presentations/Dipole.pdf
+    """
     return objs_wrapper(time=time, extend=extend, NxNyNz=NxNyNz,
                         coord_sys=coord_sys, M=M, representation='Surface',
                         obj='dipole field')
@@ -1639,7 +1651,7 @@ def objs_wrapper(**kwargs):
         programmableSourceDisplay.Representation = kwargs['representation']
 
         # temp title
-        title = f'dipole field {kwargs["coord_sys"]} M={kwargs["M"]}'
+        title = f'dipole field {kwargs["coord_sys"]} M={kwargs["M"]:.3e} nT'
 
     pvs.RenameSource(title, programmableSource)
 
