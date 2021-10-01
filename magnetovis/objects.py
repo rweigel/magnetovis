@@ -1509,7 +1509,7 @@ def objs_wrapper(**kwargs):
         renderView.Update()
 
         server     = 'http://hapi-server.org/servers/SSCWeb/hapi';
-        opts       = {'logging': True, 'usecache': True}
+        opts       = {'logging': False, 'usecache': True}
         parameters = "X_{},Y_{},Z_{},Spacecraft_Region"\
                     .format(kwargs["coord_sys"], kwargs["coord_sys"], kwargs["coord_sys"])
         data, meta = hapi(server, kwargs["satellite_id"], parameters,
@@ -1665,7 +1665,7 @@ def _satellite(self, time_o, time_f, satellite_id, coord_sys, region_colors):
     from hapiclient import hapi
 
     server     = 'http://hapi-server.org/servers/SSCWeb/hapi';
-    opts       = {'logging': True, 'usecache': True}
+    opts       = {'logging': False, 'usecache': True}
     parameters = "X_{},Y_{},Z_{},Spacecraft_Region"\
                 .format(coord_sys, coord_sys, coord_sys)
     data, meta = hapi(server, satellite_id, parameters,
@@ -2043,7 +2043,7 @@ def _magnetopause(self, output, time, Bz, Psw, model, coord_sys, return_x_max,
             server     = 'https://cdaweb.gsfc.nasa.gov/hapi';
             dataset    = 'OMNI_HRO2_1MIN';
             parameters = 'BZ_GSE,Pressure';
-            opts = {'logging': True, 'usecache': True}
+            opts = {'logging': False, 'usecache': True}
             start = time2datetime(time) + timedelta(minutes=-30)
             start = start.isoformat()
             stop =  time2datetime(time) + timedelta(minutes= 30)
@@ -2280,7 +2280,7 @@ def _bowshock(self, output, time, model, Bz, Psw, mpause_model,
         server     = 'https://cdaweb.gsfc.nasa.gov/hapi';
         dataset    = 'OMNI_HRO2_1MIN';
         parameters = 'BZ_GSE,Pressure';
-        opts = {'logging': True, 'usecache': True}
+        opts = {'logging': False, 'usecache': True}
         start = time2datetime(time) + timedelta(minutes=-30)
         start = start.isoformat()
         stop =  time2datetime(time) + timedelta(minutes= 30)
