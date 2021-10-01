@@ -66,50 +66,69 @@ def cutplane(run='DIPTSUR2', time=(2019,9,2,4,10,0,0), plane='xz', var='p',
         pvs.Render()
 
 
-def _dipole_field(self, output, time, extend, NxNyNz, coord_sys):
+def _dipole_field(self, time, M, extend, NxNyNz, coord_sys):
     """
     extend [[x0,y0,z0],[x1,y1,z1]] points of the corner across the diagonal of the grid
     NxNyNz: number of points along each axis
     """
     import numpy as np
     from hxform import hxform as hx
+    from vtk.numpy_interface import dataset_adapter as dsa
 
-    def structured_grid(output, points, F):
+    def unstructured_grid(points, F, V_Periodic):
         import vtk
         from vtk.numpy_interface import dataset_adapter as dsa
-        if False:
-            # this is never meant to run. it is only to get rid of error message
-            # that output is not defined. output is defined when running
-            # this script in the programmable source text box.
-            output = ''
-        # communication between "script" and "script (RequestInformation)"
-        executive = self.GetExecutive()
-        outInfo = executive.GetOutputInformation(0)
-        exts = [executive.UPDATE_EXTENT().Get(outInfo, i) for i in range(6)]
-        dims = [exts[1]+1, exts[3]+1, exts[5]+1]
 
-        # setting the sgrid extent
-        output.SetExtent(exts)
+        # set up and allocate space for points to unstructured grid output
+        ugo = self.GetUnstructuredGridOutput()
+        ugo.Allocate(points.shape[0])
 
-        # setting up the points and allocate the number points
+        # paraview section begins here
+        # insert points into a vtk data array then into unstructured grid output
         pvtk = dsa.numpyTovtkDataArray(points)
         pts = vtk.vtkPoints()
-        pts.Allocate(dims[0] * dims[1] * dims[2])
+        pts.Allocate(points.shape[0])
         pts.SetData(pvtk)
-        output.SetPoints(pts)
+        ugo.SetPoints(pts)
+
+        # Insert hexahedron cells into the unstructured grid output
+        for row in range(V_Periodic.shape[0]):
+            aHexahedron = vtk.vtkHexahedron()
+            for cell_indx in range(V_Periodic.shape[1]):
+                aHexahedron.GetPointIds().SetId(cell_indx, V_Periodic[row, cell_indx])
+            ugo.InsertNextCell(aHexahedron.GetCellType(), aHexahedron.GetPointIds())
 
         for name, data in F.items():
             fvtk = dsa.numpyTovtkDataArray(data)
             fvtk.SetName(name)
             output.GetPointData().AddArray(fvtk)
 
-    extend = np.array(extend)
-    xax = np.linspace(extend[0,0],extend[1,0], NxNyNz[0])
-    yax = np.linspace(extend[0,1],extend[1,1], NxNyNz[1])
-    zax = np.linspace(extend[0,2],extend[1,2], NxNyNz[2])
-    Y, Z, X = np.meshgrid(yax, zax, xax)
-    points = np.column_stack([X.flatten(), Y.flatten(), Z.flatten()])
+    N = 5
+    rmin = 3.
+    dphi = 2.*np.pi/N
 
+    r_ax = np.arange(rmin,6,(6-rmin)/N) # make radius out to 6.
+    theta_i = 20*np.pi/180
+    theta_f = 179 * np.pi/180
+    theta_step = (theta_f-theta_i)/N
+    theta_ax = np.arange(theta_i,theta_f,theta_step)
+    theta_ax = np.pi/2. - theta_ax # converting from colatitude to latitude
+    phi_ax = dphi*np.arange(N)
+
+    phi = np.kron(np.ones(N),phi_ax)
+    theta = np.kron(theta_ax,np.ones(N))
+    r = np.kron(r_ax, np.ones(N**2))
+
+    phi = np.kron(np.ones(N), phi)
+    theta = np.kron(np.ones(N), theta)
+    P = np.column_stack([r,theta,phi])
+    P_cartesian = np.nan*np.empty(P.shape)
+
+    P_cartesian[:,0] = P[:,0]*np.cos(P[:,2])*np.cos(P[:,1])  # x = r cos(phi) cos(theta)
+    P_cartesian[:,1] = P[:,0]*np.sin(P[:,2])*np.cos(P[:,1])  # y = r sin(phi) cos(theta)
+    P_cartesian[:,2] = P[:,0]*np.sin(P[:,1])                 # z = r sin(theta)
+
+    points = P_cartesian
     r = np.linalg.norm(points,axis=1)
     data_arrays = {}
     if coord_sys != 'GSM':
@@ -119,10 +138,25 @@ def _dipole_field(self, output, time, extend, NxNyNz, coord_sys):
     B[:,1] = 3*M*points[:,1]*points[:,2]/r**5 # By = 3*M*y*z/r^5
     B[:,2] = M*(3*points[:,2]**2-r**2)/r**5  # Bz = M(3*z^2 - r^2)/r^5
 
-    data_arrays['B_field'] = B
-    data_arrays['distance'] = r
+    data_arrays['B-field'] = B
 
-    structured_grid(output, points, data_arrays) # S is programmable source
+    ind = np.arange(N**3).reshape((N,N,N)) # ind is (N,N,N) going from 0-N^3-1
+        #PERIODIC IN PHI DIRECTION (indexed by k)
+    indPeriodic = np.zeros((N,N,N+1), dtype=int) # shape: (N,N,N+1)
+    indPeriodic[:,:,:-1] = ind # the same as ind except with an extra column of zeros
+    indPeriodic[:,:,-1] = ind[:,:,0] # the last row which was all zeros is now a copy of the first row
+
+    V_Periodic = []
+    for i in range(N-1):
+        for j in range(N-1):
+            for k in range(N):
+                V_Periodic.append(
+                            (indPeriodic[i,j,k], indPeriodic[i+1,j,k], indPeriodic[i+1,j+1,k], indPeriodic[i,j+1,k],
+                             indPeriodic[i,j,k+1], indPeriodic[i+1,j,k+1], indPeriodic[i+1,j+1,k+1], indPeriodic[i,j+1,k+1])
+                        )
+    V_Periodic = np.array(V_Periodic, dtype=int) # size = (N-1)(N-1)*N
+
+    unstructured_grid(points, data_arrays, V_Periodic)
 
 def dipole_field(time, M=7.788E22, coord_sys='GSM', extend=[[-21,-21,-21],[21,21,21]], NxNyNz=[22,22,22],):
     return objs_wrapper(time=time, extend=extend, NxNyNz=NxNyNz,
@@ -1002,6 +1036,7 @@ def _plasmapause(self, output, N, coord_sys, time):
     P_cartesian[:,2] = P[:,0]*np.sin(P[:,1])                 # z = r sin(theta)
 
     if coord_sys != 'SM':
+        print(time)
         P_cartesian = hx.transform(P_cartesian, time, 'SM', coord_sys, 'car', 'car')
 
     ind = np.arange(N**3).reshape((N,N,N)) # ind is (50,50,50) going from 0-124999
@@ -1596,12 +1631,7 @@ def objs_wrapper(**kwargs):
     if kwargs['obj'] == 'dipole field':
 
         Nx,Ny,Nz = kwargs['NxNyNz']
-        programmableSource.OutputDataSetType = 'vtkStructuredGrid'
-        programmableSource.ScriptRequestInformation = f"""
-        executive = self.GetExecutive()
-        outInfo = executive.GetOutputInformation(0)
-        outInfo.Set(executive.WHOLE_EXTENT(), 0, {Nx-1}, 0, {Ny-1}, 0, {Nz-1})
-        """
+        programmableSource.OutputDataSetType = 'vtkUnstructuredGrid'
         programmableSource.Script = script(kwargs)
 
         renderView = pvs.GetActiveViewOrCreate('RenderView')
@@ -2604,7 +2634,7 @@ if False:
 if "kwargs" in vars():
 
     if kwargs['obj'] == 'dipole field':
-        _dipole_field(self, output, time=kwargs['time'], extend=kwargs['extend'], NxNyNz=kwargs['NxNyNz'],
+        _dipole_field(self, time=kwargs['time'], M=kwargs['M'], extend=kwargs['extend'], NxNyNz=kwargs['NxNyNz'],
                       coord_sys=kwargs['coord_sys'])
 
     if kwargs['obj'] == 'satellite':
