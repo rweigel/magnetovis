@@ -124,7 +124,26 @@ def _dipole_field(self, output, time, M, extend, NxNyNz, coord_sys):
 
     structured_grid(output, points, data_arrays) # S is programmable source
 
-def dipole_field(time, M=7.788E22, coord_sys='GSM', extend=[[-21,-21,-21],[21,21,21]], NxNyNz=[22,22,22],):
+def dipole_field(time, M=-31000., coord_sys='GSM', extend=[[-21,-21,-21],[21,21,21]], NxNyNz=[22,22,22]):
+    """
+    creates a rectangular meshgrid of magnetic field data.
+
+    Parameters
+    ----------
+    time : array_like
+        contains year, month, day, hour, min.
+    M : `float`
+        The dipole moment in units of nT Re^3. default: -31000
+        https://ccmc.gsfc.nasa.gov/RoR_WWW/presentations/Dipole.pdf 
+    coord_sys : `str`
+        coordinate system.
+    extend : array_like
+        2x3 array of ints. Each row represent the x,y,z of a
+        point on the diagonal of a rectangular prism.
+    NxNyNz : array_like
+        1x3 array of ints. The number of grid points along each axis.
+
+    """
     return objs_wrapper(time=time, M=M, extend=extend, NxNyNz=NxNyNz,
                         coord_sys=coord_sys, representation='Surface',
                         obj='dipole field')
