@@ -66,7 +66,7 @@ def cutplane(run='DIPTSUR2', time=(2019,9,2,4,10,0,0), plane='xz', var='p',
         pvs.Render()
 
 
-def _dipole_field(self, output, time, extend, NxNyNz, coord_sys):
+def _dipole_field(self, output, time, M, extend, NxNyNz, coord_sys):
     """
     extend [[x0,y0,z0],[x1,y1,z1]] points of the corner across the diagonal of the grid
     NxNyNz: number of points along each axis
@@ -125,8 +125,8 @@ def _dipole_field(self, output, time, extend, NxNyNz, coord_sys):
     structured_grid(output, points, data_arrays) # S is programmable source
 
 def dipole_field(time, M=7.788E22, coord_sys='GSM', extend=[[-21,-21,-21],[21,21,21]], NxNyNz=[22,22,22],):
-    return objs_wrapper(time=time, extend=extend, NxNyNz=NxNyNz,
-                        coord_sys=coord_sys, M=M, representation='Surface',
+    return objs_wrapper(time=time, M=M, extend=extend, NxNyNz=NxNyNz,
+                        coord_sys=coord_sys, representation='Surface',
                         obj='dipole field')
 
 
@@ -2604,7 +2604,7 @@ if False:
 if "kwargs" in vars():
 
     if kwargs['obj'] == 'dipole field':
-        _dipole_field(self, output, time=kwargs['time'], extend=kwargs['extend'], NxNyNz=kwargs['NxNyNz'],
+        _dipole_field(self, output, time=kwargs['time'], M=kwargs['M'], extend=kwargs['extend'], NxNyNz=kwargs['NxNyNz'],
                       coord_sys=kwargs['coord_sys'])
 
     if kwargs['obj'] == 'satellite':
