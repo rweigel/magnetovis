@@ -134,7 +134,7 @@ def dipole_field(time, M=-31000., coord_sys='GSM', extend=[[-21,-21,-21],[21,21,
         contains year, month, day, hour, min.
     M : `float`
         The dipole moment in units of nT Re^3. default: -31000
-        https://ccmc.gsfc.nasa.gov/RoR_WWW/presentations/Dipole.pdf 
+        https://ccmc.gsfc.nasa.gov/RoR_WWW/presentations/Dipole.pdf
     coord_sys : `str`
         coordinate system.
     extend : array_like
@@ -521,19 +521,57 @@ if False:
 
 
 
-def magnetic_dipole(time,
-            renderView=None,
-            render=True,
-            show=True,
-            out_dir=tempfile.gettempdir(),
-            debug=False):
-    axis(time, 'z', coord_sys='MAG',
-        length_positive=15., length_negative=0., tick_spacing=1, label=False,
-            renderView=renderView,
-            render=render,
-            show=show,
-            out_dir=out_dir,
-            debug=debug)
+def magnetic_dipole(time, coord_sys='SM', lims=[0,20],
+                    representation='Surface', color=[0,0,1],
+                    renderView=None, render=True, show=True, debug=False):
+    objs_wrapper(time=time, coord_sys=coord_sys, lims=lims,
+                     representation=representation, color=color,
+                     renderView=renderView, render=render, show=show,
+                     debug=debug, obj='magnetic_dipole')
+
+def _magnetic_dipole(self, time, coord_sys, lims):
+    from hxform import hxform as hx
+    import numpy as np
+
+    pt1 = [0,0,lims[0]]
+    pt2 = [0,0,lims[1]]
+    points = np.array([pt1,pt2])
+    if coord_sys != 'SM':
+        points = hx.transform(points, time, 'SM', coord_sys, 'car', 'car')
+
+    ############################################################
+    ####### start of the code to use programmable source #######
+    ############################################################
+
+    import vtk
+    import paraview.simple as pvs
+
+    pdo = self.GetPolyDataOutput()
+    pdo.Allocate(points.shape[0], 1)
+    pts = vtk.vtkPoints()
+    pvtk = dsa.numpyTovtkDataArray(points)
+    pts.SetData(pvtk)
+    pdo.SetPoints(pts)
+
+    # color sections
+    colors = vtk.vtkIntArray()
+    colors.SetNumberOfComponents(1)
+    colors.SetName("magnetic dipole - {}".format(coord_sys))
+    colors.InsertNextTuple([0])
+    colors.InsertNextTuple([0])
+    pdo.GetPointData().AddArray(colors)
+
+    # inserting line vtk
+    line = vtk.vtkPolyLine()
+    line.GetPointIds().SetNumberOfIds(2)
+    line.GetPointIds().SetId(0,0)
+    line.GetPointIds().SetId(1,1)
+    pdo.InsertNextCell(line.GetCellType(), line.GetPointIds())
+
+
+
+
+
 
 
 
@@ -1322,6 +1360,35 @@ def objs_wrapper(**kwargs):
     programmableSource = pvs.ProgrammableSource()
 
     mag_surfaces = ['Magnetopause','Bowshock','Neutralsheet', 'Plasmasheet']
+
+    if kwargs['obj'] == 'magnetic_dipole':
+        programmableSource.Script = script(kwargs)
+
+        if not kwargs['renderView']:
+            renderView = pvs.GetActiveViewOrCreate('RenderView')
+
+        programmableSourceDisplay = pvs.Show(programmableSource, renderView)
+        programmableSourceDisplay.Representation = kwargs['representation']
+
+        if not kwargs['show']:
+            pvs.Hide(programmableSource, renderView)
+
+        if kwargs['render']:
+            pvs.Render()
+        renderView.Update()
+
+        lut_name = f"magnetic dipole - {kwargs['coord_sys']}"
+        LUT = pvs.GetColorTransferFunction(lut_name)
+        LUT.IndexedColors = kwargs['color'] ####
+        LUT.Annotations = ['0','magnetic dipole']
+        LUT.InterpretValuesAsCategories = 1
+        LUT.AnnotationsInitialized = 1
+        programmableSourceDisplay.LookupTable = LUT
+        programmableSourceDisplay.OpacityArray = ['POINTS', lut_name]
+        programmableSourceDisplay.ColorArrayName = ['POINTS', lut_name]
+        programmableSourceDisplay.SetScalarBarVisibility(renderView, False)
+
+        title = f'magnetic dipole {kwargs["coord_sys"]} time: {kwargs["time"]}'
 
     if kwargs['obj'] == 'axis':
 
@@ -2621,6 +2688,10 @@ if False:
 
 
 if "kwargs" in vars():
+
+    if kwargs['obj'] == 'magnetic_dipole':
+        _magnetic_dipole(self, kwargs['time'], kwargs['coord_sys'],
+                         kwargs['lims'])
 
     if kwargs['obj'] == 'dipole field':
         _dipole_field(self, output, time=kwargs['time'], M=kwargs['M'], extend=kwargs['extend'], NxNyNz=kwargs['NxNyNz'],
