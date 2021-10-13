@@ -12,6 +12,7 @@ def exec_programmable_source(file, **kwargs):
 
   file = os.path.join(os.getcwd(), file)
 
+  print("here")
   # Create a new Programmable Source
   programmableSource1 = pvs.ProgrammableSource()
 
@@ -22,14 +23,4 @@ def exec_programmable_source(file, **kwargs):
     # Python 3.
     programmableSource1.Script = "kwargs="+str(kwargs)+"\nexec(open('" + file + "').read())"
 
-  # Get active view
-  renderView1 = pvs.GetActiveViewOrCreate('RenderView')
-
-  # Show data in view
-  programmableSource1Display = pvs.Show(programmableSource1, renderView1)
-
-  # Trace defaults for the display properties.
-  programmableSource1Display.Representation = 'Surface'
-
-  # Update the view to ensure updated data information
-  renderView1.Update()
+  return programmableSource1

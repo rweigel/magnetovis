@@ -33,45 +33,6 @@ def rotation_matrix(axis, theta):
                      [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
 
 
-def cutplane(run='DIPTSUR2', time=(2019,9,2,4,10,0,0), plane='xz', var='p',
-                    renderView=None, render=True, show=True, debug=True):
-
-    from hapiclient.util import urlretrieve
-
-    if plane == 'xz':
-        extend=[[-55,25],[-55,55]]
-    else:
-        raise ValueError ('only xz plane currently supported')
-
-
-    vtk_fname = '%s_GSM_plane_%s_demo.vtk'%(plane,var)
-
-    # Dowload demo vtk from online server and save to /tmp/
-    vtk_url = 'http://mag.gmu.edu/git-data/magnetovis/simulation/' + vtk_fname
-    retd = urlretrieve(vtk_url, '/tmp/'+vtk_fname, check_last_modified=False)
-
-    import paraview.simple as pvs
-    if not renderView:
-        renderView = pvs.GetActiveViewOrCreate('RenderView')
-
-    # load vtk from /tmp/ into reader object
-    cutplane_vtk = pvs.LegacyVTKReader(FileNames=['/tmp/'+vtk_fname])
-    # show data in view
-    cutplane_vtkDisplay = pvs.Show(cutplane_vtk, renderView)
-
-    if not show:
-        pvs.Hide(cutplane_vtk, renderView)
-    if render:
-        # Render all display objects in renderView
-        pvs.Render()
-
-
-def trajectory():
-    # read http://mag.gmu.edu/git-data/magnetovis/trajectory/demo.vtk and plot it
-    pass
-
-#$ cd ~/.local/progs/ParaView-5.9.1-MPI-Linux-Python3.8-64bit/lib/python3.8/
-#$ ln -s ./__pycache__/_sysconfigdata__linux_x86_64-linux-gnu.cpython-38.pyc _sysconfigdata__linux_x86_64-linux-gnu.pyc
 def earth(time,
             coord_sys='GSM',
             renderView=None,
@@ -186,7 +147,9 @@ def earth(time,
     if render:
         # Render all display objects in renderView
         pvs.Render()
+
     pvs.RenameSource('Earth - {} {}'.format(coord_sys, util.tstr(time,6)))
+
     return sphereDisplay, renderView, sphereVTK
 
 
@@ -247,195 +210,6 @@ def field_data(time, Xgrid, values, dims, texture, # dims = [Nx,Ny,Nz]
         pvs.Render()
 
     return structured_gridvtk
-
-def plane_data(time, Ugrid, values, dims, texture,
-                    var = 'dummy_variable',
-                    out_filename = os.path.join(tempfile.gettempdir(), 'plane_grid_dummy'),
-                    renderView=None,
-                    render=True,
-                    show=True,
-                    debug=True, sum_total=False):
-    pass
-
-
-if False:
-    """
-    # def slice(structured_grid, origin, normal,
-    #                                 renderView=None,
-    #                                 render=True,
-    #                                 show=True,
-    #                                 debug=True, vector_component=None):
-
-    #     import paraview.simple as pvs
-    #     if not renderView:
-    #         renderView = pvs.GetActiveViewOrCreate('RenderView')
-
-    #     # create a new 'Slice'
-    #     slice1 = pvs.Slice(Input=structured_grid)
-    #     slice1.SliceType = 'Plane'
-    #     slice1.SliceOffsetValues = [0.0]
-
-    #     # init the 'Plane' selected for 'SliceType'
-    #     slice1.SliceType.Origin = origin
-    #     slice1.SliceType.Normal = normal
-
-    #     # get color transfer function/color map for var
-    #     point_data_name = structured_grid.PointData.keys()[0]
-    #     print('point_data_name = ' + point_data_name)
-
-    #     colorMap = pvs.GetColorTransferFunction(point_data_name)
-
-    #     # show data in view
-    #     slice1Display = pvs.Show(slice1, renderView)
-
-    #     # trace defaults for the display properties.
-    #     slice1Display.Representation = 'Surface'
-    #     slice1Display.LookupTable = colorMap
-    #     slice1Display.OSPRayScaleFunction = 'PiecewiseFunction'
-
-    #     if vector_component is not None:
-    #         #https://kitware.github.io/paraview-docs/latest/python/_modules/paraview/simple.html
-    #         pvs.ColorBy(slice1Display, ('POINTS', point_data_name, vector_component))
-
-    #     slice1Display.RescaleTransferFunctionToDataRange(False)
-
-    #     # show color bar/color legend
-    #     slice1Display.SetScalarBarVisibility(renderView, True)
-
-
-    # # https://docs.paraview.org/en/latest/ReferenceManual/colorMapping.html
-    #     # apply custom color transfer function
-    #     if False:
-    #         colorMap.RGBPoints = get_color_transfer_function()
-
-    #     #slice1Display.RescaleTransferFunctionToDataRange(False) #screws everything up if put here
-
-    #     return colorMap
-
-
-    # def get_color_transfer_function(scale='continuous_log', highest_val = 100., unit = 1., n = 5001):
-
-    #     # write color transfer function with numpy
-    #     def transfunc(x_units):
-    #         x = x_units/log_units
-    #         try:
-    #             assert(len(x.shape) == 1)
-    #             ret = []
-    #             for i in range(x.size):
-    #                 ret.append(transfunc(x[i]))
-    #             return np.array(ret)
-    #         except:
-    #             if 0<=x and x <= p:
-    #                 return B*x
-    #             if x>p:
-    #                 return np.log10(x) + 1.
-    #             if x<0:
-    #                 #return -transfunc(-x)
-    #                 return 0.
-
-    #     def transfunc(x_units):
-    #         x = x_units/unit
-    #         if scale=='continuous_log':
-    #             B = 10./(np.e*np.log(10.)) # log is nat log (base e)
-    #             p = np.e/10.
-    #             if 0<=x and x <= p:
-    #                 return B*x
-    #             if x>p:
-    #                 return np.log10(x) + 1.
-    #             if x<0:
-    #                 #return -transfunc(-x)
-    #                 return 0.
-    #         if scale=='linear':
-    #             if x>0:
-    #                 return x
-    #             else:
-    #                 #return -x
-    #                 return 0
-    #         if scale == 'kinked_log':
-    #             if 0 <= x and x <= 1.:
-    #                 return x
-    #             if x>1:
-    #                 return np.log10(x) + 1.
-    #             if x<0:
-    #                 return 0
-
-    #     #val_range = highest_val*np.linspace(-1, 1, 100)
-    #     #CAREFUL: with above val_range, it made the magnitude look slightly
-    #     #         blue (so slightly negative) on the outskirts where it
-    #     #         should be zero. Note zero was point.
-    #     #         TODO: find what interpolation inbetween paraview uses
-    #     val_range = highest_val*np.linspace(-1, 1, n)
-
-    #     mx = np.max(val_range)
-    #     norm = transfunc(mx)
-    #     #print('mx',mx)
-    #     #print('norm',norm)
-    #     #print(transfunc(val_range))
-
-    #     red_range = np.zeros(n)
-    #     for i in range(n):
-    #         red_range[i] = (1./norm)*transfunc(val_range[i])
-
-    #     blue_range = np.zeros(n)
-    #     for i in range(n):
-    #         blue_range[i] = (1./norm)*transfunc(-val_range[i])
-
-    #     green_range = np.zeros(n)
-
-    #     transfunc_array = np.column_stack([val_range,
-    #                                         red_range,
-    #                                         green_range, blue_range])
-    #     return transfunc_array.flatten()
-
-
-    # def location_on_earth(time, mlat, mlon,
-    #                                 renderView=None,
-    #                                 render=True,
-    #                                 show=True,
-    #                                 debug=True):
-
-    #     import cxtransform as cx
-    #     import paraview.simple as pvs
-
-    #     center = cx.MAGtoGSM([1., mlat, mlon], time, 'sph', 'car')
-
-    #     if not renderView:
-    #         renderView = pvs.GetActiveViewOrCreate('RenderView')
-
-    #     sph = pvs.Sphere()
-    #     # Properties modified on sph
-    #     sph.Center = center
-    #     sph.Radius = 0.2
-    #     sph.ThetaResolution = 10
-    #     sph.PhiResolution = 10
-
-    #     # show data in view
-    #     sphDisplay = pvs.Show(sph, renderView)
-    #     # trace defaults for the display properties.
-    #     sphDisplay.Representation = 'Surface'
-    #     sphDisplay.ColorArrayName = [None, '']
-    #     sphDisplay.OSPRayScaleArray = 'Normals'
-    #     sphDisplay.OSPRayScaleFunction = 'PiecewiseFunction'
-    #     sphDisplay.SelectOrientationVectors = 'None'
-    #     sphDisplay.ScaleFactor = 0.2
-    #     sphDisplay.SelectScaleArray = 'None'
-    #     sphDisplay.GlyphType = 'Arrow'
-    #     sphDisplay.GlyphTableIndexArray = 'None'
-    #     sphDisplay.DataAxesGrid = 'GridAxesRepresentation'
-    #     sphDisplay.PolarAxes = 'PolarAxesRepresentation'
-    #     # change solid color
-    #     sphDisplay.DiffuseColor = [1.0, 0.0, 1.0]
-
-    #     if not show:
-    #         pvs.Hide(structured_gridvtk, renderView)
-
-    #     if render:
-    #         # Render all display objects in renderView
-    #         pvs.Render()"""
-    pass
-
-
-
 
 
 def magnetic_dipole(time,
@@ -697,9 +471,9 @@ def plane(time, val, extend=[[-40,40],[-40,40]], coord_sys='GSM', labels=True,
     planeDisplay.Representation = 'Surface'
     planeDisplay.Opacity = opacity
 
-    scalar_data = '{} axes'.format(val)
+    scalar_data = '{} plane'.format(val)
 
-    LUT = pvs.GetColorTransferFunction('{} plane'.format(val))
+    LUT = pvs.GetColorTransferFunction(scalar_data)
     LUT.IndexedColors = color
     LUT.Annotations = ['0', val]
     LUT.InterpretValuesAsCategories = 1
@@ -2596,3 +2370,226 @@ if "kwargs" in vars():
     elif kwargs['obj'] == 'longitude':
         _longitude_lines(self, time=kwargs['time'], coord_sys=kwargs['coord_sys'],
                          increment=kwargs['increment'], color=kwargs['color'])
+
+def cutplane(run='DIPTSUR2', time=(2019,9,2,4,10,0,0), plane='xz', var='p',
+                    renderView=None, render=True, show=True, debug=True):
+
+    from hapiclient.util import urlretrieve
+
+    if plane == 'xz':
+        extend=[[-55,25],[-55,55]]
+    else:
+        raise ValueError ('only xz plane currently supported')
+
+
+    vtk_fname = '%s_GSM_plane_%s_demo.vtk'%(plane,var)
+
+    # Dowload demo vtk from online server and save to /tmp/
+    vtk_url = 'http://mag.gmu.edu/git-data/magnetovis/simulation/' + vtk_fname
+    retd = urlretrieve(vtk_url, '/tmp/'+vtk_fname, check_last_modified=False)
+
+    import paraview.simple as pvs
+    if not renderView:
+        renderView = pvs.GetActiveViewOrCreate('RenderView')
+
+    # load vtk from /tmp/ into reader object
+    cutplane_vtk = pvs.LegacyVTKReader(FileNames=['/tmp/'+vtk_fname])
+    # show data in view
+    cutplane_vtkDisplay = pvs.Show(cutplane_vtk, renderView)
+
+    if not show:
+        pvs.Hide(cutplane_vtk, renderView)
+    if render:
+        # Render all display objects in renderView
+        pvs.Render()
+
+def plane_data(time, Ugrid, values, dims, texture,
+                    var = 'dummy_variable',
+                    out_filename = os.path.join(tempfile.gettempdir(), 'plane_grid_dummy'),
+                    renderView=None,
+                    render=True,
+                    show=True,
+                    debug=True, sum_total=False):
+    pass
+
+
+if False:
+    """
+    # def slice(structured_grid, origin, normal,
+    #                                 renderView=None,
+    #                                 render=True,
+    #                                 show=True,
+    #                                 debug=True, vector_component=None):
+
+    #     import paraview.simple as pvs
+    #     if not renderView:
+    #         renderView = pvs.GetActiveViewOrCreate('RenderView')
+
+    #     # create a new 'Slice'
+    #     slice1 = pvs.Slice(Input=structured_grid)
+    #     slice1.SliceType = 'Plane'
+    #     slice1.SliceOffsetValues = [0.0]
+
+    #     # init the 'Plane' selected for 'SliceType'
+    #     slice1.SliceType.Origin = origin
+    #     slice1.SliceType.Normal = normal
+
+    #     # get color transfer function/color map for var
+    #     point_data_name = structured_grid.PointData.keys()[0]
+    #     print('point_data_name = ' + point_data_name)
+
+    #     colorMap = pvs.GetColorTransferFunction(point_data_name)
+
+    #     # show data in view
+    #     slice1Display = pvs.Show(slice1, renderView)
+
+    #     # trace defaults for the display properties.
+    #     slice1Display.Representation = 'Surface'
+    #     slice1Display.LookupTable = colorMap
+    #     slice1Display.OSPRayScaleFunction = 'PiecewiseFunction'
+
+    #     if vector_component is not None:
+    #         #https://kitware.github.io/paraview-docs/latest/python/_modules/paraview/simple.html
+    #         pvs.ColorBy(slice1Display, ('POINTS', point_data_name, vector_component))
+
+    #     slice1Display.RescaleTransferFunctionToDataRange(False)
+
+    #     # show color bar/color legend
+    #     slice1Display.SetScalarBarVisibility(renderView, True)
+
+
+    # # https://docs.paraview.org/en/latest/ReferenceManual/colorMapping.html
+    #     # apply custom color transfer function
+    #     if False:
+    #         colorMap.RGBPoints = get_color_transfer_function()
+
+    #     #slice1Display.RescaleTransferFunctionToDataRange(False) #screws everything up if put here
+
+    #     return colorMap
+
+
+    # def get_color_transfer_function(scale='continuous_log', highest_val = 100., unit = 1., n = 5001):
+
+    #     # write color transfer function with numpy
+    #     def transfunc(x_units):
+    #         x = x_units/log_units
+    #         try:
+    #             assert(len(x.shape) == 1)
+    #             ret = []
+    #             for i in range(x.size):
+    #                 ret.append(transfunc(x[i]))
+    #             return np.array(ret)
+    #         except:
+    #             if 0<=x and x <= p:
+    #                 return B*x
+    #             if x>p:
+    #                 return np.log10(x) + 1.
+    #             if x<0:
+    #                 #return -transfunc(-x)
+    #                 return 0.
+
+    #     def transfunc(x_units):
+    #         x = x_units/unit
+    #         if scale=='continuous_log':
+    #             B = 10./(np.e*np.log(10.)) # log is nat log (base e)
+    #             p = np.e/10.
+    #             if 0<=x and x <= p:
+    #                 return B*x
+    #             if x>p:
+    #                 return np.log10(x) + 1.
+    #             if x<0:
+    #                 #return -transfunc(-x)
+    #                 return 0.
+    #         if scale=='linear':
+    #             if x>0:
+    #                 return x
+    #             else:
+    #                 #return -x
+    #                 return 0
+    #         if scale == 'kinked_log':
+    #             if 0 <= x and x <= 1.:
+    #                 return x
+    #             if x>1:
+    #                 return np.log10(x) + 1.
+    #             if x<0:
+    #                 return 0
+
+    #     #val_range = highest_val*np.linspace(-1, 1, 100)
+    #     #CAREFUL: with above val_range, it made the magnitude look slightly
+    #     #         blue (so slightly negative) on the outskirts where it
+    #     #         should be zero. Note zero was point.
+    #     #         TODO: find what interpolation inbetween paraview uses
+    #     val_range = highest_val*np.linspace(-1, 1, n)
+
+    #     mx = np.max(val_range)
+    #     norm = transfunc(mx)
+    #     #print('mx',mx)
+    #     #print('norm',norm)
+    #     #print(transfunc(val_range))
+
+    #     red_range = np.zeros(n)
+    #     for i in range(n):
+    #         red_range[i] = (1./norm)*transfunc(val_range[i])
+
+    #     blue_range = np.zeros(n)
+    #     for i in range(n):
+    #         blue_range[i] = (1./norm)*transfunc(-val_range[i])
+
+    #     green_range = np.zeros(n)
+
+    #     transfunc_array = np.column_stack([val_range,
+    #                                         red_range,
+    #                                         green_range, blue_range])
+    #     return transfunc_array.flatten()
+
+
+    # def location_on_earth(time, mlat, mlon,
+    #                                 renderView=None,
+    #                                 render=True,
+    #                                 show=True,
+    #                                 debug=True):
+
+    #     import cxtransform as cx
+    #     import paraview.simple as pvs
+
+    #     center = cx.MAGtoGSM([1., mlat, mlon], time, 'sph', 'car')
+
+    #     if not renderView:
+    #         renderView = pvs.GetActiveViewOrCreate('RenderView')
+
+    #     sph = pvs.Sphere()
+    #     # Properties modified on sph
+    #     sph.Center = center
+    #     sph.Radius = 0.2
+    #     sph.ThetaResolution = 10
+    #     sph.PhiResolution = 10
+
+    #     # show data in view
+    #     sphDisplay = pvs.Show(sph, renderView)
+    #     # trace defaults for the display properties.
+    #     sphDisplay.Representation = 'Surface'
+    #     sphDisplay.ColorArrayName = [None, '']
+    #     sphDisplay.OSPRayScaleArray = 'Normals'
+    #     sphDisplay.OSPRayScaleFunction = 'PiecewiseFunction'
+    #     sphDisplay.SelectOrientationVectors = 'None'
+    #     sphDisplay.ScaleFactor = 0.2
+    #     sphDisplay.SelectScaleArray = 'None'
+    #     sphDisplay.GlyphType = 'Arrow'
+    #     sphDisplay.GlyphTableIndexArray = 'None'
+    #     sphDisplay.DataAxesGrid = 'GridAxesRepresentation'
+    #     sphDisplay.PolarAxes = 'PolarAxesRepresentation'
+    #     # change solid color
+    #     sphDisplay.DiffuseColor = [1.0, 0.0, 1.0]
+
+    #     if not show:
+    #         pvs.Hide(structured_gridvtk, renderView)
+
+    #     if render:
+    #         # Render all display objects in renderView
+    #         pvs.Render()"""
+    pass
+
+
+def trajectory():
+    # read http://mag.gmu.edu/git-data/magnetovis/trajectory/demo.vtk and plot it
+    pass
