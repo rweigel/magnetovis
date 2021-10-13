@@ -85,12 +85,12 @@ class BaseClass:
         pvs.RenameSource(sourceName, self.programmableSource)
 
         if renderSource is True:
-            self.SetDisplayOptions(displayArguments)
+            self.SetDisplayOptions(displayArguments, sourceArguments)
         else:
             self.displayProperties = None
             self.renderView = None
 
-    def SetDisplayOptions(self, displayArguments):
+    def SetDisplayOptions(self, displayArguments, sourceArguments):
 
         import paraview.simple as pvs
 
@@ -128,10 +128,7 @@ class BaseClass:
         # Create display properties object
         displayProperties = pvs.Show(self.programmableSource, self.renderView)
 
-        self.displayProperties = self.displayFunction(
-                                                        displayProperties,
-                                                        **displayArguments
-                                                    )
+        self.displayProperties = self.displayFunction(displayProperties, sourceArguments)
 
         # Update the view to ensure updated data information
         # TODO: Needed?

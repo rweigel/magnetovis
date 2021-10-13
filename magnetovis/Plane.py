@@ -48,8 +48,10 @@ def Script(self, time="2001-01-01", normal="Z", extents=[[-40., 40.],[-40., 40.]
     structured_grid(self, output, points, {}) 
 
 
-def _display(self, displayProperties, labels=True, opacity=.25):
+def _display(self, displayProperties, sourceArguments):
 
+    print(displayProperties)
+    print(sourceArguments)
     import paraview.simple as pvs
 
     displayProperties.Representation = 'Surface'
