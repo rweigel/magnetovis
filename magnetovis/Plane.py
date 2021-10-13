@@ -1,49 +1,24 @@
-def _source_output_data_type():
+def OutputDataSetType():
 
-    # What is set in the drop-down menu for Output Data Set Type
+    # What is set in the drop-down menu for Output Data Set Type for a Programmable Source
     return "vtkStructuredGrid"
 
 
-def _source_request_information(self, Nx=2, Ny=2, Nz=1):
+def ScriptRequestInformation(self, Nx=2, Ny=2, Nz=1):
 
-    # What is entered in the Script (RequestInformation) box
+    # What is entered in the Script (RequestInformation) box for a Programmable Source
     executive = self.GetExecutive()
     outInfo = executive.GetOutputInformation(0)
-    
     outInfo.Set(executive.WHOLE_EXTENT(), 0, Nx-1, 0, Ny-1, 0, Nz-1)
 
 
-def _source(self, time="2001-01-01", normal="Z", extents=[[-40., 40.],[-40., 40.]], Nx=2, Ny=2, Nz=1, offset=0.0, coord_sys='GSM'):
+def Script(self, time="2001-01-01", normal="Z", extents=[[-40., 40.],[-40., 40.]], Nx=2, Ny=2, Nz=1, offset=0.0, coord_sys='GSM'):
 
-    # What is entered in the Script box
+    # What is entered in the Script box for a Programmable Source
     
     import vtk
     import numpy as np
-
-    def structured_grid(output, points, F):
-
-        # https://discourse.paraview.org/t/problem-displaying-structured-grid-when-loading-from-programmable-source/3051/2
-        import vtk
-        from vtk.numpy_interface import dataset_adapter as dsa
-
-        # Communication between "script" and "script (RequestInformation)"
-        executive = self.GetExecutive()
-        outInfo = executive.GetOutputInformation(0)
-        exts = [executive.UPDATE_EXTENT().Get(outInfo, i) for i in range(6)]
-        dims = [exts[1]+1, exts[3]+1, exts[5]+1]
-
-        output.SetExtent(exts)
-
-        pvtk = dsa.numpyTovtkDataArray(points)
-        pts = vtk.vtkPoints()
-        pts.Allocate(dims[0]*dims[1]*dims[2])
-        pts.SetData(pvtk)
-        output.SetPoints(pts)
-        output.SetDimensions(2,2,1)
-        for name, data in F.items():
-            fvtk = dsa.numpyTovtkDataArray(data)
-            fvtk.SetName(name)
-            output.GetPointData().AddArray(fvtk)
+    from magnetovis.structured_grid import structured_grid
 
     from hxform import hxform as hx
 
@@ -69,8 +44,8 @@ def _source(self, time="2001-01-01", normal="Z", extents=[[-40., 40.],[-40., 40.
             ]
     points = [[-40., -40.,   0.],[ 40., -40.,   0.],[-40.,  40.,   0.],[ 40.,  40.,   0.]]
 
-    # Output is alread defined in script context.
-    structured_grid(output, points, {}) 
+    # output variable is defined in script context.
+    structured_grid(self, output, points, {}) 
 
 
 def _display(self, displayProperties, labels=True, opacity=.25):

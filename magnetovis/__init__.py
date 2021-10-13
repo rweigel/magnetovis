@@ -10,12 +10,9 @@ def extract_script(function, sourceArguments):
 
         # Based on https://stackoverflow.com/a/54009257
         from inspect import signature, Parameter
-        #kwargs = {}
         head = ""
         for x, p in signature(function).parameters.items():
             if (p.default is not Parameter.empty) and p.kind == Parameter.POSITIONAL_OR_KEYWORD:
-                print(p.default)
-                #kwargs[x] = p.default
                 if sourceArguments is not None and x in sourceArguments:
                     arg = sourceArguments[x]
                 else:
@@ -77,8 +74,11 @@ class BaseClass:
         self.programmableSource = pvs.ProgrammableSource()
         self.programmableSource.Script = extract_script(self.sourceFunction, sourceArguments)
 
-        self.programmableSource.OutputDataSetType = self.sourceOutputDataSetType
-        self.programmableSource.ScriptRequestInformation = extract_script(self.sourceRequestInformationFunction, sourceArguments)
+        if hasattr(self, "sourceOutputDataSetType"):
+            self.programmableSource.OutputDataSetType = self.sourceOutputDataSetType
+
+        if hasattr(self, "sourceRequestInformationFunction"):
+            self.programmableSource.ScriptRequestInformation = extract_script(self.sourceRequestInformationFunction, sourceArguments)
 
         if sourceName is None:
             sourceName = self.sourceName
@@ -142,10 +142,10 @@ class BaseClass:
 
         return self
 
-from magnetovis.Line import _source, _display
+from magnetovis.Line import Script, _display
 file = "Line"
 temp = type(file, (object, ), {
-   "sourceFunction": _source,
+   "sourceFunction": Script,
    "displayFunction": _display,
    "sourceName": file,
    "__init__": BaseClass.__init__,
@@ -153,12 +153,12 @@ temp = type(file, (object, ), {
 })
 globals()[file] = temp
 
-from magnetovis.Plane import _source, _display, _source_request_information, _source_output_data_type
+from magnetovis.Plane import Script, ScriptRequestInformation, OutputDataSetType
 file = "Plane"
 temp = type(file, (object, ), {
-   "sourceFunction": _source,
-   "sourceOutputDataSetType": _source_output_data_type(),
-   "sourceRequestInformationFunction": _source_request_information,
+   "sourceFunction": Script,
+   "sourceOutputDataSetType": OutputDataSetType(),
+   "sourceRequestInformationFunction": ScriptRequestInformation,
    "displayFunction": _display,
    "sourceName": file,
    "__init__": BaseClass.__init__,

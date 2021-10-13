@@ -1,7 +1,7 @@
 # This program demonstrates how to use programmable source to create a
 # VTK object that could not otherwise be created using paraview.simple.
 
-def _source(self, n_pts=10, length=10):
+def Script(self, n_pts=10, length=10):
 
    # Sources, readers, and filters all produce data.
    # https://docs.paraview.org/en/latest/UsersGuide/understandingData.html
