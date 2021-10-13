@@ -63,13 +63,14 @@ def extract_script(function, sourceArguments):
 
 class BaseClass:
 
-    sourceFunction = None
-    displayFunction = None
-    sourceName = None
-
     def __init__(self, sourceName=None, sourceArguments=None, renderSource=True, displayArguments=None):
 
         import paraview.simple as pvs
+
+        print("__init__ called for " + sourceName)
+        print("   sourceArguments:  " + str(sourceArguments))
+        print("   displayArguments: " + str(displayArguments))
+        print("   renderSource:     " + str(renderSource))
 
         self.programmableSource = pvs.ProgrammableSource()
         self.programmableSource.Script = extract_script(self.sourceFunction, sourceArguments)
@@ -80,17 +81,19 @@ class BaseClass:
         if hasattr(self, "sourceRequestInformationFunction"):
             self.programmableSource.ScriptRequestInformation = extract_script(self.sourceRequestInformationFunction, sourceArguments)
 
-        if sourceName is None:
-            sourceName = self.sourceName
-        pvs.RenameSource(sourceName, self.programmableSource)
+        if sourceName is not None:
+            self.sourceName = sourceName
 
+        pvs.RenameSource(self.sourceName, self.programmableSource)
+
+        self.sourceArguments = sourceArguments
         if renderSource is True:
-            self.SetDisplayOptions(displayArguments, sourceArguments)
+            self.SetDisplayOptions(displayArguments)
         else:
             self.displayProperties = None
             self.renderView = None
 
-    def SetDisplayOptions(self, displayArguments, sourceArguments):
+    def SetDisplayOptions(self, displayArguments):
 
         import paraview.simple as pvs
 
@@ -108,7 +111,6 @@ class BaseClass:
                            .format(displayProperties['displayRepresentation'],
                                      validRepresentations)
 
-
         showSource = True
         renderView = None
         if displayArguments is not None:
@@ -125,10 +127,11 @@ class BaseClass:
         if displayArguments is None:
             displayArguments = {}
 
+        self.displayArguments = displayArguments
         # Create display properties object
-        displayProperties = pvs.Show(self.programmableSource, self.renderView)
+        self.displayProperties = pvs.Show(self.programmableSource, self.renderView)
 
-        self.displayProperties = self.displayFunction(displayProperties, sourceArguments)
+        self.displayProperties = self.displayFunction(displayArguments)
 
         # Update the view to ensure updated data information
         # TODO: Needed?
@@ -150,7 +153,7 @@ temp = type(file, (object, ), {
 })
 globals()[file] = temp
 
-from magnetovis.Plane import Script, ScriptRequestInformation, OutputDataSetType
+from magnetovis.Plane import Script, ScriptRequestInformation, OutputDataSetType, _display
 file = "Plane"
 temp = type(file, (object, ), {
    "sourceFunction": Script,

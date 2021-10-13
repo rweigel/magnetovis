@@ -45,33 +45,49 @@ def Script(self, time="2001-01-01", normal="Z", extents=[[-40., 40.],[-40., 40.]
     points = [[-40., -40.,   0.],[ 40., -40.,   0.],[-40.,  40.,   0.],[ 40.,  40.,   0.]]
 
     # output variable is defined in script context.
-    structured_grid(self, output, points, {}) 
+    structured_grid(self, output, points, {"scalar_data": [0, 0, 0, 0]})
 
 
-def _display(self, displayProperties, sourceArguments):
+def _display(self, displayArguments):
 
-    print(displayProperties)
-    print(sourceArguments)
+    # Base this on code that is displayed by trace in ParaView GUI
+
+    import paraview
     import paraview.simple as pvs
+    from paraview.numpy_support import vtk_to_numpy
+    
+    #print(list(pvs.GetSources().keys())[list(pvs.GetSources().values()).index(pvs.GetActiveSource())][0])
+    #source = pvs.FindSource(self.sourceName)
+    #print(source)
+    sourceData = paraview.servermanager.Fetch(self.programmableSource)
 
-    displayProperties.Representation = 'Surface'
-    displayProperties.Opacity = opacity
+    for idx in range(0, sourceData.GetPointData().GetNumberOfArrays()):
+        data = sourceData.GetPointData().GetArray(idx)
+        name = sourceData.GetPointData().GetArrayName(idx)
+        print("Name: " + name)
+        print("Data: ")
+        print(vtk_to_numpy(data))
 
-    #val = "XY"
-    #color = [0, 1, 0.1]
-    #scalar_data = 'Demo Plane'
-    #scalar_data = '{} axes'.format(val)
+    scalar_data = sourceData.GetPointData().GetArray('scalar_data')
+    
+    if "displayRepresentation" in displayArguments:
+        self.displayProperties.Representation = self.displayArguments['displayRepresentation']
 
-    if False:
-        lookupTable = pvs.GetColorTransferFunction('{} plane'.format(val))
+    if "opacity" in displayArguments:
+        self.displayProperties.Opacity = self.displayArguments['opacity']
+
+    name = 'scalar_data'
+
+    if self.sourceArguments['normal'] == "Z":
+        color = [0, 1, 0]
+        lookupTable = pvs.GetColorTransferFunction(name)
         lookupTable.IndexedColors = color
-        lookupTable.Annotations = ['0', val]
+        lookupTable.Annotations = ['0', self.sourceArguments['normal']]
         lookupTable.InterpretValuesAsCategories = 1
         lookupTable.AnnotationsInitialized = 1
+        self.displayProperties.LookupTable = lookupTable
+        self.displayProperties.OpacityArray = ['POINTS', name]
+        self.displayProperties.ColorArrayName = ['POINTS', name]
+        #self.displayProperties.SetScalarBarVisibility(self.renderView, True)
 
-        displayProperties.LookupTable = lookupTable
-        displayProperties.OpacityArray = ['POINTS', scalar_data]
-        displayProperties.ColorArrayName = ['POINTS', scalar_data]
-        #planeDisplay.SetScalarBarVisibility(renderView, True)
-
-    return displayProperties
+    return self.displayProperties

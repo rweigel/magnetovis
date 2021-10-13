@@ -33,7 +33,7 @@ def Script(self, n_pts=10, length=10):
    pdo.InsertNextCell(aPolyLine.GetCellType(), aPolyLine.GetPointIds())
 
 
-def _display(self, displayProperties, displayRepresentation='Surface'):  
+def _display(self, displayArguments):
 
    # VTK/Paraview Terminology
    #
@@ -53,7 +53,7 @@ def _display(self, displayProperties, displayRepresentation='Surface'):
 
    import paraview.simple as pvs
 
-   # Set representation of display object
-   displayProperties.Representation = displayRepresentation
+   if "displayRepresentation" in displayArguments:
+      self.displayProperties.Representation = self.displayArguments['displayRepresentation']
 
-   return displayProperties
+   return self.displayProperties

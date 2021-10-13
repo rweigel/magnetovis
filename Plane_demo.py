@@ -16,25 +16,12 @@ displayArguments = {
                 }
 
 Plane = mvs.Plane(
-                    sourceName="Demo Plane",
+                    sourceName="XY Plane",
                     sourceArguments=sourceArguments,
                     renderSource=True,
                     displayArguments=displayArguments
                 )
 
-print(Plane.programmableSource)
-print(Plane.displayProperties) # None b/c renderSource was False
-print(Plane.renderView) # None b/c renderSource was False
-
-if False:
-    displayArguments['showSource'] = True
-    displayArguments['displayRepresentation'] = "Point Gaussian"
-    Line.SetDisplayOptions(displayArguments)
-
-    print(Line.programmableSource)
-    print(Line.displayProperties)
-    print(Line.renderView)
-
-    import paraview.simple as pvs
-    pvs.SaveScreenshot('Line_demo.png', Line.renderView, ImageResolution=[1670, 1091])
-    print("Wrote Line_demo.png")
+#print(Plane.programmableSource)
+#print(Plane.displayProperties) # None b/c renderSource was False
+#print(Plane.renderView) # None b/c renderSource was False#

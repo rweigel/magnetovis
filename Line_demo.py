@@ -10,7 +10,7 @@ sourceArguments = {
                 }
 
 displayArguments = {
-                    "showSource": False,
+                    "showSource": True,
                     "renderView": None,
                     "displayRepresentation": "Surface"
                 }
@@ -18,13 +18,15 @@ displayArguments = {
 Line = mvs.Line(
                     sourceName="Demo Line",
                     sourceArguments=sourceArguments,
-                    renderSource=False,
-                    displayArguments=displayArguments
+                    renderSource=True,
+                    displayArguments=displayArguments # Ignored if renderSource=False
                 )
 
 print(Line.programmableSource)
-print(Line.displayProperties) # None b/c renderSource was False
-print(Line.renderView) # None b/c renderSource was False
+print(Line.displayProperties)   # None b/c renderSource was False
+print(Line.renderView)          # None b/c renderSource was False
+print(Line.displayArguments)
+print(Line.sourceArguments)
 
 displayArguments['showSource'] = True
 displayArguments['displayRepresentation'] = "Point Gaussian"
