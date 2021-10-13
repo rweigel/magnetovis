@@ -4,25 +4,16 @@ def _source_output_data_type():
     return "vtkStructuredGrid"
 
 
-def _source_request_information(a=None, Nx=2, Ny=2, Nz=1):
+def _source_request_information(self, Nx=2, Ny=2, Nz=1):
 
     # What is entered in the Script (RequestInformation) box
-
-    import vtk
-    vtkInformationVector = vtk.vtkInformationVector()
-
     executive = self.GetExecutive()
     outInfo = executive.GetOutputInformation(0)
-
-    vtkInformationVector.Append(outInfo)
-    vtkDataSet = vtk.vtkDataSet.GetData(vtkInformationVector, 0)
-    vtkDataSetDims = vtkDataSet.GetDimensions()
-    print(vtkDataSetDims)
     
-    outInfo.Set(executive.WHOLE_EXTENT(), 0, vtkDataSetDims[0]-1, 0, vtkDataSetDims[1]-1, 0, vtkDataSetDims[2]-1)
+    outInfo.Set(executive.WHOLE_EXTENT(), 0, Nx-1, 0, Ny-1, 0, Nz-1)
 
 
-def _source(time="2001-01-01", normal="Z", extents=[[-40., 40.],[-40., 40.]], Nx=2, Ny=2, Nz=2, offset=0.0, coord_sys='GSM'):
+def _source(self, time="2001-01-01", normal="Z", extents=[[-40., 40.],[-40., 40.]], Nx=2, Ny=2, Nz=1, offset=0.0, coord_sys='GSM'):
 
     # What is entered in the Script box
     
@@ -30,8 +21,6 @@ def _source(time="2001-01-01", normal="Z", extents=[[-40., 40.],[-40., 40.]], Nx
     import numpy as np
 
     def structured_grid(output, points, F):
-
-        # Convert 
 
         # https://discourse.paraview.org/t/problem-displaying-structured-grid-when-loading-from-programmable-source/3051/2
         import vtk

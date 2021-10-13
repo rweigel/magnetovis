@@ -80,10 +80,6 @@ class BaseClass:
         self.programmableSource.OutputDataSetType = self.sourceOutputDataSetType
         self.programmableSource.ScriptRequestInformation = extract_script(self.sourceRequestInformationFunction, sourceArguments)
 
-        # Old approach
-        #import magnetovis as mvs
-        #self.programmableSource = mvs.exec_programmable_source('magnetovis/line_class.py', **sourceOptions)
-
         if sourceName is None:
             sourceName = self.sourceName
         pvs.RenameSource(sourceName, self.programmableSource)
