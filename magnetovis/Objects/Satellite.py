@@ -18,7 +18,19 @@ def Script(self, time_o="2001-01-01", time_f="2001-01-02", satellite_id='ace', c
 
     from hxform import hxform as hx
     from hapiclient import hapi
-
+    region_id = {
+                          'D_Msheath' : 0,
+                          'N_Msheath' : 1,
+                          'D_Msphere' : 2,
+                          'N_Msphere' : 3,
+                          'D_Psphere' : 4,
+                          'N_Psphere' : 5,
+                          'Tail_Lobe' : 6,
+                          'Plasma_Sh' : 7,
+                          'HLB_Layer' : 8,
+                          'LLB_Layer' : 9,
+                          'Intpl_Med' : 10
+                          }
     try:
         # Being executed in Programmable Source
         output = self.GetPolyDataOutput()
@@ -45,22 +57,16 @@ def Script(self, time_o="2001-01-01", time_f="2001-01-02", satellite_id='ace', c
     output.InsertNextCell(polyline.GetCellType(), polyline.GetPointIds())
     output.SetPoints(pts)
 
-    colors = vtk.vtkUnsignedCharArray()
-    colors.SetNumberOfComponents(1)
-    colors.SetName(satellite_id + ' Spacecraft Region')
-    region_dict = {}
-    unique_regions = np.unique(data['Spacecraft_Region'])
-    for i in range(len(unique_regions)):
-        region_dict[unique_regions[i]] = int(i)
+    vtk_region_id = vtk.vtkIntArray()
+    vtk_region_id.SetNumberOfComponents(1)
+    vtk_region_id.SetName(satellite_id + ' Spacecraft Region')
 
     for region in data['Spacecraft_Region']:
-        if region_colors == None:
-            colors.InsertNextTuple([0])
+        if region_id == None:
+            vtk_region_id.InsertNextTuple([0])
         else:
-            colors.InsertNextTuple([region_dict[region]])
-    output.GetPointData().AddArray(colors)
-
-    output = output.ShallowCopy(pdo)
+            vtk_region_id.InsertNextTuple([region_id[region.decode('UTF-8')]])
+    output.GetPointData().AddArray(vtk_region_id)
 
 def Display(source, display, renderView, **displayArguments):
 
@@ -82,43 +88,50 @@ def Display(source, display, renderView, **displayArguments):
         'LLB_Layer' : (128./255, 128./255, 128./255, 0.7), # grey
         'Intpl_Med' : (255./255, 255./255, 255./255, 0.7)  # white
     }
+
+    # Over-ride default based on input
     if "region_colors" in displayArguments:
-        region_colors = displayArguments['region_colors']
+        for idx, name in enumerate(region_colors.items()):
+            if name in displayArguments['region_colors']:
+                region_colors[name] = displayArguments['region_colors'][name]
 
     id_names = ['D_Msheath', 'N_Msheath', 'D_Msphere', 'N_Msphere',
                 'D_Psphere', 'N_Psphere', 'Tail_Lobe', 'Plasma_Sh',
                 'HLB_Layer', 'LLB_Layer', 'Intpl_Med']
 
 
-    color = region_colors[id_names[id]]
+    if False:
 
-    LUT = pvs.GetColorTransferFunction('region_id')
-    LUT.InterpretValuesAsCategories = 1
-    LUT.AnnotationsInitialized = 1
+        LUT = pvs.GetColorTransferFunction('region_id')
+        LUT.InterpretValuesAsCategories = 1
+        LUT.AnnotationsInitialized = 1
 
-    annotations = []
-    index_colored_list = []
-    for id in range(len(id_names)):
-        annotations.append(str(id))
-        annotations.append(unique_regions[i])
-        if kwargs['region_colors'] != None:
-            index_colored_list.append(region_colors[id][0:3])
-        else:
-            index_colored_list.append(kwargs['color'][0:3])
 
-    LUT.Annotations = annotations
-    index_colored_list = np.array(index_colored_list).flatten()
-    LUT.IndexedColors = index_colored_list
+        for id in id_names:
+            color = region_colors[id_names[id]][0:3]
+            # Set color in lookup table
+        annotations = []
+        index_colored_list = []
+        for id in range(len(id_names)):
+            annotations.append(str(id))
+            annotations.append(unique_regions[i])
+            if kwargs['region_colors'] != None:
+                index_colored_list.append(region_colors[id][0:3])
+            else:
+                index_colored_list.append(kwargs['color'][0:3])
 
-    programmableSourceDisplay.LookupTable = LUT
-    programmableSourceDisplay.OpacityArray = ['POINTS', scalar_data]
-    programmableSourceDisplay.ColorArrayName = ['POINTS', scalar_data]
-    programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
+        LUT.Annotations = annotations
+        index_colored_list = np.array(index_colored_list).flatten()
+        LUT.IndexedColors = index_colored_list
+
+        programmableSourceDisplay.LookupTable = LUT
+        programmableSourceDisplay.OpacityArray = ['POINTS', scalar_data]
+        programmableSourceDisplay.ColorArrayName = ['POINTS', scalar_data]
+        programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
 
     #pvs.ColorBy(display, ('CELLS', 'region_id'))
     #lookupTable = pvs.GetColorTransferFunction('region_id')
-    #lookupTable.NumberOfTableValues = len(id_name)
-
+    #lookupTable.NumberOfTableValues = len(id_names)
 
     if "displayRepresentation" in displayArguments:
         display.Representation = displayArguments['displayRepresentation']
