@@ -9,7 +9,7 @@ from paraview.util.vtkAlgorithm import smproxy, smproperty, smhint, smdomain
 class AxisPlugin(VTKPythonAlgorithmBase):
 
     from magnetovis import extract_script
-    from magnetovis.Axis import Script
+    from magnetovis.Objects.Axis import Script
 
     # This is used to populate Script text area
     Script = extract_script(Script, None, xml_encode=True)
@@ -23,7 +23,7 @@ class AxisPlugin(VTKPythonAlgorithmBase):
                 outputType='vtkPolyData')
 
         from magnetovis import extract_script
-        from magnetovis.Axis import Script
+        from magnetovis.Objects.Axis import Script
 
         # Note the use of "\n" instead of &#xa; in comment set above.
         Script = extract_script(Script, None, xml_encode=False)
@@ -34,7 +34,7 @@ class AxisPlugin(VTKPythonAlgorithmBase):
         print("RequestData called")
 
         from magnetovis import extract_script
-        from magnetovis.Axis import Script
+        from magnetovis.Objects.Axis import Script
 
         if self.OriginalScript == self.Script:
             kwargs = {

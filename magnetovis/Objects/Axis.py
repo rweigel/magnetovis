@@ -15,7 +15,6 @@ def Script(self, time="2001-01-01", extent=[-40., 40.], coord_sys='GSM', directi
 
     import vtk
     import numpy as np
-    from magnetovis.structured_grid import structured_grid
 
     from hxform import hxform as hx
 
