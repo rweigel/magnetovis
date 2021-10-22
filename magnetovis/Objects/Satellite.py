@@ -45,7 +45,6 @@ def Script(self, time_o="2001-01-01", time_f="2001-01-02", satellite_id='ace', c
     output.InsertNextCell(polyline.GetCellType(), polyline.GetPointIds())
     output.SetPoints(pts)
 
-    print(data)
     colors = vtk.vtkUnsignedCharArray()
     colors.SetNumberOfComponents(1)
     colors.SetName(satellite_id + ' Spacecraft Region')
@@ -63,7 +62,7 @@ def Script(self, time_o="2001-01-01", time_f="2001-01-02", satellite_id='ace', c
 
     output = output.ShallowCopy(pdo)
 
-def Display(magnetovisAxis, magnetovisAxisDisplayProperties, magnetovisAxisRenderView, **displayArguments):
+def Display(source, display, renderView, **displayArguments):
 
     # Base this on code that is displayed by trace in ParaView GUI
 
@@ -71,37 +70,74 @@ def Display(magnetovisAxis, magnetovisAxisDisplayProperties, magnetovisAxisRende
     import paraview.simple as pvs
 
     region_colors = {
-      'D_Msheath' : (230./255, 25./255,  75./255,  0.7), # red
-      'N_Msheath' : (245./255, 130./255, 48./255,  0.7), # orange
-      'D_Msphere' : (255./255, 255./255, 25./255,  0.7), # yellow
-      'N_Msphere' : (220./255, 190./255, 255./255, 0.7), # lavender
-      'D_Psphere' : (60./255,  180./255, 75./255,  0.7), # green
-      'N_Psphere' : (70./255,  240./255, 240./255, 0.7), # cyan
-      'Tail_Lobe' : (0,        130./255, 200./255, 0.7), # blue
-      'Plasma_Sh' : (145./255, 30./255,  180./255, 0.7), # purple
-      'HLB_Layer' : (240./255, 50./255,  230./255, 0.7), # magenta
-      'LLB_Layer' : (128./255, 128./255, 128./255, 0.7), # grey
-      'Intpl_Med' : (255./255, 255./255, 255./255, 0.7)  # white
-      }
+        'D_Msheath' : (230./255, 25./255,  75./255,  0.7), # red
+        'N_Msheath' : (245./255, 130./255, 48./255,  0.7), # orange
+        'D_Msphere' : (255./255, 255./255, 25./255,  0.7), # yellow
+        'N_Msphere' : (220./255, 190./255, 255./255, 0.7), # lavender
+        'D_Psphere' : (60./255,  180./255, 75./255,  0.7), # green
+        'N_Psphere' : (70./255,  240./255, 240./255, 0.7), # cyan
+        'Tail_Lobe' : (0,        130./255, 200./255, 0.7), # blue
+        'Plasma_Sh' : (145./255, 30./255,  180./255, 0.7), # purple
+        'HLB_Layer' : (240./255, 50./255,  230./255, 0.7), # magenta
+        'LLB_Layer' : (128./255, 128./255, 128./255, 0.7), # grey
+        'Intpl_Med' : (255./255, 255./255, 255./255, 0.7)  # white
+    }
+    if "region_colors" in displayArguments:
+        region_colors = displayArguments['region_colors']
+
+    id_names = ['D_Msheath', 'N_Msheath', 'D_Msphere', 'N_Msphere',
+                'D_Psphere', 'N_Psphere', 'Tail_Lobe', 'Plasma_Sh',
+                'HLB_Layer', 'LLB_Layer', 'Intpl_Med']
+
+
+    color = region_colors[id_names[id]]
+
+    LUT = pvs.GetColorTransferFunction('region_id')
+    LUT.InterpretValuesAsCategories = 1
+    LUT.AnnotationsInitialized = 1
+
+    annotations = []
+    index_colored_list = []
+    for id in range(len(id_names)):
+        annotations.append(str(id))
+        annotations.append(unique_regions[i])
+        if kwargs['region_colors'] != None:
+            index_colored_list.append(region_colors[id][0:3])
+        else:
+            index_colored_list.append(kwargs['color'][0:3])
+
+    LUT.Annotations = annotations
+    index_colored_list = np.array(index_colored_list).flatten()
+    LUT.IndexedColors = index_colored_list
+
+    programmableSourceDisplay.LookupTable = LUT
+    programmableSourceDisplay.OpacityArray = ['POINTS', scalar_data]
+    programmableSourceDisplay.ColorArrayName = ['POINTS', scalar_data]
+    programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
+
+    #pvs.ColorBy(display, ('CELLS', 'region_id'))
+    #lookupTable = pvs.GetColorTransferFunction('region_id')
+    #lookupTable.NumberOfTableValues = len(id_name)
+
 
     if "displayRepresentation" in displayArguments:
-        magnetovisAxisDisplayProperties.Representation = displayArguments['displayRepresentation']
+        display.Representation = displayArguments['displayRepresentation']
 
     if "opacity" in displayArguments:
         if displayArguments["opacity"] is not None:
-            magnetovisAxisDisplayProperties.Opacity = displayArguments['opacity']
+            display.Opacity = displayArguments['opacity']
 
-    magnetovisAxisDisplayProperties.AmbientColor = [0.5, 0.5, 0.5]
+    display.AmbientColor = [0.5, 0.5, 0.5]
     if "ambientColor" in displayArguments:
         if displayArguments["ambientColor"] is not None:
-            magnetovisAxisDisplayProperties.AmbientColor = displayArguments["ambientColor"]
+            display.AmbientColor = displayArguments["ambientColor"]
 
-    magnetovisAxisDisplayProperties.DiffuseColor = [0.5, 0.5, 0.5]
+    display.DiffuseColor = [0.5, 0.5, 0.5]
     if "diffuseColor" in displayArguments:
         if displayArguments["diffuseColor"] is not None:
-            magnetovisAxisDisplayProperties.DiffuseColor = displayArguments["diffuseColor"]
+            display.DiffuseColor = displayArguments["diffuseColor"]
 
-    return magnetovisAxisDisplayProperties
+    return display
 
 def _Display(self, displayArguments):
     self.displayProperties = Display(self.programmableSource, self.displayProperties, self.renderView, **displayArguments)
