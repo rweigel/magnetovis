@@ -1,6 +1,6 @@
 from magnetovis.objects import *
 
-def extract_script(function, sourceArguments):
+def extract_script(function, sourceArguments, xml_encode=False):
 
     debug = False
 
@@ -24,6 +24,8 @@ def extract_script(function, sourceArguments):
                     head = head + '{} = {}\n'.format(x, arg)
 
         return head
+
+    if debug: print(function)
 
     head = extract_kwargs(function, sourceArguments)
 
@@ -59,15 +61,20 @@ def extract_script(function, sourceArguments):
          lines[i] = line[indent_size:]
          if debug: print("Unindented line: "); print(i,lines[i])
 
-    return head + "\n".join(lines[body_start:])
+    script = head + "\n".join(lines[body_start:])
+
+    if xml_encode is True:
+        script = script.replace("\n","&#xa;").replace("'","&#39;").replace('"',"&quot;").replace("<","&lt;").replace(">","&gt;")
+
+    return script
 
 class BaseClass:
 
-    def __init__(self, sourceName=None, sourceArguments=None, renderSource=True, displayArguments=None):
+    def __init__(self, registrationName=None, sourceArguments=None, renderSource=True, displayArguments=None):
 
         import paraview.simple as pvs
 
-        print("__init__ called for " + sourceName)
+        print("__init__ called for " + registrationName)
         print("   sourceArguments:  " + str(sourceArguments))
         print("   displayArguments: " + str(displayArguments))
         print("   renderSource:     " + str(renderSource))
@@ -81,10 +88,10 @@ class BaseClass:
         if hasattr(self, "sourceRequestInformationFunction"):
             self.programmableSource.ScriptRequestInformation = extract_script(self.sourceRequestInformationFunction, sourceArguments)
 
-        if sourceName is not None:
-            self.sourceName = sourceName
+        if registrationName is not None:
+            self.registrationName = registrationName
 
-        pvs.RenameSource(self.sourceName, self.programmableSource)
+        pvs.RenameSource(self.registrationName, self.programmableSource)
 
         self.sourceArguments = sourceArguments
         if renderSource is True:
@@ -131,7 +138,7 @@ class BaseClass:
         # Create display properties object
         self.displayProperties = pvs.Show(self.programmableSource, self.renderView)
 
-        self.displayProperties = self.displayFunction(displayArguments)
+        self.displayProperties = self.displayFunction(self.displayArguments)
 
         # Update the view to ensure updated data information
         # TODO: Needed?
@@ -142,27 +149,54 @@ class BaseClass:
 
         return self
 
-from magnetovis.Line import Script, _display
+from magnetovis.Line import Script, ScriptRequestInformation, OutputDataSetType, _Display
 file = "Line"
 temp = type(file, (object, ), {
    "sourceFunction": Script,
-   "displayFunction": _display,
-   "sourceName": file,
+   "displayFunction": _Display,
+   "sourceOutputDataSetType": OutputDataSetType(),
+   "sourceRequestInformationFunction": ScriptRequestInformation,
+   "registrationName": file,
    "__init__": BaseClass.__init__,
    "SetDisplayOptions": BaseClass.SetDisplayOptions
 })
 globals()[file] = temp
 
-from magnetovis.Plane import Script, ScriptRequestInformation, OutputDataSetType, _display
+from magnetovis.Axis import Script, ScriptRequestInformation, OutputDataSetType, _Display
+file = "Axis"
+temp = type(file, (object, ), {
+   "sourceFunction": Script,
+   "displayFunction": _Display,
+   "sourceOutputDataSetType": OutputDataSetType(),
+   "sourceRequestInformationFunction": ScriptRequestInformation,
+   "registrationName": file,
+   "__init__": BaseClass.__init__,
+   "SetDisplayOptions": BaseClass.SetDisplayOptions
+})
+globals()[file] = temp
+
+from magnetovis.Plane import Script, ScriptRequestInformation, OutputDataSetType, _Display
 file = "Plane"
 temp = type(file, (object, ), {
    "sourceFunction": Script,
    "sourceOutputDataSetType": OutputDataSetType(),
    "sourceRequestInformationFunction": ScriptRequestInformation,
-   "displayFunction": _display,
-   "sourceName": file,
+   "displayFunction": _Display,
+   "registrationName": file,
    "__init__": BaseClass.__init__,
    "SetDisplayOptions": BaseClass.SetDisplayOptions
 })
 globals()[file] = temp
 
+from magnetovis.StructuredGrid import Script, ScriptRequestInformation, OutputDataSetType, _Display
+file = "StructuredGrid"
+temp = type(file, (object, ), {
+   "sourceFunction": Script,
+   "sourceOutputDataSetType": OutputDataSetType(),
+   "sourceRequestInformationFunction": ScriptRequestInformation,
+   "displayFunction": _Display,
+   "registrationName": file,
+   "__init__": BaseClass.__init__,
+   "SetDisplayOptions": BaseClass.SetDisplayOptions
+})
+globals()[file] = temp

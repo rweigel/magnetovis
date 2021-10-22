@@ -16,7 +16,7 @@ displayArguments = {
                 }
 
 Line = mvs.Line(
-                    sourceName="Demo Line",
+                    registrationName="Demo Line",
                     sourceArguments=sourceArguments,
                     renderSource=True,
                     displayArguments=displayArguments # Ignored if renderSource=False

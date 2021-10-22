@@ -85,7 +85,7 @@ def earth(time,
         vtk_export(fnameVTK, XYZr,
                     dataset = 'STRUCTURED_GRID',
                     connectivity = {'DIMENSIONS':(Nt, Np, 1)},
-                    point_data = {"name":'Angular_Coords_for_PNG', "array":UV, "texture":'TEXTURE_COORDINATES'},
+                    point_data = {"name":'Angular_Coords_for_PNG', "array": UV, "texture":'TEXTURE_COORDINATES'},
                     title='Earth',
                     ftype=ftype,
                     debug=debug)
