@@ -18,7 +18,19 @@ def Script(self, time_o="2001-01-01", time_f="2001-01-02", satellite_id='ace', c
 
     from hxform import hxform as hx
     from hapiclient import hapi
-
+    region_id = {
+                          'D_Msheath' : 0,
+                          'N_Msheath' : 1,
+                          'D_Msphere' : 2,
+                          'N_Msphere' : 3,
+                          'D_Psphere' : 4,
+                          'N_Psphere' : 5,
+                          'Tail_Lobe' : 6,
+                          'Plasma_Sh' : 7,
+                          'HLB_Layer' : 8,
+                          'LLB_Layer' : 9,
+                          'Intpl_Med' : 10
+                          }
     try:
         # Being executed in Programmable Source
         output = self.GetPolyDataOutput()
@@ -45,23 +57,16 @@ def Script(self, time_o="2001-01-01", time_f="2001-01-02", satellite_id='ace', c
     output.InsertNextCell(polyline.GetCellType(), polyline.GetPointIds())
     output.SetPoints(pts)
 
-    print(data)
-    colors = vtk.vtkUnsignedCharArray()
-    colors.SetNumberOfComponents(1)
-    colors.SetName(satellite_id + ' Spacecraft Region')
-    region_dict = {}
-    unique_regions = np.unique(data['Spacecraft_Region'])
-    for i in range(len(unique_regions)):
-        region_dict[unique_regions[i]] = int(i)
+    vtk_region_id = vtk.vtkIntArray()
+    vtk_region_id.SetNumberOfComponents(1)
+    vtk_region_id.SetName(satellite_id + ' Spacecraft Region')
 
     for region in data['Spacecraft_Region']:
-        if region_colors == None:
-            colors.InsertNextTuple([0])
+        if region_id == None:
+            vtk_region_id.InsertNextTuple([0])
         else:
-            colors.InsertNextTuple([region_dict[region]])
-    output.GetPointData().AddArray(colors)
-
-    output = output.ShallowCopy(pdo)
+            vtk_region_id.InsertNextTuple([region_id[region.decode('UTF-8')]])
+    output.GetPointData().AddArray(vtk_region_id)
 
 def Display(magnetovisAxis, magnetovisAxisDisplayProperties, magnetovisAxisRenderView, **displayArguments):
 
