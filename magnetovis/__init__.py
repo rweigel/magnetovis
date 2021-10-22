@@ -149,7 +149,24 @@ class BaseClass:
 
         return self
 
-from magnetovis.Line import Script, ScriptRequestInformation, OutputDataSetType, _Display
+
+from magnetovis.Objects import Satellite # Allow import magnetovis as mvs; mvs.Satellite(...)
+from magnetovis.Objects.Satellite import Script, ScriptRequestInformation, OutputDataSetType, _Display
+file = "Satellite"
+temp = type(file, (object, ), {
+   "sourceFunction": Script,
+   "displayFunction": _Display,
+   "sourceOutputDataSetType": OutputDataSetType(),
+   "sourceRequestInformationFunction": ScriptRequestInformation,
+   "registrationName": file,
+   "__init__": BaseClass.__init__,
+   "SetDisplayOptions": BaseClass.SetDisplayOptions
+})
+globals()[file] = temp
+
+
+from magnetovis.Objects import Line # Allow import magnetovis as mvs; mvs.Line(...)
+from magnetovis.Objects.Line import Script, ScriptRequestInformation, OutputDataSetType, _Display
 file = "Line"
 temp = type(file, (object, ), {
    "sourceFunction": Script,
@@ -162,7 +179,8 @@ temp = type(file, (object, ), {
 })
 globals()[file] = temp
 
-from magnetovis.Axis import Script, ScriptRequestInformation, OutputDataSetType, _Display
+from magnetovis.Objects import Axis # Allow import magnetovis as mvs; mvs.Axis(...)
+from magnetovis.Objects.Axis import Script, ScriptRequestInformation, OutputDataSetType, _Display
 file = "Axis"
 temp = type(file, (object, ), {
    "sourceFunction": Script,
@@ -175,7 +193,9 @@ temp = type(file, (object, ), {
 })
 globals()[file] = temp
 
-from magnetovis.Plane import Script, ScriptRequestInformation, OutputDataSetType, _Display
+
+from magnetovis.Objects import Plane # Allow import magnetovis as mvs; mvs.Plane(...)
+from magnetovis.Objects.Plane import Script, ScriptRequestInformation, OutputDataSetType, _Display
 file = "Plane"
 temp = type(file, (object, ), {
    "sourceFunction": Script,
@@ -188,7 +208,8 @@ temp = type(file, (object, ), {
 })
 globals()[file] = temp
 
-from magnetovis.StructuredGrid import Script, ScriptRequestInformation, OutputDataSetType, _Display
+from magnetovis.Objects import StructuredGrid # Allow import magnetovis as mvs; mvs.StructuredGrid(...)
+from magnetovis.Objects.StructuredGrid import Script, ScriptRequestInformation, OutputDataSetType, _Display
 file = "StructuredGrid"
 temp = type(file, (object, ), {
    "sourceFunction": Script,
