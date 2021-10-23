@@ -9,9 +9,10 @@ import paraview.simple as pvs
 import magnetovis as mvs
 
 sourceArguments = {
-                    "time_o": "2001-01-01",
-                    "time_f": "2001-01-02",
-                    "coord_sys": "GSM"
+                    "time_o": "2001-01-01T00:00:00",
+                    "time_f": "2001-01-02T00:00:00",
+                    "coord_sys": "GSM",
+                    "satellite_id": "ace"
                 }
 
 displayArguments = {
