@@ -11,7 +11,7 @@ def ScriptRequestInformation(self):
    # What is entered in the Script (RequestInformation) box for a Programmable Source
    pass
 
-def Script(self, time_o="2001-01-01", time_f="2001-01-02", satellite_id='ace', coord_sys='GSM'):
+def Script(self, time_o="2001-01-01T00:00:00", time_f="2001-01-02T00:00:00", satellite_id='ace', coord_sys='GSM'):
 
     import vtk
     import numpy as np
