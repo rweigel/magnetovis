@@ -4,16 +4,18 @@ from vtkmodules.util.vtkAlgorithm import VTKPythonAlgorithmBase
 # new module for ParaView-specific decorators.
 from paraview.util.vtkAlgorithm import smproxy, smproperty, smhint, smdomain
 
-@smproxy.source(name="MagnetovisAxis", label="Axis")
+@smproxy.source(name="MagnetovisSatellite", label="Satellite")
 @smhint.xml('<ShowInMenu category="Magnetovis"/>')
-class AxisPlugin(VTKPythonAlgorithmBase):
+class SatellitePlugin(VTKPythonAlgorithmBase):
 
     from magnetovis import extract_script
-    from magnetovis.Objects.Axis import Script
+    from magnetovis.Objects.Satellite import Script
 
     # This is used to populate Script text area
     Script = extract_script(Script, None, xml_encode=True)
     Script = "# If script modified, drop-down values will be ignored&#xa;" + Script
+
+    panel_visibility = "never"
 
     def __init__(self, **default_values):
         #print(**default_values)        
@@ -23,7 +25,7 @@ class AxisPlugin(VTKPythonAlgorithmBase):
                 outputType='vtkPolyData')
 
         from magnetovis import extract_script
-        from magnetovis.Objects.Axis import Script
+        from magnetovis.Objects.Satellite import Script
 
         # Note the use of "\n" instead of &#xa; in comment set above.
         Script = extract_script(Script, None, xml_encode=False)
@@ -34,14 +36,14 @@ class AxisPlugin(VTKPythonAlgorithmBase):
         print("RequestData called")
 
         from magnetovis import extract_script
-        from magnetovis.Objects.Axis import Script
+        from magnetovis.Objects.Satellite import Script
 
         if self.OriginalScript == self.Script:
             kwargs = {
-                'time': [*self.date, *self.time],
-                'extent': self.extent,
-                'coord_sys': self.coord_sys,
-                'direction': self.direction
+                'satellite_id': self.satellite_id,
+                'time_o': self.time_o,
+                'time_f': self.time_f,
+                'coord_sys': self.coord_sys
                 }
             Script = extract_script(Script, kwargs, xml_encode=False)
             print("Executing script using drop-down values.")
@@ -57,57 +59,50 @@ class AxisPlugin(VTKPythonAlgorithmBase):
     # Ordering of GUI elements is alphabetical. See proposed fix for this at
     # https://gitlab.kitware.com/paraview/paraview/-/merge_requests/2846
     @smproperty.xml("""<IntVectorProperty 
-        name="Date" 
-        command="SetDate" 
-        number_of_elements="3"
-        default_values="2000 1 1">
-       <Documentation>Year, Month, and Day</Documentation>
-     </IntVectorProperty>""")
-    def SetDate(self, year, month, day):
-        print("SetDate called.")
-        self.date = [year, month, day]
-        self.Modified()
-
-    @smproperty.xml("""<IntVectorProperty 
-        name="Time" 
-        command="SetTime" 
-        number_of_elements="3"
-        default_values="0 0 0">
-       <Documentation>Hour, Minute, and Second</Documentation>
-     </IntVectorProperty>""")
-    def SetTime(self, hour, minute, second):
-        print("SetTime called.")
-        self.time = [hour, minute, second]
-        self.Modified()
-
-    @smproperty.xml("""<DoubleVectorProperty 
-        name="Extent" 
-        command="SetExtent" 
-        number_of_elements="2"
-        default_values="-40 40">
-       <Documentation>Extent of axis</Documentation>
-     </DoubleVectorProperty>""")
-    def SetExtent(self, lower, upper):
-        print("SetExtent called.")
-        self.extent = [lower, upper]
-        self.Modified()
-
-    @smproperty.xml("""<IntVectorProperty 
-        name="Direction" 
-        command="SetDirection" 
+        name="SatelliteID" 
+        command="SetSatelliteID" 
         number_of_elements="1"
         default_values="0">
        <EnumerationDomain name="enum">
-         <Entry value="0" text="X"/>
-         <Entry value="1" text="Y"/>
-         <Entry value="2" text="Z"/>
+         <Entry value="0" text="ace"/>
+         <Entry value="1" text="active"/>
+         <Entry value="2" text="aec"/>
        </EnumerationDomain>
      </IntVectorProperty>""")
-    def SetDirection(self, idx):
-        print("SetDirection called with idx = " + str(idx))
-        values = ["X", "Y", "Z"]
-        self.direction = values[idx]
+    def SetSatelliteID(self, idx):
+        print("SetSatelliteID called with idx = " + str(idx))
+        values = ["ace", "active", "aec"]
+        self.satellite_id = values[idx]
         self.Modified()
+
+
+    # Ordering of GUI elements is alphabetical. See proposed fix for this at
+    # https://gitlab.kitware.com/paraview/paraview/-/merge_requests/2846
+    @smproperty.xml("""<StringVectorProperty 
+        name="StartTime" 
+        command="SetStartTime" 
+        number_of_elements="1"
+        default_values="2000-01-01T00:00:00">
+       <Documentation>Start time string</Documentation>
+     </StringVectorProperty>""")
+    def SetStartTime(self, value):
+        print("SetStartTime called.")
+        self.time_o = value
+        self.Modified()
+
+
+    @smproperty.xml("""<StringVectorProperty 
+        name="StopTime" 
+        command="SetStopTime" 
+        number_of_elements="1"
+        default_values="2000-01-02T00:00:00">
+       <Documentation>Stop time string</Documentation>
+     </StringVectorProperty>""")
+    def SetStopTime(self, value):
+        print("SetStopTime called.")
+        self.time_f = value
+        self.Modified()
+
 
     @smproperty.xml("""<IntVectorProperty 
         name="CoordinateSystem" 
@@ -130,12 +125,9 @@ class AxisPlugin(VTKPythonAlgorithmBase):
         self.Modified()
 
 
-    @smproperty.stringvector(name="Script", command="SetScript", default_values=Script,  panel_visibility="never")
+    @smproperty.stringvector(name="Script", command="SetScript", default_values=Script, panel_visibility=panel_visibility)
     @smhint.xml(r"<Widget type='multi_line' syntax='python'/>")
     def SetScript(self, Script):
         print("SetScript called.")
         self.Script = Script
         self.Modified()
-
-
-

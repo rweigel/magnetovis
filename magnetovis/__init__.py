@@ -1,5 +1,41 @@
 from magnetovis.objects import *
 
+def iso2ints(isostr):
+    import re
+    tmp = re.split("-|:|T|Z", isostr)
+    if len(tmp) > 6:
+        tmp = tmp[0:5]
+
+    int_list = []
+    for str_int in tmp:
+        if str_int != "Z" and str_int != '':
+            int_list.append(int(str_int))
+
+    return int_list
+
+def extract_kwargs(function_call):
+
+    # https://stackoverflow.com/questions/2626582/running-exec-inside-function
+    function_call_parts = function_call.split("(")
+    function_call_parts[0] = "function_pointer"
+    function_call = '('.join(function_call_parts)
+    function_def = "def " + function_call + ": pass"
+    #print(function_def)
+    exec_dict = {}
+    exec(function_def, exec_dict)
+
+    function_pointer = exec_dict["function_pointer"]
+    #print(function_pointer)
+
+    sourceArguments = None
+    from inspect import signature, Parameter
+    kwargs = {}
+    for x, p in signature(function_pointer).parameters.items():
+        if (p.default is not Parameter.empty) and p.kind == Parameter.POSITIONAL_OR_KEYWORD:
+            kwargs[x] = p.default
+
+    return kwargs
+
 def extract_script(function, sourceArguments, xml_encode=False):
 
     debug = False
@@ -74,10 +110,13 @@ class BaseClass:
 
         import paraview.simple as pvs
 
-        print("__init__ called for " + registrationName)
-        print("   sourceArguments:  " + str(sourceArguments))
-        print("   displayArguments: " + str(displayArguments))
-        print("   renderSource:     " + str(renderSource))
+        debug = False
+
+        if debug:
+            print("__init__ called for " + registrationName)
+            print("   sourceArguments:  " + str(sourceArguments))
+            print("   displayArguments: " + str(displayArguments))
+            print("   renderSource:     " + str(renderSource))
 
         self.programmableSource = pvs.ProgrammableSource()
         self.programmableSource.Script = extract_script(self.sourceFunction, sourceArguments)
@@ -150,6 +189,90 @@ class BaseClass:
         return self
 
 
+def curve(Npts, coord_sys="GSM"):
+    points = np.zeros((Npts,3))
+    points[:,0] = np.arange(Npts)
+    points[:,1] = np.zeros(Npts)
+    points[:,2] = np.zeros(Npts)
+
+    return points
+
+def position(points, coord_sys="GSM"):
+    return points
+
+def radius(points):
+    import numpy as np
+    r = np.linalg.norm(points, axis=1)
+    return r
+
+def IGRF(points, time="2001-01-01", coord_sys="GSM"):
+
+    M=7.788E22
+    import numpy as np
+    r = np.linalg.norm(points, axis=1)
+    B = np.zeros(points.shape)
+    r[r < 1] = np.nan
+    B[:,0] = 3*M*points[:,0]*points[:,2]/r**5 # Bx = 3*M*x*z/r^5
+    B[:,1] = 3*M*points[:,1]*points[:,2]/r**5 # By = 3*M*y*z/r^5
+    B[:,2] = M*(3*points[:,2]**2-r**2)/r**5   # Bz = M(3*z^2 - r^2)/r^5
+
+    return B
+
+def T01(points, M=7.788E22, parmod=None, ps=0.0):
+
+    import numpy as np
+    r = np.linalg.norm(points, axis=1)
+    B = np.zeros(points.shape)
+    r[r < 1] = np.nan
+    B[:,0] = 3*M*points[:,0]*points[:,2]/r**5 # Bx = 3*M*x*z/r^5
+    B[:,1] = 3*M*points[:,1]*points[:,2]/r**5 # By = 3*M*y*z/r^5
+    B[:,2] = M*(3*points[:,2]**2-r**2)/r**5   # Bz = M(3*z^2 - r^2)/r^5
+
+    return B
+
+def T89c(points, iopt=0, ps=0.0):
+
+    import numpy as np
+    from geopack.geopack import dip, recalc
+    from geopack import t89
+
+    ut = 100    # 1970-01-01/00:01:40 UT.
+
+    ps = recalc(ut)
+    print(ps)
+
+    B = np.zeros(points.shape)
+    for i in range(points.shape[0]):
+        r = np.linalg.norm(points[i,:])
+        if r < 1:
+            B[i,0] = np.nan
+            B[i,1] = np.nan
+            B[i,2] = np.nan
+        else:
+            b0xgsm,b0ygsm,b0zgsm = dip(points[i,0], points[i,1], points[i,2])
+            dbxgsm,dbygsm,dbzgsm = t89.t89(iopt, ps, points[i,0], points[i,1], points[i,2])
+            B[i,0] = b0xgsm + dbxgsm
+            B[i,1] = b0ygsm + dbygsm
+            B[i,2] = b0zgsm + dbzgsm
+
+    return B
+
+
+def dipole(points, M=7.788E22):
+    import numpy as np
+    r = np.linalg.norm(points, axis=1)
+    B = np.zeros(points.shape)
+    r[r < 1] = np.nan
+    #r[r==0] = np.nan
+    B[:,0] = 3*M*points[:,0]*points[:,2]/r**5 # Bx = 3*M*x*z/r^5
+    B[:,1] = 3*M*points[:,1]*points[:,2]/r**5 # By = 3*M*y*z/r^5
+    B[:,2] = M*(3*points[:,2]**2-r**2)/r**5   # Bz = M(3*z^2 - r^2)/r^5
+
+    return B
+
+
+# TODO: Automate the following by reading magnetovis/Objects directory
+
 from magnetovis.Objects import Satellite # Allow import magnetovis as mvs; mvs.Satellite(...)
 from magnetovis.Objects.Satellite import Script, ScriptRequestInformation, OutputDataSetType, _Display
 file = "Satellite"
@@ -211,6 +334,20 @@ globals()[file] = temp
 from magnetovis.Objects import StructuredGrid # Allow import magnetovis as mvs; mvs.StructuredGrid(...)
 from magnetovis.Objects.StructuredGrid import Script, ScriptRequestInformation, OutputDataSetType, _Display
 file = "StructuredGrid"
+temp = type(file, (object, ), {
+   "sourceFunction": Script,
+   "sourceOutputDataSetType": OutputDataSetType(),
+   "sourceRequestInformationFunction": ScriptRequestInformation,
+   "displayFunction": _Display,
+   "registrationName": file,
+   "__init__": BaseClass.__init__,
+   "SetDisplayOptions": BaseClass.SetDisplayOptions
+})
+globals()[file] = temp
+
+from magnetovis.Objects import MultiLine # Allow import magnetovis as mvs; mvs.MultiLine(...)
+from magnetovis.Objects.MultiLine import Script, ScriptRequestInformation, OutputDataSetType, _Display
+file = "MultiLine"
 temp = type(file, (object, ), {
    "sourceFunction": Script,
    "sourceOutputDataSetType": OutputDataSetType(),

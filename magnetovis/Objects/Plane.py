@@ -100,7 +100,6 @@ def Display(magnetovisPlane, magnetovisPlaneDisplayProperties, magnetovisPlaneRe
         color = [0, 1, 0]
         Annotations = ['2','Z']
 
-
     lookupTable = pvs.GetColorTransferFunction(name)
     lookupTable.IndexedColors = color
     lookupTable.Annotations = Annotations

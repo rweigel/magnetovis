@@ -6,7 +6,7 @@ def OutputDataSetType():
    # What is set in the drop-down menu for Output Data Set Type for a Programmable Source
    return "vtkPolyData"
 
-def ScriptRequestInformation(self, Nx=2, Ny=2, Nz=1):
+def ScriptRequestInformation(self):
 
    # What is entered in the Script (RequestInformation) box for a Programmable Source
    pass

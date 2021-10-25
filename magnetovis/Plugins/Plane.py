@@ -9,7 +9,7 @@ from paraview.util.vtkAlgorithm import smproxy, smproperty, smhint, smdomain
 class PlanePlugin(VTKPythonAlgorithmBase):
 
     from magnetovis import extract_script
-    from magnetovis.Plane import Script, ScriptRequestInformation
+    from magnetovis.Objects.Plane import Script, ScriptRequestInformation
     Script = extract_script(Script, None, xml_encode=True)
 
     def __init__(self, **default_values):

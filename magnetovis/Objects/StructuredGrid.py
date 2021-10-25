@@ -15,30 +15,26 @@ def ScriptRequestInformation(self, Nx=2, Ny=2, Nz=2):
     outInfo.Set(executive.WHOLE_EXTENT(), 0, Nx-1, 0, Ny-1, 0, Nz-1)
 
 
-def Script(self, time="2001-01-01", extents=[[-40., 40.],[-40., 40.],[-40., 40.]], coord_sys='GSM', Nx=2, Ny=2, Nz=2, point_functions=None):
+def Script(self, time="2001-01-01", extents=[[-1.5, 1.5],[-1.5, 1.5],[-1.5, 1.5]], coord_sys='GSM', Nx=3, Ny=3, Nz=3, point_array_functions=None):
 
     # What is entered in the Script box for a Programmable Source
     
     import vtk
     import numpy as np
-    from magnetovis.structured_grid import structured_grid
+    from magnetovis.vtk.set_arrays import set_arrays
+    from magnetovis.vtk.get_arrays import get_arrays
 
     from hxform import hxform as hx
 
     assert isinstance(extents, list or tuple or np.ndarray), \
-        'magnetovis.Plane(): Extent must be a list, tuple, or numpy.ndarray'
+        'magnetovis.StructuredGrid(): Extent must be a list, tuple, or numpy.ndarray'
 
     extents = np.array(extents)
 
     for i in range(2):
         assert extents[i,0] < extents[i,1], \
-            'magnetovis.Plane(): Lower bound {} is larger than upper bound {} for extent[{}]' \
+            'magnetovis.StructuredGrid(): Lower bound {} is larger than upper bound {} for extent[{}]' \
                 .format(extents[i][0], extents[i][1], i)
-
-    if coord_sys != 'GSM':
-        assert time != None, 'magnetovis.Plane(): If coord_sys in not GSM, time cannot be None'
-        extents = hx.transform(extents, time, 'GSM', coord_sys, 'car', 'car')
-
 
     xax = np.linspace(extents[0,0],extents[0,1], Nx)
     yax = np.linspace(extents[1,0],extents[1,1], Ny)
@@ -46,21 +42,12 @@ def Script(self, time="2001-01-01", extents=[[-40., 40.],[-40., 40.],[-40., 40.]
     Y, Z, X = np.meshgrid(yax, zax, xax)
     points = np.column_stack([X.flatten(), Y.flatten(), Z.flatten()])
 
-    point_data = {}
-    if point_functions is not None:
-        import magnetovis
-        for function, kwargs in point_functions.items():
-            if 'name' in kwargs:
-                name = kwargs['name']
-                del kwargs['name']
-            else:
-                name = function
-            # TODO: Handle duplicate name case
-            # Call the function
-            data = getattr(magnetovis, function)(points, **kwargs)
-            point_data[name] = data
+    if coord_sys != 'GSM':
+        assert time != None, 'magnetovis.StructuredGrid(): If coord_sys in not GSM, time cannot be None'
+        points = hx.transform(points, time, 'GSM', coord_sys, 'car', 'car')
 
-    cell_data = {'cell_index': np.arange(np.max([1,(Nx-1)])*np.max([1,(Ny-1)])*np.max([1,(Nz-1)]))}
+    point_data = get_arrays(point_array_functions, points)
+    #cell_data = get_arrays(cell_array_functions, cell_centers)
 
     try:
         # This needs to be in the try and not except, otherwise ParaView crashes.
@@ -76,14 +63,9 @@ def Script(self, time="2001-01-01", extents=[[-40., 40.],[-40., 40.],[-40., 40.]
         dims = [exts[1]+1, exts[3]+1, exts[5]+1]
         output.SetExtent(exts)
 
-    scalar_data = data    
+    output = set_arrays(self, output, points, point_data=point_data)
 
-    output = structured_grid(self, output, points, point_data=point_data, cell_data=cell_data)
-
-    return output, outInfo
-
-
-def Display(magnetovisPlane, magnetovisPlaneDisplayProperties, magnetovisPlaneRenderView, **displayArguments):
+def Display(source, display, renderView, **displayArguments):
 
     # Base this on code that is displayed by trace in ParaView GUI
 
@@ -92,16 +74,23 @@ def Display(magnetovisPlane, magnetovisPlaneDisplayProperties, magnetovisPlaneRe
 
     name = 'cell_index'
 
-    n_cells = magnetovisPlane.GetCellDataInformation().GetArray(name).GetNumberOfTuples()
+    n_cells = source.GetCellDataInformation().GetArray(name).GetNumberOfTuples()
 
     if "displayRepresentation" in displayArguments:
-        magnetovisPlaneDisplayProperties.Representation = displayArguments['displayRepresentation']
+        display.Representation = displayArguments['displayRepresentation']
 
-    pvs.ColorBy(magnetovisPlaneDisplayProperties, ('CELLS', name))
+    scalarBarVisibility = True
+    if "scalarBarVisibility" in displayArguments:
+        scalarBarVisibility = displayArguments['scalarBarVisibility']
+
+    pvs.ColorBy(display, ('CELLS', name))
     lookupTable = pvs.GetColorTransferFunction(name)
-    lookupTable.NumberOfTableValues = n_cells
+    lookupTable.NumberOfTableValues = n_cells-1
+    lookupTable.InterpretValuesAsCategories = 1
 
-    return magnetovisPlaneDisplayProperties
+    display.SetScalarBarVisibility(renderView, scalarBarVisibility)
+
+    return display
 
 
 def _Display(self, displayArguments):

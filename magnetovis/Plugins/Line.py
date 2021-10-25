@@ -4,12 +4,12 @@ from vtkmodules.util.vtkAlgorithm import VTKPythonAlgorithmBase
 # new module for ParaView-specific decorators.
 from paraview.util.vtkAlgorithm import smproxy, smproperty, smhint, smdomain
 
-@smproxy.source(label="MagnetovisLine")
+@smproxy.source(name="MagnetovisLine", label="SimpleLine")
 @smhint.xml('<ShowInMenu category="Magnetovis"/>')
-class LinePlugin(VTKPythonAlgorithmBase):
+class SimpleLinePlugin(VTKPythonAlgorithmBase):
 
     from magnetovis import extract_script
-    from magnetovis.Line import Script
+    from magnetovis.Objects.Line import Script
     Script = extract_script(Script, None, xml_encode=True)
 
     def __init__(self, **default_values):

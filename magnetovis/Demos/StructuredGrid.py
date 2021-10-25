@@ -1,35 +1,16 @@
 # From this directory, execute
-#   magnetovis --script=Plane_demo.py
+#   magnetovis --script=StructuredGrid_demo.py
 
 import magnetovis as mvs
 
-def field(points, M=7.788E22):
-    import numpy as np
-    r = np.linalg.norm(points, axis=1)
-    B = np.zeros(points.shape)
-    B[:,0] = 3*M*points[:,0]*points[:,2]/r**5 # Bx = 3*M*x*z/r^5
-    B[:,1] = 3*M*points[:,1]*points[:,2]/r**5 # By = 3*M*y*z/r^5
-    B[:,2] = M*(3*points[:,2]**2-r**2)/r**5   # Bz = M(3*z^2 - r^2)/r^5
-
-    return B
-
-mvs.dipole = field
-
 sourceArguments = {
                     "time": "2001-01-01",
-                    "normal": "Z",
-                    "extents": [[-40,40],[-40,40],[0,0]],
-                    "point_functions": {"dipole": 
-                                            {
-                                                "name": "dipole",
-                                                "M": 7.788E22
-                                            }
-                                        },
-                    "Nx": 2,
-                    "Ny": 2,
-                    "Nz": 1,                    
-                    "offset": 0,
-                    "coord_sys": "GSM"
+                    "coord_sys": "GSM",
+                    "point_array_functions": {"dipole": {"array_name": "B", "M": 1}},
+                    "extents": [[-40,40],[-40,40],[-40,40]],
+                    "Nx": 3,
+                    "Ny": 3,
+                    "Nz": 3
                 }
 
 displayArguments = {
@@ -37,17 +18,23 @@ displayArguments = {
                     "renderView": None
                 }
 
-Plane = mvs.StructuredGrid(
-                    registrationName="XY Plane",
+registrationName = "Structured Grid/{}/{}/{}x{}x{}" \
+                        .format(sourceArguments['time'],
+                                sourceArguments['coord_sys'],
+                                sourceArguments['Nx'],
+                                sourceArguments['Ny'],
+                                sourceArguments['Nz'])
+
+StructuredGrid = mvs.StructuredGrid(
+                    registrationName=registrationName,
                     sourceArguments=sourceArguments,
                     renderSource=True,
                     displayArguments=displayArguments
                 )
 
-#print(Plane.programmableSource)
-#print(Plane.displayProperties) # None b/c renderSource was False
-#print(Plane.renderView) # None b/c renderSource was False#
-
 displayArguments['showSource'] = True
 displayArguments['displayRepresentation'] = "Surface"
-Plane.SetDisplayOptions(displayArguments)
+StructuredGrid.SetDisplayOptions(displayArguments)
+
+StructuredGrid.renderView.CameraPosition = [529., 282., 247.]
+StructuredGrid.renderView.CameraViewUp = [-0.33, -0.19, 0.92]
