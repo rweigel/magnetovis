@@ -1,7 +1,7 @@
 from vtkmodules.util.vtkAlgorithm import VTKPythonAlgorithmBase
 from paraview.util.vtkAlgorithm import smproxy, smproperty, smhint, smdomain
 
-@smproxy.source(label="MagnetovisStructuredGrid")
+@smproxy.source(name="MagnetovisStructuredGrid", label="NumPy2StructuredGrid")
 @smhint.xml('<ShowInMenu category="Magnetovis"/>')
 class StructuredGridPlugin(VTKPythonAlgorithmBase):
 

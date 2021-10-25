@@ -4,9 +4,9 @@ from vtkmodules.util.vtkAlgorithm import VTKPythonAlgorithmBase
 # new module for ParaView-specific decorators.
 from paraview.util.vtkAlgorithm import smproxy, smproperty, smhint, smdomain
 
-@smproxy.source(label="MagnetovisPlane")
+@smproxy.source(name="MagnetovisCoordinatePlane", label="CoordinatePlane")
 @smhint.xml('<ShowInMenu category="Magnetovis"/>')
-class PlanePlugin(VTKPythonAlgorithmBase):
+class CoordinatePlanePlugin(VTKPythonAlgorithmBase):
 
     from magnetovis import extract_script
     from magnetovis.Objects.Plane import Script, ScriptRequestInformation

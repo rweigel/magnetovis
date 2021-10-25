@@ -118,7 +118,6 @@ satDisp, renderView, satSource = mvs.satellite(time_o = '1984-01-01T00:00:00.000
 tubeDis, renderView, tubeFilter = mvs.tube(satSource)
 #mvs.screenshot_object(obj=tubeFilter)
 
-
 if False:
 
   renderView = pvs.GetActiveViewOrCreate('RenderView')

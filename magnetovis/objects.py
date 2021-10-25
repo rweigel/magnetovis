@@ -591,7 +591,7 @@ def trace_lines(points, connectivity, out_fname=os.path.join(tempfile.gettempdir
     tube1Display.DiffuseColor = color
 
 
-def _latitude_lines(self, time, coord_sys='GSM', increment=15, color=[1,0,0]):
+def _latitude_lines(self, time, coord_sys='GEO', increment=15, color=[1,0,0]):
 
     import numpy as np
     import numpy.matlib
@@ -609,9 +609,7 @@ def _latitude_lines(self, time, coord_sys='GSM', increment=15, color=[1,0,0]):
 
     sph_coords = np.column_stack((r,lat,lon))
 
-    points = hx.transform(sph_coords, time, 'GSM', coord_sys, ctype_in='sph', ctype_out='car')
-
-    ### start of vtk
+    points = hx.transform(sph_coords, time, 'GEO', coord_sys, ctype_in='sph', ctype_out='car')
 
     pdo = self.GetPolyDataOutput()
     pdo.Allocate(len(r), 1)
@@ -1592,7 +1590,7 @@ def objs_wrapper(**kwargs):
         programmableSourceDisplay.LookupTable = lat_lonLUT
         programmableSourceDisplay.OpacityArray = ['POINTS', scalar_data]
         programmableSourceDisplay.ColorArrayName = ['POINTS', scalar_data]
-        programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
+        programmableSourceDisplay.SetScalarBarVisibility(renderView, False)
 
     if kwargs['obj'] == 'dipole field':
 

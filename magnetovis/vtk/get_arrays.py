@@ -1,5 +1,6 @@
 def get_arrays(array_functions, points):
-    import magnetovis
+
+    from magnetovis.functions import functions as mvsfunctions
 
     if array_functions is None:
         return None
@@ -13,7 +14,7 @@ def get_arrays(array_functions, points):
             name = function
         # TODO: Handle duplicate name case
         # Call the function
-        data = getattr(magnetovis, function)(points, **kwargs)
+        data = getattr(mvsfunctions, function)(points, **kwargs)
         print("get_arrays(): getting " + name)
         data_dict[name] = data
 

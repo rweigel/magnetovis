@@ -1,10 +1,9 @@
 from vtkmodules.util.vtkAlgorithm import VTKPythonAlgorithmBase
 from paraview.util.vtkAlgorithm import smproxy, smproperty, smhint, smdomain
 
-# TODO: Why can't label be changed? It is possible on other plugins.
-@smproxy.source(name="MagnetovisParticleTrajectory", label="MagnetovisParticleTrajectory")
+@smproxy.source(name="MagnetovisCCMCKameleonCDF", label="ReadCCMCKameleonCDF")
 @smhint.xml('<ShowInMenu category="Magnetovis"/>')
-class ParticleTrajectoryPlugin(VTKPythonAlgorithmBase):
+class ReadCCMCKameleonCDF(VTKPythonAlgorithmBase):
  
     def __init__(self, **default_values):
 
@@ -32,7 +31,7 @@ class ParticleTrajectoryPlugin(VTKPythonAlgorithmBase):
 
     @smproperty.stringvector(name="FileName", default_values="/tmp/proton_pitch60_L2_motion.vtk")
     @smdomain.filelist()
-    @smhint.filechooser(extensions="vtk", file_description="Trajectory VTK File")
+    @smhint.filechooser(extensions="vtk", file_description="CCMC/Kameleon CDF file")
     def SetFileName(self, name):
         self.filename = name
 

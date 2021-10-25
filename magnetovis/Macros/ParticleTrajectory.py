@@ -29,4 +29,4 @@ renderView1.CameraParallelScale = 3.4194424668122876
 MagnetovisParticleTrajectory1Display.AmbientColor = [1.0, 1.0, 0.0]
 MagnetovisParticleTrajectory1Display.DiffuseColor = [1.0, 1.0, 0.0]
 
-mvs.latitude_lines(time)
+mvs.latitude_lines(time, coord_sys='GEO')
