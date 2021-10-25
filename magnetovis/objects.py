@@ -1540,7 +1540,8 @@ def objs_wrapper(**kwargs):
             annotations.append(str(i))
             annotations.append(unique_regions[i])
             if kwargs['region_colors'] != None:
-                index_colored_list.append(kwargs['region_colors'][unique_regions[i]][0:3])
+                tmp = unique_regions[i].decode("utf-8")
+                index_colored_list.append(kwargs['region_colors'][tmp][0:3])
             else:
                 index_colored_list.append(kwargs['color'][0:3])
 

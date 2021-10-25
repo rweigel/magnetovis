@@ -10,6 +10,8 @@ Created on Fri Oct  9 12:06:23 2020
 
 from magnetovis import objects
 
+import magnetovis as mvs
+
 # mvs.earth([2000, 1, 1, 0, 0, 0], debug=True)
 
 # mvs.latitude_lines([2000, 1, 1, 0, 0, 0], debug=True)
