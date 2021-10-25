@@ -154,7 +154,7 @@ def earth(time,
         import numpy as np
 
         from hxform import hxform as hx
-        from magnetovis.vtk_export import vtk_export
+        from magnetovis.vtk.vtk_export import vtk_export
 
         fnameVTK = os.path.join(out_dir, 'earth-' + coord_sys + '-' + util.tstr(time, length=5) +'.vtk')
         if os.path.exists(fnameVTK):
@@ -262,7 +262,7 @@ def field_data(time, Xgrid, values, dims, texture, # dims = [Nx,Ny,Nz]
                     show=True,
                     debug=True, sum_total=False):
 
-    from vtk_export import vtk_export
+    from magnetovis.vtk.vtk_export import vtk_export
 
     if os.path.exists(out_filename):
         if debug: print(out_filename + ' ALREADY EXISTS')
