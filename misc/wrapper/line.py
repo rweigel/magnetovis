@@ -1,5 +1,5 @@
 # This program demonstrates how to use programmable source to create a
-# VTK object that could not be created using paraview.simple.
+# VTK object that could not otherwise be created using paraview.simple.
 
 def line(n_pts=10, length=10):
    from exec_programmable_source import exec_programmable_source
