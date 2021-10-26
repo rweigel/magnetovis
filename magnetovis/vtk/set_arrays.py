@@ -1,4 +1,4 @@
-def set_arrays(self, output, points, point_data=None, cell_data=None):
+def set_arrays(self, output, points, point_data=None, cell_data=None, debug=False):
 
     import vtk
     from vtk.numpy_interface import dataset_adapter as dsa
@@ -12,7 +12,8 @@ def set_arrays(self, output, points, point_data=None, cell_data=None):
 
     if point_data is not None:
         for name, array in point_data.items():
-            print("set_arrays(): setting point_data array named " + name)
+            if debug:
+                print("set_arrays(): setting point_data array named " + name)
             vtkArray = dsa.numpyTovtkDataArray(array)
             vtkArray.SetName(name)
             output.GetPointData().AddArray(vtkArray)
@@ -25,7 +26,8 @@ def set_arrays(self, output, points, point_data=None, cell_data=None):
 
     import numpy as np
     Ncells = output.GetNumberOfCells()
-    print("set_arrays(): Ncells = " + str(Ncells))
+    if debug:
+        print("set_arrays(): Ncells = " + str(Ncells))
     vtkArray = dsa.numpyTovtkDataArray(np.arange(Ncells))
     vtkArray.SetName('cell_index')
     output.GetCellData().AddArray(vtkArray)

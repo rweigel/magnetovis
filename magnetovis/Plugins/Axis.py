@@ -4,7 +4,7 @@ from vtkmodules.util.vtkAlgorithm import VTKPythonAlgorithmBase
 # new module for ParaView-specific decorators.
 from paraview.util.vtkAlgorithm import smproxy, smproperty, smhint, smdomain
 
-@smproxy.source(name="MagnetovisAxis", label="Axis")
+@smproxy.source(name="MagnetovisAxis", label="MagnetovisAxis")
 @smhint.xml('<ShowInMenu category="Magnetovis"/>')
 class AxisPlugin(VTKPythonAlgorithmBase):
 

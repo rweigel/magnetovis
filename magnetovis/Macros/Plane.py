@@ -5,14 +5,10 @@ from paraview.simple import *
 #### disable automatic camera reset on 'Show'
 paraview.simple._DisableFirstRenderCameraReset()
 
-MagnetovisPlane1 = MagnetovisPlane(registrationName="plane", Npts=5)
+MagnetovisPlane1 = MagnetovisPlane()
 
 SetActiveSource(MagnetovisPlane1)
 
 renderView1 = GetActiveViewOrCreate('RenderView')
 
 MagnetovisPlane1Display = Show(MagnetovisPlane1, renderView1, 'GeometryRepresentation')
-
-from magnetovis.Plane import Display
-MagnetovisLine1Display = Display(MagnetovisPlane1, MagnetovisPlane1Display, renderView1)
-

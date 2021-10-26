@@ -4,7 +4,7 @@ from vtkmodules.util.vtkAlgorithm import VTKPythonAlgorithmBase
 # new module for ParaView-specific decorators.
 from paraview.util.vtkAlgorithm import smproxy, smproperty, smhint, smdomain
 
-@smproxy.source(name="MagnetovisSatellite", label="Satellite")
+@smproxy.source(name="MagnetovisSatellite", label="MagnetovisSatellite")
 @smhint.xml('<ShowInMenu category="Magnetovis"/>')
 class SatellitePlugin(VTKPythonAlgorithmBase):
 
@@ -62,16 +62,17 @@ class SatellitePlugin(VTKPythonAlgorithmBase):
         name="SatelliteID" 
         command="SetSatelliteID" 
         number_of_elements="1"
-        default_values="0">
+        default_values="3">
        <EnumerationDomain name="enum">
          <Entry value="0" text="ace"/>
          <Entry value="1" text="active"/>
          <Entry value="2" text="aec"/>
+         <Entry value="3" text="geotail"/>
        </EnumerationDomain>
      </IntVectorProperty>""")
     def SetSatelliteID(self, idx):
         print("SetSatelliteID called with idx = " + str(idx))
-        values = ["ace", "active", "aec"]
+        values = ["ace", "active", "aec", "geotail"]
         self.satellite_id = values[idx]
         self.Modified()
 
@@ -95,7 +96,7 @@ class SatellitePlugin(VTKPythonAlgorithmBase):
         name="StopTime" 
         command="SetStopTime" 
         number_of_elements="1"
-        default_values="2000-01-02T00:00:00">
+        default_values="2000-01-04T00:00:00">
        <Documentation>Stop time string</Documentation>
      </StringVectorProperty>""")
     def SetStopTime(self, value):

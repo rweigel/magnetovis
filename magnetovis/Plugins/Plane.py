@@ -4,7 +4,7 @@ from vtkmodules.util.vtkAlgorithm import VTKPythonAlgorithmBase
 # new module for ParaView-specific decorators.
 from paraview.util.vtkAlgorithm import smproxy, smproperty, smhint, smdomain
 
-@smproxy.source(name="MagnetovisCoordinatePlane", label="CoordinatePlane")
+@smproxy.source(name="MagnetovisPlane", label="MagnetovisPlane")
 @smhint.xml('<ShowInMenu category="Magnetovis"/>')
 class CoordinatePlanePlugin(VTKPythonAlgorithmBase):
 
@@ -20,13 +20,12 @@ class CoordinatePlanePlugin(VTKPythonAlgorithmBase):
 
     def RequestData(self, request, inInfo, outInfo):
 
-        n_pts = self.Npts
         exec(self.Script)
 
         return 1
 
     def RequestInformation(self, request, inInfoVec, outInfoVec):
-        from magnetovis.Plane import ScriptRequestInformation
+        from magnetovis.Objects.Plane import ScriptRequestInformation
         ScriptRequestInformation(self, Nx=2, Ny=2, Nz=1)
         return 1
 

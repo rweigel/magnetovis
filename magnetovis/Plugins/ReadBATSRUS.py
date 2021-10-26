@@ -1,7 +1,7 @@
 from vtkmodules.util.vtkAlgorithm import VTKPythonAlgorithmBase
 from paraview.util.vtkAlgorithm import smproxy, smproperty, smhint, smdomain
 
-@smproxy.source(name="MagnetovisReadBATSRUS", label="ReadBATSRUS")
+@smproxy.source(name="MagnetovisReadBATSRUS", label="MagnetovisReadBATSRUS")
 @smhint.xml('<ShowInMenu category="Magnetovis"/>')
 class ReadBATSRUSPlugin(VTKPythonAlgorithmBase):
  

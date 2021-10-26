@@ -21,7 +21,7 @@ def Script(self, time="2001-01-01", normal="Z", extents=[[-40., 40.],[-40., 40.]
 
     import vtk
     import numpy as np
-    from magnetovis.structured_grid import structured_grid
+    from magnetovis.vtk.set_arrays import set_arrays
 
     from hxform import hxform as hx
 
@@ -69,7 +69,7 @@ def Script(self, time="2001-01-01", normal="Z", extents=[[-40., 40.],[-40., 40.]
     if normal == "Z":
         scalar_data = [2, 2, 2, 2]
 
-    output = structured_grid(self, output, points, {'scalar_data': scalar_data})
+    output = set_arrays(self, output, points, {'scalar_data': scalar_data})
 
 
 def Display(magnetovisPlane, magnetovisPlaneDisplayProperties, magnetovisPlaneRenderView, **displayArguments):

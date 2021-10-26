@@ -1,16 +1,17 @@
 # From this directory, execute
-#   magnetovis --script=MultiLine_demo.py
+#   magnetovis --script=Curve_demo.py
 
 import magnetovis as mvs
 
+Npts = 30
 sourceArguments = {
-                    "time": "2001-01-01",
                     "coord_sys": "GSM",
-                    "point_function": {
-                                            "curve": 
-                                                {   
-                                                    "Npts": 6,
-                                                    "coord_sys": "GSM"
+                    "Npts": 4,
+                    "closed": False,
+                    "point_function": {"circle": {
+                                                    "radius": 1.0,
+                                                    "origin": (0.0, 0.0, 0.0),
+                                                    "orientation": (0, 0, 1)
                                                 }
                     },
                     "point_array_functions": {
@@ -27,11 +28,10 @@ displayArguments = {
                     "renderView": None
                 }
 
-registrationName = "MultiLine/Npts={}/{}" \
-                        .format(sourceArguments['time'],
-                                sourceArguments['coord_sys'])
+registrationName = "Curve/{}/{}" \
+                        .format(Npts, sourceArguments['coord_sys'])
 
-MultiLine = mvs.MultiLine(
+MultiCurve = mvs.Curve(
                     registrationName=registrationName,
                     sourceArguments=sourceArguments,
                     renderSource=False,
@@ -44,7 +44,7 @@ MultiLine = mvs.MultiLine(
 
 displayArguments['showSource'] = True
 displayArguments['displayRepresentation'] = "Surface"
-MultiLine.SetDisplayOptions(displayArguments)
+MultiCurve.SetDisplayOptions(displayArguments)
 
 # reset view to fit data
-MultiLine.renderView.ResetCamera()
+MultiCurve.renderView.ResetCamera()

@@ -1,7 +1,7 @@
 from vtkmodules.util.vtkAlgorithm import VTKPythonAlgorithmBase
 from paraview.util.vtkAlgorithm import smproxy, smproperty, smhint, smdomain
 
-@smproxy.source(name="MagnetovisCCMCKameleonCDF", label="ReadCCMCKameleonCDF")
+@smproxy.source(name="MagnetovisCCMCKameleonCDF", label="MagnetovisCCMCKameleonCDF")
 @smhint.xml('<ShowInMenu category="Magnetovis"/>')
 class ReadCCMCKameleonCDF(VTKPythonAlgorithmBase):
  

@@ -3,7 +3,7 @@ from paraview.util.vtkAlgorithm import smproxy, smproperty, smhint, smdomain
 
 from magnetovis.Plugins.StructuredGrid import StructuredGridPlugin
 
-@smproxy.source(name="MagnetovisIGRF", label="IGRF")
+@smproxy.source(name="MagnetovisIGRF", label="MagnetovisIGRF")
 @smhint.xml('<ShowInMenu category="Magnetovis"/>')
 class IGRFPlugin(VTKPythonAlgorithmBase):
 

@@ -3,7 +3,7 @@ from paraview.util.vtkAlgorithm import smproxy, smproperty, smhint, smdomain
 
 from magnetovis.Plugins.StructuredGrid import StructuredGridPlugin
 
-@smproxy.source(name="MagnetovisT01", label="Tsyganenko 2001")
+@smproxy.source(name="MagnetovisT01", label="MagnetovisT01")
 @smhint.xml('<ShowInMenu category="Magnetovis"/>')
 class T01Plugin(VTKPythonAlgorithmBase):
 

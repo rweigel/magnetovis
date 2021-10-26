@@ -3,7 +3,7 @@ from paraview.util.vtkAlgorithm import smproxy, smproperty, smhint, smdomain
 
 from magnetovis.Plugins.StructuredGrid import StructuredGridPlugin
 
-@smproxy.source(name="MagnetovisDipole", label="Dipole")
+@smproxy.source(name="MagnetovisDipole", label="MagnetovisDipole")
 @smhint.xml('<ShowInMenu category="Magnetovis"/>')
 class DipolePlugin(VTKPythonAlgorithmBase):
 

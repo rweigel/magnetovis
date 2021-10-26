@@ -1,7 +1,7 @@
 from vtkmodules.util.vtkAlgorithm import VTKPythonAlgorithmBase
 from paraview.util.vtkAlgorithm import smproxy, smproperty, smhint, smdomain
 
-@smproxy.source(name="MagnetovisStructuredGrid", label="NumPy2StructuredGrid")
+@smproxy.source(name="MagnetovisStructuredGrid", label="MagnetovisStructuredGrid")
 @smhint.xml('<ShowInMenu category="Magnetovis"/>')
 class StructuredGridPlugin(VTKPythonAlgorithmBase):
 
@@ -29,7 +29,6 @@ class StructuredGridPlugin(VTKPythonAlgorithmBase):
         from magnetovis import extract_script
         from magnetovis.Objects.StructuredGrid import Script
 
-        #self.SetPointFunction(self, "dipole()")
         self.FullScript = Script
         # Note the use of "\n" instead of &#xa; in comment set above.
         Script = extract_script(Script, None, xml_encode=False)

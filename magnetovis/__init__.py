@@ -205,9 +205,9 @@ temp = type(file, (object, ), {
 globals()[file] = temp
 
 
-from magnetovis.Objects import Line # Allow import magnetovis as mvs; mvs.Line(...)
-from magnetovis.Objects.Line import Script, ScriptRequestInformation, OutputDataSetType, _Display
-file = "Line"
+from magnetovis.Objects import Curve # Allow import magnetovis as mvs; mvs.Curve(...)
+from magnetovis.Objects.Curve import Script, ScriptRequestInformation, OutputDataSetType, _Display
+file = "Curve"
 temp = type(file, (object, ), {
    "sourceFunction": Script,
    "displayFunction": _Display,
@@ -275,3 +275,5 @@ temp = type(file, (object, ), {
    "SetDisplayOptions": BaseClass.SetDisplayOptions
 })
 globals()[file] = temp
+
+

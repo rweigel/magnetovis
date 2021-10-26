@@ -1,4 +1,37 @@
+def circle(Npts, radius=1.0, origin=(0.0, 0.0, 0.0), orientation=(0, 0, 1)):
+
+    import numpy as np
+
+    idx = np.arange(Npts)
+
+    points = np.zeros((Npts, 3))
+    points[:,0] = origin[0] + radius*np.cos(idx*2*np.pi/Npts)
+    points[:,1] = origin[1] + radius*np.sin(idx*2*np.pi/Npts)
+
+    if not np.all(np.array(orientation) == np.array((0, 0, 1))):
+        pass # TODO: Rotate
+
+    points[:,2] = origin[2]
+
+    return points
+
+def helix(Npts, radius=1.0, length=10, rounds=3):
+
+    import numpy as np
+
+    idx = np.arange(Npts)
+
+    points = np.full((Npts, 3), np.nan)
+    points[:,0] = idx*length/(Npts-1)
+    points[:,1] = radius*np.sin(idx*rounds*2*np.pi/Npts)
+    points[:,2] = radius*np.cos(idx*rounds*2*np.pi/Npts)
+
+    return points
+
+
 def curve(Npts, coord_sys="GSM"):
+    import numpy as np
+
     points = np.zeros((Npts,3))
     points[:,0] = np.arange(Npts)
     points[:,1] = np.zeros(Npts)
@@ -6,18 +39,21 @@ def curve(Npts, coord_sys="GSM"):
 
     return points
 
+
 def position(points, coord_sys="GSM"):
     return points
+
 
 def radius(points):
     import numpy as np
     r = np.linalg.norm(points, axis=1)
     return r
 
+
 def IGRF(points, time="2001-01-01", coord_sys="GSM"):
 
-    M=7.788E22
     import numpy as np
+    M=7.788E22
     r = np.linalg.norm(points, axis=1)
     B = np.zeros(points.shape)
     r[r < 1] = np.nan
@@ -26,6 +62,7 @@ def IGRF(points, time="2001-01-01", coord_sys="GSM"):
     B[:,2] = M*(3*points[:,2]**2-r**2)/r**5   # Bz = M(3*z^2 - r^2)/r^5
 
     return B
+
 
 def T01(points, M=7.788E22, parmod=None, ps=0.0):
 
@@ -38,6 +75,7 @@ def T01(points, M=7.788E22, parmod=None, ps=0.0):
     B[:,2] = M*(3*points[:,2]**2-r**2)/r**5   # Bz = M(3*z^2 - r^2)/r^5
 
     return B
+
 
 def T89c(points, iopt=0, ps=0.0):
 

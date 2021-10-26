@@ -25,9 +25,9 @@ def Script(self, time="2001-01-01", coord_sys='GSM', Npts=3, point_function=None
         points[:,1] = np.zeros(Npoints)
         points[:,2] = np.zeros(Npoints)
     else:
-        if (len(point_function) > 1):
-            # TODO: Error
-            pass
+        if (len(point_function) > 1):            
+            pass # TODO: Error
+
         function_name = list(point_function.keys())[0]
         Npts = point_function[function_name]["Npts"]
         del point_function[function_name]["Npts"]
