@@ -12,3 +12,5 @@ SetActiveSource(MagnetovisPlane1)
 renderView1 = GetActiveViewOrCreate('RenderView')
 
 MagnetovisPlane1Display = Show(MagnetovisPlane1, renderView1, 'GeometryRepresentation')
+
+ResetCamera()

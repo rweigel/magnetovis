@@ -1,4 +1,5 @@
 from paraview.simple import *
+
 paraview.simple._DisableFirstRenderCameraReset()
 
 MagnetovisAxis1 = MagnetovisAxis()

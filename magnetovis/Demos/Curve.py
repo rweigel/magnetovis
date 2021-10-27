@@ -1,5 +1,5 @@
 # From this directory, execute
-#   magnetovis --script=Curve_demo.py
+#   magnetovis --script=Curve.py
 
 import magnetovis as mvs
 
@@ -34,20 +34,16 @@ displayArguments = {
 
 registrationName = "Circle using Curve Source/Npts={}/closed={}".format(Npts, closed)
 
-MultiCurve = mvs.Curve(
+Curve = mvs.Curve(
                     registrationName=registrationName,
                     sourceArguments=sourceArguments,
                     renderSource=False,
                     displayArguments=displayArguments
                 )
 
-#print(Plane.programmableSource)
-#print(Plane.displayProperties) # None b/c renderSource was False
-#print(Plane.renderView) # None b/c renderSource was False#
-
 displayArguments['showSource'] = True
 displayArguments['displayRepresentation'] = "Surface"
-MultiCurve.SetDisplayOptions(displayArguments)
+Curve.SetDisplayOptions(displayArguments)
 
 # reset view to fit data
-MultiCurve.renderView.ResetCamera()
+Curve.renderView.ResetCamera()

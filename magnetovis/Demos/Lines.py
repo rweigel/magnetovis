@@ -1,5 +1,5 @@
 # From this directory, execute
-#   magnetovis --script=Lines_demo.py
+#   magnetovis --script=Lines.py
 
 import magnetovis as mvs
 
@@ -33,20 +33,16 @@ displayArguments = {
 
 registrationName = "Circle using Lines Source/Npts={}/closed={}".format(Npts, closed)
 
-MultiLine = mvs.MultiLine(
+Lines = mvs.Lines(
                     registrationName=registrationName,
                     sourceArguments=sourceArguments,
                     renderSource=False,
                     displayArguments=displayArguments
                 )
 
-#print(Plane.programmableSource)
-#print(Plane.displayProperties) # None b/c renderSource was False
-#print(Plane.renderView) # None b/c renderSource was False#
-
 displayArguments['showSource'] = True
 displayArguments['displayRepresentation'] = "Surface"
-MultiLine.SetDisplayOptions(displayArguments)
+Lines.SetDisplayOptions(displayArguments)
 
 # reset view to fit data
-MultiLine.renderView.ResetCamera()
+Lines.renderView.ResetCamera()

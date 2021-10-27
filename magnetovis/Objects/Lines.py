@@ -62,7 +62,7 @@ def Script(self, time="2001-01-01", coord_sys='GSM', Npts=3, closed=False, point
 
     output = set_arrays(self, output, points2, point_data=point_data)
 
-def Display(source, display, renderView, **displayArguments):
+def Display(self, source, display, renderView, **displayArguments):
 
     # Base this on code that is displayed by trace in ParaView GUI
 
@@ -89,7 +89,3 @@ def Display(source, display, renderView, **displayArguments):
     display.SetScalarBarVisibility(renderView, scalarBarVisibility)
 
     return display
-
-
-def _Display(self, displayArguments):
-    self.displayProperties = Display(self.programmableSource, self.displayProperties, self.renderView, **displayArguments)

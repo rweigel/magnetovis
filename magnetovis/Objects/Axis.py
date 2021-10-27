@@ -60,7 +60,7 @@ def Script(self, time="2001-01-01", extent=[-40., 40.], coord_sys='GSM', directi
 
     output = output.ShallowCopy(vtkTubeFilterOutput)
 
-def Display(magnetovisAxis, magnetovisAxisDisplayProperties, magnetovisAxisRenderView, **displayArguments):
+def Display(self, source, display, renderView, **displayArguments):
 
     # Base this on code that is displayed by trace in ParaView GUI
 
@@ -68,23 +68,20 @@ def Display(magnetovisAxis, magnetovisAxisDisplayProperties, magnetovisAxisRende
     import paraview.simple as pvs
 
     if "displayRepresentation" in displayArguments:
-        magnetovisAxisDisplayProperties.Representation = displayArguments['displayRepresentation']
+        display.Representation = displayArguments['displayRepresentation']
 
     if "opacity" in displayArguments:
         if displayArguments["opacity"] is not None:
-            magnetovisAxisDisplayProperties.Opacity = displayArguments['opacity']
+            display.Opacity = displayArguments['opacity']
 
-    magnetovisAxisDisplayProperties.AmbientColor = [0.5, 0.5, 0.5]
+    display.AmbientColor = [0.5, 0.5, 0.5]
     if "ambientColor" in displayArguments:
         if displayArguments["ambientColor"] is not None:
-            magnetovisAxisDisplayProperties.AmbientColor = displayArguments["ambientColor"]
+            display.AmbientColor = displayArguments["ambientColor"]
 
-    magnetovisAxisDisplayProperties.DiffuseColor = [0.5, 0.5, 0.5]
+    display.DiffuseColor = [0.5, 0.5, 0.5]
     if "diffuseColor" in displayArguments:
         if displayArguments["diffuseColor"] is not None:
-            magnetovisAxisDisplayProperties.DiffuseColor = displayArguments["diffuseColor"]
+            display.DiffuseColor = displayArguments["diffuseColor"]
 
-    return magnetovisAxisDisplayProperties
-
-def _Display(self, displayArguments):
-    self.displayProperties = Display(self.programmableSource, self.displayProperties, self.renderView, **displayArguments)
+    return display

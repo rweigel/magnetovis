@@ -173,11 +173,11 @@ class BaseClass:
         if displayArguments is None:
             displayArguments = {}
 
-        self.displayArguments = displayArguments
         # Create display properties object
+        self.displayArguments = displayArguments
         self.displayProperties = pvs.Show(self.programmableSource, self.renderView)
 
-        self.displayProperties = self.displayFunction(self.displayArguments)
+        self.displayProperties = self.displayFunction(self.programmableSource, self.displayProperties, self.renderView, **self.displayArguments)
 
         # Update the view to ensure updated data information
         # TODO: Needed?
@@ -190,41 +190,12 @@ class BaseClass:
 
 # TODO: Automate the following by reading magnetovis/Objects directory
 
-from magnetovis.Objects import Satellite # Allow import magnetovis as mvs; mvs.Satellite(...)
-from magnetovis.Objects.Satellite import Script, ScriptRequestInformation, OutputDataSetType, _Display
-file = "Satellite"
-temp = type(file, (object, ), {
-   "sourceFunction": Script,
-   "displayFunction": _Display,
-   "sourceOutputDataSetType": OutputDataSetType(),
-   "sourceRequestInformationFunction": ScriptRequestInformation,
-   "registrationName": file,
-   "__init__": BaseClass.__init__,
-   "SetDisplayOptions": BaseClass.SetDisplayOptions
-})
-globals()[file] = temp
-
-
-from magnetovis.Objects import Curve # Allow import magnetovis as mvs; mvs.Curve(...)
-from magnetovis.Objects.Curve import Script, ScriptRequestInformation, OutputDataSetType, _Display
-file = "Curve"
-temp = type(file, (object, ), {
-   "sourceFunction": Script,
-   "displayFunction": _Display,
-   "sourceOutputDataSetType": OutputDataSetType(),
-   "sourceRequestInformationFunction": ScriptRequestInformation,
-   "registrationName": file,
-   "__init__": BaseClass.__init__,
-   "SetDisplayOptions": BaseClass.SetDisplayOptions
-})
-globals()[file] = temp
-
 from magnetovis.Objects import Axis # Allow import magnetovis as mvs; mvs.Axis(...)
-from magnetovis.Objects.Axis import Script, ScriptRequestInformation, OutputDataSetType, _Display
+from magnetovis.Objects.Axis import Script, ScriptRequestInformation, OutputDataSetType, Display
 file = "Axis"
 temp = type(file, (object, ), {
    "sourceFunction": Script,
-   "displayFunction": _Display,
+   "displayFunction": Display,
    "sourceOutputDataSetType": OutputDataSetType(),
    "sourceRequestInformationFunction": ScriptRequestInformation,
    "registrationName": file,
@@ -233,29 +204,14 @@ temp = type(file, (object, ), {
 })
 globals()[file] = temp
 
-
-from magnetovis.Objects import Plane # Allow import magnetovis as mvs; mvs.Plane(...)
-from magnetovis.Objects.Plane import Script, ScriptRequestInformation, OutputDataSetType, _Display
-file = "Plane"
+from magnetovis.Objects import Curve # Allow import magnetovis as mvs; mvs.Curve(...)
+from magnetovis.Objects.Curve import Script, ScriptRequestInformation, OutputDataSetType, Display
+file = "Curve"
 temp = type(file, (object, ), {
    "sourceFunction": Script,
+   "displayFunction": Display,
    "sourceOutputDataSetType": OutputDataSetType(),
    "sourceRequestInformationFunction": ScriptRequestInformation,
-   "displayFunction": _Display,
-   "registrationName": file,
-   "__init__": BaseClass.__init__,
-   "SetDisplayOptions": BaseClass.SetDisplayOptions
-})
-globals()[file] = temp
-
-from magnetovis.Objects import StructuredGrid # Allow import magnetovis as mvs; mvs.StructuredGrid(...)
-from magnetovis.Objects.StructuredGrid import Script, ScriptRequestInformation, OutputDataSetType, _Display
-file = "StructuredGrid"
-temp = type(file, (object, ), {
-   "sourceFunction": Script,
-   "sourceOutputDataSetType": OutputDataSetType(),
-   "sourceRequestInformationFunction": ScriptRequestInformation,
-   "displayFunction": _Display,
    "registrationName": file,
    "__init__": BaseClass.__init__,
    "SetDisplayOptions": BaseClass.SetDisplayOptions
@@ -263,13 +219,55 @@ temp = type(file, (object, ), {
 globals()[file] = temp
 
 from magnetovis.Objects import Lines # Allow import magnetovis as mvs; mvs.Lines(...)
-from magnetovis.Objects.Lines import Script, ScriptRequestInformation, OutputDataSetType, _Display
+from magnetovis.Objects.Lines import Script, ScriptRequestInformation, OutputDataSetType, Display
 file = "Lines"
 temp = type(file, (object, ), {
    "sourceFunction": Script,
    "sourceOutputDataSetType": OutputDataSetType(),
    "sourceRequestInformationFunction": ScriptRequestInformation,
-   "displayFunction": _Display,
+   "displayFunction": Display,
+   "registrationName": file,
+   "__init__": BaseClass.__init__,
+   "SetDisplayOptions": BaseClass.SetDisplayOptions
+})
+globals()[file] = temp
+
+from magnetovis.Objects import Satellite # Allow import magnetovis as mvs; mvs.Satellite(...)
+from magnetovis.Objects.Satellite import Script, ScriptRequestInformation, OutputDataSetType, Display
+file = "Satellite"
+temp = type(file, (object, ), {
+   "sourceFunction": Script,
+   "displayFunction": Display,
+   "sourceOutputDataSetType": OutputDataSetType(),
+   "sourceRequestInformationFunction": ScriptRequestInformation,
+   "registrationName": file,
+   "__init__": BaseClass.__init__,
+   "SetDisplayOptions": BaseClass.SetDisplayOptions
+})
+globals()[file] = temp
+
+from magnetovis.Objects import Plane # Allow import magnetovis as mvs; mvs.Plane(...)
+from magnetovis.Objects.Plane import Script, ScriptRequestInformation, OutputDataSetType, Display
+file = "Plane"
+temp = type(file, (object, ), {
+   "sourceFunction": Script,
+   "sourceOutputDataSetType": OutputDataSetType(),
+   "sourceRequestInformationFunction": ScriptRequestInformation,
+   "displayFunction": Display,
+   "registrationName": file,
+   "__init__": BaseClass.__init__,
+   "SetDisplayOptions": BaseClass.SetDisplayOptions
+})
+globals()[file] = temp
+
+from magnetovis.Objects import StructuredGrid # Allow import magnetovis as mvs; mvs.StructuredGrid(...)
+from magnetovis.Objects.StructuredGrid import Script, ScriptRequestInformation, OutputDataSetType, Display
+file = "StructuredGrid"
+temp = type(file, (object, ), {
+   "sourceFunction": Script,
+   "sourceOutputDataSetType": OutputDataSetType(),
+   "sourceRequestInformationFunction": ScriptRequestInformation,
+   "displayFunction": Display,
    "registrationName": file,
    "__init__": BaseClass.__init__,
    "SetDisplayOptions": BaseClass.SetDisplayOptions

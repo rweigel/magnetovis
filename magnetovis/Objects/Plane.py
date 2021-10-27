@@ -71,8 +71,7 @@ def Script(self, time="2001-01-01", normal="Z", extents=[[-40., 40.],[-40., 40.]
 
     output = set_arrays(self, output, points, {'scalar_data': scalar_data})
 
-
-def Display(magnetovisPlane, magnetovisPlaneDisplayProperties, magnetovisPlaneRenderView, **displayArguments):
+def Display(self, source, display, renderView, **displayArguments):
 
     # Base this on code that is displayed by trace in ParaView GUI
 
@@ -82,12 +81,12 @@ def Display(magnetovisPlane, magnetovisPlaneDisplayProperties, magnetovisPlaneRe
     name = 'scalar_data'
 
     if "displayRepresentation" in displayArguments:
-        magnetovisPlaneDisplayProperties.Representation = displayArguments['displayRepresentation']
+        display.Representation = displayArguments['displayRepresentation']
 
     if "opacity" in displayArguments:
-        magnetovisPlaneDisplayProperties.Opacity = displayArguments['opacity']
+        display.Opacity = displayArguments['opacity']
 
-    sourceData = paraview.servermanager.Fetch(magnetovisPlane)
+    sourceData = paraview.servermanager.Fetch(source)
     scalar_data = sourceData.GetPointData().GetArray(name)
 
     if scalar_data.GetValue(0) == 0:
@@ -105,14 +104,9 @@ def Display(magnetovisPlane, magnetovisPlaneDisplayProperties, magnetovisPlaneRe
     lookupTable.Annotations = Annotations
     lookupTable.InterpretValuesAsCategories = 1
     lookupTable.AnnotationsInitialized = 1
-    magnetovisPlaneDisplayProperties.LookupTable = lookupTable
-    magnetovisPlaneDisplayProperties.OpacityArray = ['POINTS', name]
-    magnetovisPlaneDisplayProperties.ColorArrayName = ['POINTS', name]
-    magnetovisPlaneDisplayProperties.SetScalarBarVisibility(magnetovisPlaneRenderView, False)
+    display.LookupTable = lookupTable
+    display.OpacityArray = ['POINTS', name]
+    display.ColorArrayName = ['POINTS', name]
+    display.SetScalarBarVisibility(renderView, False)
 
-    return magnetovisPlaneDisplayProperties
-
-
-def _Display(self, displayArguments):
-    self.displayProperties = Display(self.programmableSource, self.displayProperties, self.renderView, **displayArguments)
-
+    return display

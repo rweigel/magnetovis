@@ -1,6 +1,6 @@
 # From this directory, execute
-#   magnetovis --script=Line_demo.py
-# When executed results in the display of a line with n_pts-1 segments.
+#   magnetovis --script=Axis.py
+
 import paraview.simple as pvs
 
 import magnetovis as mvs
@@ -28,18 +28,10 @@ Axis = mvs.Axis(
                     displayArguments=displayArguments # Ignored if renderSource=False
                 )
 
-#print(Axis.programmableSource)
-#print(Axis.displayProperties)   # None b/c renderSource was False
-#print(Axis.renderView)          # None b/c renderSource was False
-#print(Axis.displayArguments)
-#print(Axis.sourceArguments)
-
 displayArguments['showSource'] = True
 displayArguments['ambientColor'] = [1, 0, 0]
 displayArguments['diffuseColor'] = [1, 0, 0]
 Axis.SetDisplayOptions(displayArguments)
 
-#print(Axis.programmableSource)
-#print(Axis.displayProperties)
-#print(Axis.renderView)
-
+# reset view to fit data
+Axis.renderView.ResetCamera()

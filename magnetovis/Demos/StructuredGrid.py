@@ -1,5 +1,5 @@
 # From this directory, execute
-#   magnetovis --script=StructuredGrid_demo.py
+#   magnetovis --script=StructuredGrid.py
 
 import magnetovis as mvs
 

@@ -82,7 +82,7 @@ def Script(self, time_o="2001-01-01T00:00:00", time_f="2001-01-02T00:00:00", sat
         vtkTubeFilterOutput = vtkTubeFilter.GetOutputDataObject(0)
         output = output.DeepCopy(vtkTubeFilterOutput)
 
-def Display(source, display, renderView, **displayArguments):
+def Display(self, source, display, renderView, **displayArguments):
 
     # Base this on code that is displayed by trace in ParaView GUI
 
@@ -127,8 +127,6 @@ def Display(source, display, renderView, **displayArguments):
         "Low-Lat. Boundary\nLayer",
         "Interplanetary\nMedium"
     ]
-
-
 
     from vtk.util import numpy_support
 

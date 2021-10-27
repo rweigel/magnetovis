@@ -1,12 +1,7 @@
 # From this directory, execute
-#   magnetovis --script=Plane_demo.py
+#   magnetovis --script=Plane.py
 
 import magnetovis as mvs
-
-time = (2015, 1, 1, 0, 0, 0)
-csys = 'GEO'
-
-mvs.earth(time, coord_sys=csys)
 
 sourceArguments = {
                     "time": "2001-01-01",
@@ -29,10 +24,9 @@ Plane = mvs.Plane(
                     displayArguments=displayArguments
                 )
 
-#print(Plane.programmableSource)
-#print(Plane.displayProperties) # None b/c renderSource was False
-#print(Plane.renderView) # None b/c renderSource was False#
-
 displayArguments['showSource'] = True
 displayArguments['displayRepresentation'] = "Surface"
 Plane.SetDisplayOptions(displayArguments)
+
+# reset view to fit data
+Plane.renderView.ResetCamera()

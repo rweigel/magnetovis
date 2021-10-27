@@ -1,7 +1,7 @@
 import os
 
 base = os.path.dirname(os.path.abspath(__file__))
-base = base + "/../Demos"
+base = base + "/../Macros"
 
 print("Reading " + base)
 
@@ -15,9 +15,14 @@ files_py.sort()
 
 import paraview.simple as pvs
 
-# The commented out lines cause random crashes.
+#pvs.Connect("localhost")
+#[pvs.Delete(s) for s in pvs.GetSources().values()]
+#pvs.ResetSession()
+
+# The commented out lines below cause random crashes.
 # No crashes when pvs.Delete() loop is used.
 #pvs.Disconnect()
+
 
 for file_py in files_py:
     file_png = base + "/Figures/" + file_py[0:-3] + '.png'

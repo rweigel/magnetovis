@@ -27,3 +27,5 @@ MagnetovisStructuredGrid1Display.SetScalarBarVisibility(renderView1, True)
 cell_indexLUT = GetColorTransferFunction('cell_index')
 cell_indexLUT.RGBPoints = [0.0, 0.231373, 0.298039, 0.752941, 3.5, 0.865003, 0.865003, 0.865003, 7.0, 0.705882, 0.0156863, 0.14902]
 cell_indexLUT.ScalarRangeInitialized = 1.0
+
+ResetCamera()
