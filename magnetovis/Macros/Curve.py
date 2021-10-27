@@ -1,6 +1,6 @@
 from paraview.simple import *
 
-MagnetovisCurve1 = MagnetovisCurve(Npts=5)
+MagnetovisCurve1 = MagnetovisCurve()
 
 SetActiveSource(MagnetovisCurve1)
 

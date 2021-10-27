@@ -6,14 +6,14 @@ import shlex
 import subprocess
 import sysconfig
 
-if len(sys.argv) > 1:
 
-    pvpython = False
+pvpython = False
+pvbatch = False
+if len(sys.argv) > 1:
     if sys.argv[1] == "pvpython":
         pvpython = True
         sys.argv[1] = ''
 
-    pvbatch = False
     if sys.argv[1] == "pvbatch":
         pvbatch = True
         sys.argv[1] = ''

@@ -262,9 +262,9 @@ temp = type(file, (object, ), {
 })
 globals()[file] = temp
 
-from magnetovis.Objects import MultiLine # Allow import magnetovis as mvs; mvs.MultiLine(...)
-from magnetovis.Objects.MultiLine import Script, ScriptRequestInformation, OutputDataSetType, _Display
-file = "MultiLine"
+from magnetovis.Objects import Lines # Allow import magnetovis as mvs; mvs.Lines(...)
+from magnetovis.Objects.Lines import Script, ScriptRequestInformation, OutputDataSetType, _Display
+file = "Lines"
 temp = type(file, (object, ), {
    "sourceFunction": Script,
    "sourceOutputDataSetType": OutputDataSetType(),

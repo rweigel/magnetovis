@@ -4,10 +4,9 @@ def OutputDataSetType():
     return "vtkPolyData"
 
 def ScriptRequestInformation(self):
-
     pass
 
-def Script(self, coord_sys='GSM', Npts=3, closed=False, point_function=None, point_array_functions=None, cell_array_functions=None):
+def Script(self, time="2001-01-01", coord_sys="GSM", Npts=6, closed=False, point_function={"circle": {}}, point_array_functions=None, cell_array_functions=None):
 
    # What is entered in the Script box for a Programmable Source
 
@@ -18,12 +17,9 @@ def Script(self, coord_sys='GSM', Npts=3, closed=False, point_function=None, poi
    from magnetovis.vtk.get_arrays import get_arrays
    from hxform import hxform as hx
 
-   if point_function is None:
-      point_function = {"circle": {}}
-   else:
-     if (len(point_function) > 1):
-         # TODO: Error
-         pass
+   if (len(point_function) > 1):
+      # TODO: Error
+      pass
    
    function_name = list(point_function.keys())[0]
    points = get_arrays(point_function, Npts)[function_name]

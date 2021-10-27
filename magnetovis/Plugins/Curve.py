@@ -13,8 +13,13 @@ class CurvePlugin(VTKPythonAlgorithmBase):
     from magnetovis.Objects.Curve import Script
 
     DefaultScript = extract_script(Script, None, xml_encode=True)
+
+    # TODO?: Extract DefaultPointFunction string from signature in Script
+    # TODO?: Make explicit by using magnetovis.functions.circle()
     DefaultNpts = 9
     DefaultPointFunction = "circle()"
+
+    ScriptVisible = "advanced"
 
     def __init__(self, **default_values):
         VTKPythonAlgorithmBase.__init__(self,
@@ -39,11 +44,11 @@ class CurvePlugin(VTKPythonAlgorithmBase):
 
     @smproperty.stringvector(name="PointFunction", command="SetPointFunction", default_values=DefaultPointFunction)
     def SetPointFunction(self, PointFunction):
-        print("SetPointFunction called with PointFunction = " + PointFunction)
+        #print("SetPointFunction called with PointFunction = " + PointFunction)
         self.point_function = PointFunction
         self.Modified()
 
-    @smproperty.stringvector(name="Script", command="SetScript", default_values=DefaultScript)
+    @smproperty.stringvector(name="Script", command="SetScript", default_values=DefaultScript, panel_visibility=ScriptVisible)
     @smhint.xml(r"<Widget type='multi_line' syntax='python'/>")
     def SetScript(self, Script):
         self.Script = Script

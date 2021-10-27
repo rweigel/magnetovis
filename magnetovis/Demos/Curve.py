@@ -4,15 +4,19 @@
 import magnetovis as mvs
 
 Npts = 30
+closed = False
 sourceArguments = {
+                    "time": "2001-01-01",
                     "coord_sys": "GSM",
-                    "Npts": 4,
+                    "Npts": Npts,
                     "closed": False,
-                    "point_function": {"circle": {
+                    "closed": closed,
+                    "point_function": {
+                                        "circle": {
                                                     "radius": 1.0,
                                                     "origin": (0.0, 0.0, 0.0),
                                                     "orientation": (0, 0, 1)
-                                                }
+                                        }
                     },
                     "point_array_functions": {
                                                 "position": 
@@ -28,8 +32,7 @@ displayArguments = {
                     "renderView": None
                 }
 
-registrationName = "Curve/{}/{}" \
-                        .format(Npts, sourceArguments['coord_sys'])
+registrationName = "Circle using Curve Source/Npts={}/closed={}".format(Npts, closed)
 
 MultiCurve = mvs.Curve(
                     registrationName=registrationName,
