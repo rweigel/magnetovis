@@ -13,57 +13,60 @@ def iso2ints(isostr):
 
     return int_list
 
-def extract_kwargs(function_call):
 
-    # https://stackoverflow.com/questions/2626582/running-exec-inside-function
-    function_call_parts = function_call.split("(")
-    function_call_parts[0] = "function_pointer"
-    function_call = '('.join(function_call_parts)
-    function_def = "def " + function_call + ": pass"
-    #print(function_def)
-    exec_dict = {}
-    exec(function_def, exec_dict)
+def extract_kwargs(function, default_kwargs=None):
 
-    function_pointer = exec_dict["function_pointer"]
-    #print(function_pointer)
-
-    sourceArguments = None
+    import types
     from inspect import signature, Parameter
+
+    kwargs = {}
+    if isinstance(function, str):
+        # e.g., function = "circle(radius=1, center=[0, 0, 0])"
+        # https://stackoverflow.com/questions/2626582/running-exec-inside-function
+        function_call_parts = function.split("(")
+        function_call_parts[0] = "function_pointer"
+        function_call = '('.join(function_call_parts)
+        function_def = "def " + function_call + ": pass"
+        #print(function_def)
+        exec_dict = {}
+        exec(function_def, exec_dict)
+        function_pointer = exec_dict["function_pointer"]
+    else:
+        function_pointer = function
+
+    # Based on https://stackoverflow.com/a/54009257
     kwargs = {}
     for x, p in signature(function_pointer).parameters.items():
         if (p.default is not Parameter.empty) and p.kind == Parameter.POSITIONAL_OR_KEYWORD:
             kwargs[x] = p.default
 
+    for x, p in signature(function_pointer).parameters.items():
+        if (p.default is not Parameter.empty) and p.kind == Parameter.POSITIONAL_OR_KEYWORD:
+            if default_kwargs is not None and x in default_kwargs:
+                kwargs[x] = default_kwargs[x]
+            else:
+                kwargs[x] = p.default
+
     return kwargs
+
 
 def extract_script(function, sourceArguments, xml_encode=False):
 
-    debug = False
-
     import inspect
 
-    def extract_kwargs(function, sourceArguments):
+    debug = False
 
-        # Based on https://stackoverflow.com/a/54009257
-        from inspect import signature, Parameter
-        head = ""
-        for x, p in signature(function).parameters.items():
-            if (p.default is not Parameter.empty) and p.kind == Parameter.POSITIONAL_OR_KEYWORD:
-                if sourceArguments is not None and x in sourceArguments:
-                    arg = sourceArguments[x]
-                else:
-                    arg = p.default
+    kwargs = extract_kwargs(function, default_kwargs=sourceArguments)
 
-                if isinstance(arg, str):
-                    head = head + '{} = "{}"\n'.format(x, arg)
-                else:
-                    head = head + '{} = {}\n'.format(x, arg)
-
-        return head
+    head = ""
+    for key in kwargs:
+        if isinstance(kwargs[key], str):
+            head = head + '{} = "{}"\n'.format(key, kwargs[key])
+        else:
+            head = head + '{} = {}\n'.format(key, kwargs[key])
+    head = head + "\n"
 
     if debug: print(function)
-
-    head = extract_kwargs(function, sourceArguments)
 
     lines = inspect.getsource(function)
     lines = lines.split("\n")

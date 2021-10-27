@@ -184,6 +184,3 @@ def Display(self, source, display, renderView, **displayArguments):
     renderView.ResetCamera()
 
     return display
-
-def _Display(self, displayArguments):
-    self.displayProperties = Display(self.programmableSource, self.displayProperties, self.renderView, **displayArguments)

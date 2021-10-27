@@ -6,7 +6,6 @@ import shlex
 import subprocess
 import sysconfig
 
-
 pvpython = False
 pvbatch = False
 if len(sys.argv) > 1:

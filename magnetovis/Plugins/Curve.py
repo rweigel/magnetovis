@@ -37,16 +37,17 @@ class CurvePlugin(VTKPythonAlgorithmBase):
         exec(Script)
         return 1
 
+    @smproperty.stringvector(name="PointFunction", label="PointFunction",command="SetPointFunction", default_values=DefaultPointFunction)
+    def SetPointFunction(self, PointFunction):
+        #print("SetPointFunction called with PointFunction = " + PointFunction)
+        self.point_function = PointFunction
+        self.Modified()
+
     @smproperty.intvector(name="Npts", label="Npts", documentation="Number of points", default_values=DefaultNpts)
     def SetNpts(self, Npts):
         self.Npts = Npts
         self.Modified()
 
-    @smproperty.stringvector(name="PointFunction", command="SetPointFunction", default_values=DefaultPointFunction)
-    def SetPointFunction(self, PointFunction):
-        #print("SetPointFunction called with PointFunction = " + PointFunction)
-        self.point_function = PointFunction
-        self.Modified()
 
     @smproperty.stringvector(name="Script", command="SetScript", default_values=DefaultScript, panel_visibility=ScriptVisible)
     @smhint.xml(r"<Widget type='multi_line' syntax='python'/>")

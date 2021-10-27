@@ -7,9 +7,9 @@ import magnetovis as mvs
 
 sourceArguments = {
                     "time": "2001-01-01",
-                    "normal": "Z",
-                    "extent": [-40,40],
-                    "coord_sys": "GSM"
+                    "extent": [-40., 40.],
+                    "coord_sys": "GSM",
+                    "direction": "X"
                 }
 
 displayArguments = {
