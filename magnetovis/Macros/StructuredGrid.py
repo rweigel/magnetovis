@@ -1,31 +1,28 @@
-from paraview.simple import *
+import magnetovis as mvs
+import paraview.simple as pvs
 
-MagnetovisStructuredGrid1 = MagnetovisStructuredGrid()
+kwargs = {
+            "time": "2001-01-01T00:00:00",
+            "coord_sys": "GSM",
+            "point_function": "linspace(starts=(-1, -1, -1), stops=(1, 1, 1))",
+            "dimensions": [3, 3, 3],
+            "point_array_functions": ["dipole1: dipole(M=2)", "xyz1: position()"]
+        }
 
-SetActiveSource(MagnetovisStructuredGrid1)
+kwargs["registrationName"] = "Structured Grid/{}/{}".format(mvs.util.trim_iso(kwargs['time']), kwargs['coord_sys'])
 
-renderView1 = GetActiveViewOrCreate('RenderView')
+MagnetovisStructuredGrid1 = pvs.MagnetovisStructuredGrid(**kwargs)
+displayProperties = mvs.SetDefaultDisplayProperties(MagnetovisStructuredGrid1)
 
-renderView1.CameraPosition = [529., 282., 247.]
-renderView1.CameraViewUp = [-0.33, -0.19, 0.92]
 
-MagnetovisStructuredGrid1Display = Show(MagnetovisStructuredGrid1, renderView1, 'GeometryRepresentation')
 
-# change representation type
-MagnetovisStructuredGrid1Display.SetRepresentationType('Surface')
+def UpdateDisplayOptions(caller, event):
+    import magnetovis as mvs
+    import paraview.simple as pvs
+    #print("Event: " + event)
+    # TODO: Figure out how to get source out of caller object (which is a SMSourceProxy).
+    #source = pvs.GetActiveSource()
+    #source.RemoveObserver('UpdateInformationEvent')
+    #mvs.SetDefaultDisplayProperties(pvs.GetActiveSource())
 
-# set scalar coloring
-ColorBy(MagnetovisStructuredGrid1Display, ('CELLS', 'cell_index'))
-
-# rescale color and/or opacity maps used to include current data range
-MagnetovisStructuredGrid1Display.RescaleTransferFunctionToDataRange(True, False)
-
-# show color bar/color legend
-MagnetovisStructuredGrid1Display.SetScalarBarVisibility(renderView1, True)
-
-# get color transfer function/color map for 'cell_index'
-cell_indexLUT = GetColorTransferFunction('cell_index')
-cell_indexLUT.RGBPoints = [0.0, 0.231373, 0.298039, 0.752941, 3.5, 0.865003, 0.865003, 0.865003, 7.0, 0.705882, 0.0156863, 0.14902]
-cell_indexLUT.ScalarRangeInitialized = 1.0
-
-ResetCamera()
+#MagnetovisStructuredGrid1.AddObserver('UpdateInformationEvent', UpdateDisplayOptions)

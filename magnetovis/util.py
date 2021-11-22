@@ -2,8 +2,53 @@ import os
 import sys
 
 
+def trim_iso(isostr):
+
+    if isostr.endswith('Z'):
+        isostr = isostr[0:-1]
+    if isostr.endswith(':00'):
+        isostr = isostr[0:-3]
+    if isostr.endswith(':00'):
+        isostr = isostr[0:-3]
+    if isostr.endswith('T00'):
+        isostr = isostr[0:-3]
+
+    if False:
+        assert trim_iso('2000-01-01T00:00:00') == "2000-01-01", ""
+        assert trim_iso('2000-01-01T00:00') == "2000-01-01", ""
+        assert trim_iso('2000-01-01T00') == "2000-01-01", ""
+
+        assert trim_iso('2000-01-01T00:00:00Z') == "2000-01-01", ""
+        assert trim_iso('2000-01-01T00:00Z') == "2000-01-01", ""
+        assert trim_iso('2000-01-01T00Z') == "2000-01-01", ""
+
+        assert trim_iso('2000-01-01T01:00:00') == "2000-01-01T01", ""
+        assert trim_iso('2000-01-01T01:00') == "2000-01-01T01", ""
+        assert trim_iso('2000-01-01T01') == "2000-01-01T01", ""
+
+        assert trim_iso('2000-01-01T01:00:00Z') == "2000-01-01T01", ""
+        assert trim_iso('2000-01-01T01:00Z') == "2000-01-01T01", ""
+        assert trim_iso('2000-01-01T01Z') == "2000-01-01T01", ""
+
+    return isostr
+
+
+def iso2ints(isostr):
+    import re
+    tmp = re.split("-|:|T|Z", isostr)
+    if len(tmp) > 6:
+        tmp = tmp[0:5]
+
+    int_list = []
+    for str_int in tmp:
+        if str_int != "Z" and str_int != '':
+            int_list.append(int(str_int))
+
+    return int_list
+
+
 def tstr(time, length=7):
-    """Create ISO8601 date/time string
+    """Create ISO8601 date/time string from integers
     
     tstr((2000, 1, 1, 2)) # 2000-01-01T02:00:00
     tstr((2000, 1, 1, 2, 3)) # 2000-01-01T02:03:00

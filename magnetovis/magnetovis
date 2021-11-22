@@ -58,9 +58,8 @@ if sys.platform == 'darwin':
 my_env["PV_MACRO_PATH"] = 'magnetovis/Macros'
 my_env["PV_PLUGIN_PATH"] = 'magnetovis/Plugins'
 
-
 # The following prints the equivalent of what is being executed.
-print("Executing PV_MACRO_PATH=" + my_env["PV_MACRO_PATH"] + " PV_PLUGIN_PATH=" + my_env["PV_PLUGIN_PATH"] + " PYTHONPATH=" + my_env["PYTHONPATH"] + " " + syscom)
+print("Executing:\nPV_MACRO_PATH=" + my_env["PV_MACRO_PATH"] + " PV_PLUGIN_PATH=" + my_env["PV_PLUGIN_PATH"] + " PYTHONPATH=" + my_env["PYTHONPATH"] + " " + syscom)
 try:
     args = shlex.split(syscom)
     process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=my_env)

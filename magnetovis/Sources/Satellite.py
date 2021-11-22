@@ -1,40 +1,42 @@
-# This program demonstrates how to use programmable source to create a
-# VTK object that could not otherwise be created using paraview.simple.
-
 def OutputDataSetType():
 
    # What is set in the drop-down menu for Output Data Set Type for a Programmable Source
    return "vtkPolyData"
+
 
 def ScriptRequestInformation(self):
 
    # What is entered in the Script (RequestInformation) box for a Programmable Source
    pass
 
-def Script(self, time_o="2001-01-01T00:00:00", time_f="2001-01-02T00:00:00", satellite_id='ace', coord_sys='GSM', tube_radius=1.):
+
+def Script(self, coord_sys='GSM', start="2001-01-01T00:00:00", stop="2001-01-02T00:00:00", id='ace', tube_radius=1.):
+
 
     import vtk
+    import logging
+
     import numpy as np
     from itertools import groupby
-
 
     from hxform import hxform as hx
     from hapiclient import hapi
     from vtk.numpy_interface import dataset_adapter as dsa
 
     region_id = {
-                          'D_Msheath' : 0,
-                          'N_Msheath' : 1,
-                          'D_Msphere' : 2,
-                          'N_Msphere' : 3,
-                          'D_Psphere' : 4,
-                          'N_Psphere' : 5,
-                          'Tail_Lobe' : 6,
-                          'Plasma_Sh' : 7,
-                          'HLB_Layer' : 8,
-                          'LLB_Layer' : 9,
-                          'Intpl_Med' : 10
-                          }
+                  'D_Msheath' : 0,
+                  'N_Msheath' : 1,
+                  'D_Msphere' : 2,
+                  'N_Msphere' : 3,
+                  'D_Psphere' : 4,
+                  'N_Psphere' : 5,
+                  'Tail_Lobe' : 6,
+                  'Plasma_Sh' : 7,
+                  'HLB_Layer' : 8,
+                  'LLB_Layer' : 9,
+                  'Intpl_Med' : 10
+                }
+
     try:
         # Being executed in Programmable Source
         output = self.GetPolyDataOutput()
@@ -46,8 +48,10 @@ def Script(self, time_o="2001-01-01T00:00:00", time_f="2001-01-02T00:00:00", sat
     server     = 'http://hapi-server.org/servers/SSCWeb/hapi';
     opts       = {'logging': False, 'usecache': True}
     parameters = "X_{},Y_{},Z_{},Spacecraft_Region" \
-                .format(coord_sys, coord_sys, coord_sys)
-    data, meta = hapi(server, satellite_id, parameters, time_o, time_f, **opts)
+                    .format(coord_sys, coord_sys, coord_sys)
+
+    logging.info("Getting data.")
+    data, meta = hapi(server, id, parameters, start, stop, **opts)
 
     points = np.column_stack([data['X_'+coord_sys], data['Y_'+coord_sys], data['Z_'+coord_sys]])
     pvtk = dsa.numpyTovtkDataArray(points)
@@ -82,13 +86,16 @@ def Script(self, time_o="2001-01-01T00:00:00", time_f="2001-01-02T00:00:00", sat
         vtkTubeFilterOutput = vtkTubeFilter.GetOutputDataObject(0)
         output = output.DeepCopy(vtkTubeFilterOutput)
 
-def Display(self, source, display, renderView, **displayArguments):
+
+def SetDisplayProperties(programmableSource, renderView=None, displayProperties=None, **displayArguments):
 
     # Base this on code that is displayed by trace in ParaView GUI
 
     import paraview
     import paraview.simple as pvs
     import numpy as np
+
+    from vtk.util import numpy_support
 
     region_colors = {
         'D_Msheath' : (230./255, 25./255,  75./255,  0.7), # red
@@ -114,23 +121,22 @@ def Display(self, source, display, renderView, **displayArguments):
                 'D_Psphere', 'N_Psphere', 'Tail_Lobe', 'Plasma_Sh',
                 'HLB_Layer', 'LLB_Layer', 'Intpl_Med']
 
-    id_names_labels = ["Dayside\nMagnetosheath",
-        "Dayside\nMagnetosheath",
-        "Nightside\nMagnetosheath",
-        "Dayside\nMagnetosphere",
-        "Nightside\nnMagnetosphere",
-        "Dayside\nPlasmasphere",
-        "Nightside\nPlasmasphere",
-        "Tail Lobe",
-        "Plasmasheet",
-        "High-Lat. Boundary\nLayer",
-        "Low-Lat. Boundary\nLayer",
-        "Interplanetary\nMedium"
-    ]
+    id_names_labels = [
+                        "Dayside\nMagnetosheath",
+                        "Dayside\nMagnetosheath",
+                        "Nightside\nMagnetosheath",
+                        "Dayside\nMagnetosphere",
+                        "Nightside\nnMagnetosphere",
+                        "Dayside\nPlasmasphere",
+                        "Nightside\nPlasmasphere",
+                        "Tail Lobe",
+                        "Plasmasheet",
+                        "High-Lat. Boundary\nLayer",
+                        "Low-Lat. Boundary\nLayer",
+                        "Interplanetary\nMedium"
+                    ]
 
-    from vtk.util import numpy_support
-
-    sourceData = paraview.servermanager.Fetch(source)
+    sourceData = paraview.servermanager.Fetch(programmableSource)
     region_ids = sourceData.GetCellData().GetArray('region_id')
     region_ids = numpy_support.vtk_to_numpy(region_ids)
     region_ids = np.unique(region_ids)
@@ -155,32 +161,32 @@ def Display(self, source, display, renderView, **displayArguments):
     index_colored_list = np.array(index_colored_list).flatten()
     LUT.IndexedColors = index_colored_list
 
-    display.LookupTable = LUT
-    display.OpacityArray = ['CELLS', 'region_id']
-    display.ColorArrayName = ['CELLS', 'region_id']
-    display.SetScalarBarVisibility(renderView, True)
+    displayProperties.LookupTable = LUT
+    displayProperties.OpacityArray = ['CELLS', 'region_id']
+    displayProperties.ColorArrayName = ['CELLS', 'region_id']
+    displayProperties.SetScalarBarVisibility(renderView, True)
 
     LookupTableColorBar = pvs.GetScalarBar(LUT, renderView)
     LookupTableColorBar.Title = 'Satellite Region'
     LookupTableColorBar.ComponentTitle = ''
 
     if "displayRepresentation" in displayArguments:
-        display.Representation = displayArguments['displayRepresentation']
+        displayProperties.Representation = displayArguments['displayRepresentation']
 
     if "opacity" in displayArguments:
         if displayArguments["opacity"] is not None:
-            display.Opacity = displayArguments['opacity']
+            displayProperties.Opacity = displayArguments['opacity']
 
-    display.AmbientColor = [0.5, 0.5, 0.5]
+    displayProperties.AmbientColor = [0.5, 0.5, 0.5]
     if "ambientColor" in displayArguments:
         if displayArguments["ambientColor"] is not None:
-            display.AmbientColor = displayArguments["ambientColor"]
+            displayProperties.AmbientColor = displayArguments["ambientColor"]
 
-    display.DiffuseColor = [0.5, 0.5, 0.5]
+    displayProperties.DiffuseColor = [0.5, 0.5, 0.5]
     if "diffuseColor" in displayArguments:
         if displayArguments["diffuseColor"] is not None:
-            display.DiffuseColor = displayArguments["diffuseColor"]
+            displayProperties.DiffuseColor = displayArguments["diffuseColor"]
 
     renderView.ResetCamera()
 
-    return display
+    return displayProperties
