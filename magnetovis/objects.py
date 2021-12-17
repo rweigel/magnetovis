@@ -154,7 +154,7 @@ def earth(time,
         import numpy as np
 
         from hxform import hxform as hx
-        from magnetovis.vtk_export import vtk_export
+        from magnetovis.vtk.vtk_export import vtk_export
 
         fnameVTK = os.path.join(out_dir, 'earth-' + coord_sys + '-' + util.tstr(time, length=5) +'.vtk')
         if os.path.exists(fnameVTK):
@@ -262,7 +262,7 @@ def field_data(time, Xgrid, values, dims, texture, # dims = [Nx,Ny,Nz]
                     show=True,
                     debug=True, sum_total=False):
 
-    from vtk_export import vtk_export
+    from magnetovis.vtk.vtk_export import vtk_export
 
     if os.path.exists(out_filename):
         if debug: print(out_filename + ' ALREADY EXISTS')
@@ -591,7 +591,7 @@ def trace_lines(points, connectivity, out_fname=os.path.join(tempfile.gettempdir
     tube1Display.DiffuseColor = color
 
 
-def _latitude_lines(self, time, coord_sys='GSM', increment=15, color=[1,0,0]):
+def _latitude_lines(self, time, coord_sys='GEO', increment=15, color=[1,0,0]):
 
     import numpy as np
     import numpy.matlib
@@ -609,9 +609,7 @@ def _latitude_lines(self, time, coord_sys='GSM', increment=15, color=[1,0,0]):
 
     sph_coords = np.column_stack((r,lat,lon))
 
-    points = hx.transform(sph_coords, time, 'GSM', coord_sys, ctype_in='sph', ctype_out='car')
-
-    ### start of vtk
+    points = hx.transform(sph_coords, time, 'GEO', coord_sys, ctype_in='sph', ctype_out='car')
 
     pdo = self.GetPolyDataOutput()
     pdo.Allocate(len(r), 1)
@@ -1540,7 +1538,8 @@ def objs_wrapper(**kwargs):
             annotations.append(str(i))
             annotations.append(unique_regions[i])
             if kwargs['region_colors'] != None:
-                index_colored_list.append(kwargs['region_colors'][unique_regions[i]][0:3])
+                tmp = unique_regions[i].decode("utf-8")
+                index_colored_list.append(kwargs['region_colors'][tmp][0:3])
             else:
                 index_colored_list.append(kwargs['color'][0:3])
 
@@ -1591,7 +1590,25 @@ def objs_wrapper(**kwargs):
         programmableSourceDisplay.LookupTable = lat_lonLUT
         programmableSourceDisplay.OpacityArray = ['POINTS', scalar_data]
         programmableSourceDisplay.ColorArrayName = ['POINTS', scalar_data]
-        programmableSourceDisplay.SetScalarBarVisibility(renderView, True)
+        programmableSourceDisplay.SetScalarBarVisibility(renderView, False)
+
+    if kwargs['obj'] == 'dipole field':
+
+        Nx,Ny,Nz = kwargs['NxNyNz']
+        programmableSource.OutputDataSetType = 'vtkStructuredGrid'
+        programmableSource.ScriptRequestInformation = f"""
+        executive = self.GetExecutive()
+        outInfo = executive.GetOutputInformation(0)
+        outInfo.Set(executive.WHOLE_EXTENT(), 0, {Nx-1}, 0, {Ny-1}, 0, {Nz-1})
+        """
+        programmableSource.Script = script(kwargs)
+
+        renderView = pvs.GetActiveViewOrCreate('RenderView')
+        programmableSourceDisplay = pvs.Show(programmableSource, renderView)
+        programmableSourceDisplay.Representation = kwargs['representation']
+
+        # temp title
+        title = f'dipole field {kwargs["coord_sys"]} M={kwargs["M"]}'
 
     if kwargs['obj'] == 'dipole field':
 

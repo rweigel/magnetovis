@@ -122,6 +122,7 @@ def compatability_check(debug=False):
         if len(version) == 0:
             print("ParaView not found in /Applications directory." \
                 " To install ParaView, see https://www.paraview.org/download/.")
+            print("Exiting.")
             # TODO?: Allow for ParaView not located in /Applications/
             sys.exit(1)
         use = ""
@@ -142,13 +143,16 @@ def compatability_check(debug=False):
                 use = version
                 PARAVIEW = use + "/Contents/MacOS/paraview"
                 PVPYTHON = use + "/Contents/bin/pvpython"
+                PVBATCH = use + "/Contents/bin/pvbatch"
 
         if use == "":
-            msg = "System Python version (" + SYSTEM_PYTHON_VERSION_STRING + ") does not match Python used by available ParaView version(s) (" + ", ".join(version_strs) + ").\n"
-            msg = msg + "Allowed Python versions:\n"
+            msg = "System Python version (" + SYSTEM_PYTHON_VERSION_STRING + ") does not match Python used by available ParaView version(s) " + ", ".join(version_strs) + ". Consider installing the needed Python version in a virtual environment. Using Anaconda the commands are\n\n  conda create --name 3.8 python=3.8\n  conda activate 3.8\n  pip install magnetovis\n"
+            msg = msg + "\nAllowed Paraview/Python versions:\n"
             for pv_ver in PARAVIEW_PYTHON_VERSIONS:                
                 msg = msg + " ParaView " + pv_ver + " and Python " + ".".join(str(x) for x in PARAVIEW_PYTHON_VERSIONS[pv_ver][0:2]) + "\n"
-            raise ValueError(msg)
+            print(msg)
+            print("Exiting.")
+            #raise ValueError(msg)
             sys.exit(1)
         else:
             if debug:
@@ -172,6 +176,8 @@ def compatability_check(debug=False):
             PARAVIEWPATH = os.path.expanduser(config['DEFAULT']['PARAVIEWPATH'])                
             PARAVIEW = PARAVIEWPATH + '/bin/paraview'
             PVPYTHON = PARAVIEWPATH + '/bin/pvpython'
+            PVBATCH = PARAVIEWPATH + '/bin/pvbatch'
+
         else:
             if debug:
                 print('PARAVIEW os environment not set.')
@@ -259,4 +265,4 @@ def compatability_check(debug=False):
             print("Could not execute " + PVPYTHON + " " + ver_path + ". Exiting.")
             sys.exit(1)
 
-    return PARAVIEW
+    return PARAVIEW, PVPYTHON, PVBATCH

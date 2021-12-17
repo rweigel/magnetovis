@@ -6,12 +6,16 @@ import shlex
 import subprocess
 import sysconfig
 
+pvpython = False
+pvbatch = False
+if len(sys.argv) > 1:
+    if sys.argv[1] == "pvpython":
+        pvpython = True
+        sys.argv[1] = ''
 
-if len(sys.argv) == 2 and sys.argv[1][0] != '\\' and sys.argv[1][0] != '-':
-    # All paraview command line arguments start with \ or -
-    # Test if sys.argv[1] is a file. If so, then the user
-    # meant magnetovis --script=file instead of magnetovis file
-    sys.argv[1] = "--script=" + sys.argv[1]
+    if sys.argv[1] == "pvbatch":
+        pvbatch = True
+        sys.argv[1] = ''
 
 # https://stackoverflow.com/a/8663557
 # Temporarily modify path so that util functions can be used.
@@ -20,11 +24,17 @@ sys.path.insert(0, os.path.join(setup_path, 'magnetovis'))
 import util
 del sys.path[0]
 
-PARAVIEW = util.compatability_check()
+PARAVIEW, PVPYTHON, PVBATCH = util.compatability_check()
 
 PYTHONPATH = ":".join(site.getsitepackages())
 pvargs = " ".join(sys.argv[1:])
-syscom = PARAVIEW + " " + pvargs
+
+if pvpython:
+    syscom = PVPYTHON + " " + pvargs
+elif pvbatch:
+    syscom = PVBATCH + " " + pvargs
+else:
+    syscom = PARAVIEW + " " + pvargs
 
 my_env = os.environ.copy()
 if "PYTHONPATH" in my_env:
@@ -43,13 +53,19 @@ if sys.platform == 'darwin':
     if lib_dynload not in my_env["PYTHONPATH"]:
         my_env["PYTHONPATH"] = lib_dynload + ":" + my_env["PYTHONPATH"]
 
+
+# TODO: Get base path
+my_env["PV_MACRO_PATH"] = 'magnetovis/Macros'
+my_env["PV_PLUGIN_PATH"] = 'magnetovis/Plugins'
+
+
 # The following prints the equivalent of what is being executed.
-print("Executing PYTHONPATH=" + my_env["PYTHONPATH"] + " " + syscom)
+print("Executing PV_MACRO_PATH=" + my_env["PV_MACRO_PATH"] + " PV_PLUGIN_PATH=" + my_env["PV_PLUGIN_PATH"] + " PYTHONPATH=" + my_env["PYTHONPATH"] + " " + syscom)
 try:
     args = shlex.split(syscom)
     process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=my_env)
     for line in process.stdout:
-        sys.stdout.write(str(line))
+        sys.stdout.write(line.decode('utf8'))
 except OSError as e:
     msg = "Execution failed: " + cmd + "\n" + e[1]
     raise OSError(msg)
