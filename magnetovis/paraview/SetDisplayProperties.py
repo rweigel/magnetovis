@@ -1,74 +1,89 @@
-def SetDisplayProperties(programmableSource, renderView=None, displayArguments=None):
+def SetDisplayProperties(source=None, view=None, **kwargs):
 
-    import logging
     import paraview.simple as pvs
+    import magnetovis as mvs
 
-    logging.info("Called.")
+    import magnetovis as mvs
+    mvs.logger.info("Called.")
 
-    displayRepresentation = 'Surface'
-    if displayArguments is not None:
-        if 'displayRepresentation' in displayArguments:
-            # TODO: Get this list dynamically in case it gets expanded.
-            validRepresentations = [
-                                    'Surface', '3D Glyphs', 'Feature Edges',
-                                    'Outline', 'Point Gaussian', 'Points',
-                                    'Surface With Edges', 'Wireframe', 'Volume'
-                                 ]
+    if source is None:
+        source = pvs.GetActiveSource()
 
-            assert displayArguments['displayRepresentation'] in validRepresentations, \
-                    "Invalid displayRepresentation ({}). displayRepresentation must be one of: {}" \
-                       .format(displayProperties['displayRepresentation'],
-                                 validRepresentations)
-
-            displayRepresentation = displayArguments['displayRepresentation']
-
-    showSource = True
-    renderView = None
-    if displayArguments is not None:
-        if 'showSource' in displayArguments:
-            showSource = displayArguments['showSource']
-            del displayArguments['showSource']
-        if 'renderView' in displayArguments:
-            renderView = displayArguments['renderView']
-            del displayArguments['renderView']
-
-    if renderView is None:
-        renderView = pvs.GetActiveViewOrCreate('RenderView')
-
-    if displayArguments is None:
-        displayArguments = {}
-
-    #displayArguments['registrationName'] = programmableSource.GetLogName()
-    #displayArguments['registrationName'] = self.registrationName
-
-    # Create display properties object
-    displayProperties = pvs.Show(programmableSource, renderView)
-    displayProperties.Representation = displayRepresentation
-
-    logging.info("Source object is a ParaView " + programmableSource.__class__.__name__)
-    name = type(programmableSource).__name__
+    mvs.logger.info("Source object is a ParaView " + source.__class__.__name__)
+    name = type(source).__name__
     if name.startswith("Magnetovis"):
         # Plugin
         name = name[len("Magnetovis"):] # Remove "Magnetovis" prefix
     else:
         # Programmable source
-        name = programmableSource.GetProperty("__magnetovis_name__")
+        name = source.GetProperty("__magnetovis_name__")
+    mvs.logger.info("Source object is a Magnetovis " + name)
 
-    logging.info("Source object is a Magnetovis " + name)
+    sourceVisibility = True
+    if 'sourceVisibility' in kwargs:
+        sourceVisibility = kwargs['sourceVisibility']
+
+    view = None
+    if 'view' in kwargs:
+        view = kwargs['view']
+    if view is None:
+        view = pvs.GetActiveViewOrCreate('RenderView')
+
+    #logging.info("View settings: {}".format(mvs.GetSettings(view)))
+    
     import importlib
+    mvsObj = importlib.import_module('magnetovis.Sources.' + name)
     
-    object = importlib.import_module('magnetovis.Sources.' + name)
-    if hasattr(object, 'SetDisplayProperties'):
-        object.SetDisplayProperties(programmableSource,
-                                    renderView=renderView,
-                                    displayProperties=displayProperties,
-                                    **displayArguments)
+    defaults = None
+    displaySettings = {'Representation': 'Surface'}
+    if hasattr(mvsObj, 'GetDisplayDefaults'):
+        defaults = mvsObj.GetDisplayDefaults()
+        if 'display' in defaults:
+            displaySettings = {**displaySettings, **defaults['display']}
+    if 'display' in kwargs:
+        displaySettings = {**displaySettings, **kwargs['display']}
+        del kwargs['display']
 
-    # Update the view to ensure updated data information
-    # TODO: Needed?
-    renderView.Update()
+    mvs.logger.info("Calling Show()")
+    display = pvs.Show(proxy=source, view=view, **displaySettings)
+    #logging.info("Display settings: {}".format(mvs.GetSettings(display)))
+
+    coloringSettings = {}
+    if defaults is not None and 'coloring' in defaults:
+        coloringSettings = defaults['coloring']
+    if kwargs is not None and 'coloring' in kwargs:
+        coloringSettings = {**coloringSettings, **kwargs['coloring']}
+
+    mvs.SetColoring(source=source, view=view, display=display, **coloringSettings)
+
+    # Hides unused scalar bars
+    pvs.UpdateScalarBars(view=view)
+
+    # This property is not available in display until after the call to pvs.ColorBy.
+    display.RescaleTransferFunctionToDataRange = 0
+
+    children = None
+    if hasattr(mvsObj, 'SetDisplayProperties'):
+        if hasattr(source, "__magnetovis_children"):
+            for child in source.__magnetovis_children:
+                pvs.Delete(child)
+
+        children = mvsObj \
+                    .SetDisplayProperties( \
+                        source, view=view, display=display, **kwargs)
+
+        if children is not None:
+            if not isinstance(children, list):
+                children = [children]
+            source.add_attribute("__magnetovis_children", children)
+
+        pvs.SetActiveSource(source)
     
-    if showSource == False:
-        pvs.Hide(programmableSource, renderView)
-    
-    return displayProperties
+    if sourceVisibility == False:
+        pvs.Hide(source, view)
+
+    camera = mvs.SetCamera(view=view, source=source, viewType="isometric")
+
+    view.Update()
+
+    return children

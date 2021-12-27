@@ -1,8 +1,12 @@
-def set_arrays(output, point_data=None, cell_data=None, field_data=None):
+def set_arrays(output, point_data=None, cell_data=None, field_data=None,
+                include=None):
 
-    import logging
+    import magnetovis as mvs
+    mvs.logger.info("Called.")
 
     import vtk
+    import numpy as np
+    from vtk.util import numpy_support as nps
     from vtk.numpy_interface import dataset_adapter as dsa
 
     if isinstance(point_data, str):
@@ -13,14 +17,14 @@ def set_arrays(output, point_data=None, cell_data=None, field_data=None):
 
     if point_data is not None:
         for name, array in point_data.items():
-            logging.info("set_arrays(): setting point_data array named " + name)
+            mvs.logger.info("Setting point_data array named " + name)
             vtkArray = dsa.numpyTovtkDataArray(array)
             vtkArray.SetName(name)
             output.GetPointData().AddArray(vtkArray)
 
     if cell_data is not None:
         for name, array in cell_data.items():
-            logging.info("set_arrays(): setting cell_data array named " + name)
+            mvs.logger.info("Setting cell_data array named " + name)
             vtkArray = dsa.numpyTovtkDataArray(array)
             vtkArray.SetName(name)
             output.GetCellData().AddArray(vtkArray)
@@ -28,9 +32,19 @@ def set_arrays(output, point_data=None, cell_data=None, field_data=None):
     if field_data is not None:
         import json
         for name, array in field_data.items():
-            logging.info("set_arrays(): setting field_data element named " + name)
-            logging.info("set_arrays(): element: " + str(array))
+            mvs.logger.debug("Setting field_data element named " + name)
+            mvs.logger.debug("Element value: " + str(array))
             vtkArray = None
+
+            if array is None:
+                array = "None"
+
+            if array is False:
+                array = "False"
+
+            if array is True:
+                array = "True"
+
             if isinstance(array, str):
                 vtkArray = vtk.vtkStringArray()
                 vtkArray.SetNumberOfTuples(1)
@@ -43,6 +57,8 @@ def set_arrays(output, point_data=None, cell_data=None, field_data=None):
                 vtkArray = vtk.vtkFloatArray()
                 vtkArray.SetNumberOfTuples(1)
                 vtkArray.SetValue(0, array)
+
+
             if isinstance(array, tuple) or isinstance(array, list):
                 if isinstance(array[0], str):
                     vtkArray = vtk.vtkStringArray()
@@ -71,10 +87,66 @@ def set_arrays(output, point_data=None, cell_data=None, field_data=None):
 
 
     # Add special arrays
-    # TODO: Use the filter CellSize and CellCenters
-    import numpy as np
-    Ncells = output.GetNumberOfCells()
-    logging.info("set_arrays(): Ncells = " + str(Ncells))
-    vtkArray = dsa.numpyTovtkDataArray(np.arange(Ncells))
-    vtkArray.SetName('CellIds')
-    output.GetCellData().AddArray(vtkArray)
+
+    if include is not None:
+        all = False
+        if isinstance(include, str) and include == "all":
+            all = True
+
+        if all or "PointId" in include or "CellId" in include:
+            vtkIdFilter = vtk.vtkIdFilter()
+            if all or "PointId" in include:
+                vtkIdFilter.SetPointIds(True)
+                vtkIdFilter.SetPointIdsArrayName("PointId")
+            if all or "CellId" in include:
+                vtkIdFilter.SetCellIds(True)
+                vtkIdFilter.SetCellIdsArrayName("CellId")
+            if hasattr(output, "VTKObject"):
+                vtkIdFilter.SetInputDataObject(output.VTKObject)
+            else:
+                vtkIdFilter.SetInputDataObject(output)
+            vtkIdFilter.Update()
+            output.DeepCopy(vtkIdFilter.GetOutput())
+
+        # https://vtk.org/doc/nightly/html/classvtkCellSizeFilter.html
+        if "CellVolume" or "CellLength" or "CellArea" or "CellVertexCount" in include:
+            vtkCellSizeFilter = vtk.vtkCellSizeFilter()
+            if hasattr(output, "VTKObject"):
+                vtkCellSizeFilter.SetInputDataObject(output.VTKObject)
+            else:
+                vtkCellSizeFilter.SetInputDataObject(output)
+            # Some are only applicable when input has certain types of cells.
+            # A value of zero is when calculation is not applicable.
+            # For a structured grid where one of the dimensions is 1
+            # CellVolume and CellArea returned as 0.
+            # TODO: Determine if cell type is such that they have a volume, area, or length.
+            #       If structured grid where one of the dimensions is 1, area must be computed
+            #       manually. If two dimensions are 1, length must be computed manually.
+            if all or "CellVolume" in include:
+                vtkCellSizeFilter.SetVolumeArrayName('CellVolume')
+            else:
+                vtkCellSizeFilter.ComputeVolumeOff()
+            if all or "CellVertexCount" in include:
+                vtkCellSizeFilter.SetVertexCountArrayName('CellVertexCount')
+            else:
+                vtkCellSizeFilter.ComputeVertexCountOff()
+            if all or "CellLength" in include:
+                vtkCellSizeFilter.SetLengthArrayName('CellLength')
+            else:
+                vtkCellSizeFilter.ComputeLengthOff()
+            if all or "CellArea" in include:
+                vtkCellSizeFilter.SetLengthArrayName('CellArea')
+            else:
+                vtkCellSizeFilter.ComputeAreaOff()
+            vtkCellSizeFilter.ComputeSumOff()
+            vtkCellSizeFilter.Update()
+            output.DeepCopy(vtkCellSizeFilter.GetOutput())
+
+        if "CellCenter" in include:
+            vtkCellCenters = vtk.vtkCellCenters()
+            vtkCellCenters.SetInputDataObject(output.VTKObject)
+            vtkCellCenters.Update()
+            centers = dsa.WrapDataObject(vtkCellCenters.GetOutput()).Points
+            centers = nps.numpy_to_vtk(centers)
+            centers.SetName('CellCenter')
+            output.GetCellData().AddArray(centers)

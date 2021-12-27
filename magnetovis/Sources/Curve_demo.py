@@ -11,6 +11,4 @@ kwargs = {
             "point_function": "circle(radius=1.0, origin=(0.0, 0.0, 0.0), orientation=(0, 0, 1))"
         }
 
-
-curve = mvs.Curve(**kwargs)
-mvs.SetDisplayProperties(curve)
+mvs.Curve(**kwargs)

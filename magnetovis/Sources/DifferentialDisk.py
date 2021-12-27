@@ -10,6 +10,8 @@ def Script(time="2001-01-01", coord_sys='GSM',
             closed=True,
             point_array_functions=None):
 
+    # Note that this script is not needed. Could use paraview.simple.Disk.
+
     debug = False
 
     import vtk
@@ -58,7 +60,6 @@ def Script(time="2001-01-01", coord_sys='GSM',
             points[k, 0] = x
             points[k, 1] = y
 
-    output = self.GetUnstructuredGridOutput()
     output.Allocate(Nφ + Nr*Nφ)
 
     k = 0
@@ -135,19 +136,5 @@ def Script(time="2001-01-01", coord_sys='GSM',
 
     point_arrays = get_arrays(point_array_functions, points)
 
-    set_points(self, output, points)
-    set_arrays(self, output, point_data=point_arrays)
-
-
-def SetDisplayProperties(programmableSource, renderView=None, displayProperties=None, **displayArguments):
-
-    import logging
-    import paraview.simple as pvs
-    import magnetovis as mvs
-
-    import magnetovis as mvs
-    mvs.ColorByCellId(programmableSource, renderView=renderView, displayProperties=displayProperties)
-
-    renderView.ResetCamera()
-
-    pvs.SetActiveSource(programmableSource)
+    set_points(output, points)
+    set_arrays(output, point_data=point_arrays, include=["CellId"])

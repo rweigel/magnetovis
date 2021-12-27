@@ -70,8 +70,8 @@ def Script(time="2001-01-01", coord_sys='GSM',
 
     point_arrays = get_arrays(point_array_functions, points)
 
-    set_points(self, output, points)
-    set_arrays(self, output, point_data=point_arrays)
+    set_points(output, points)
+    set_arrays(output, point_data=point_arrays)
 
 
 def SetDisplayProperties(programmableSource, renderView=None, displayProperties=None, **displayArguments):

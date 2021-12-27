@@ -1,6 +1,9 @@
-def get_arrays(functions, points, debug=False):
+def get_arrays(functions, points, **kwargs):
 
-    #debug = True
+    debug = False
+
+    import magnetovis as mvs
+    mvs.logger.info("Called with functions = {}".format(functions))
 
     from magnetovis.functions import functions as mvsfunctions
     from magnetovis.extract import extract_kwargs

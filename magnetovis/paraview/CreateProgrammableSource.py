@@ -1,22 +1,31 @@
 def CreateProgrammableSource(sourceName, **kwargs):
 
-    import logging
     import importlib
     import paraview.simple as pvs
     from magnetovis import extract
 
-    logging.info("Called. sourceName = " + sourceName)
+    import magnetovis as mvs
+    mvs.logger.info("Called. sourceName = " + sourceName)
 
     object = importlib.import_module('magnetovis.Sources.' + sourceName)
 
     pSource = pvs.ProgrammableSource()
-    pSource.Script = extract.extract_script(object.Script, kwargs)
+
+    pSource.Script, kwargs = extract.extract_script(object.Script, kwargs)
+    #kwargs = extract.extract_kwargs(object.Script, default_kwargs=kwargs)
 
     if hasattr(object, 'OutputDataSetType'):
         pSource.OutputDataSetType = object.OutputDataSetType()
 
+    if 'OutputDataSetType' in kwargs:
+        pSource.OutputDataSetType = kwargs['OutputDataSetType']
+
     if hasattr(object, 'ScriptRequestInformation'):
-        pSource.ScriptRequestInformation = extract.extract_script(object.ScriptRequestInformation, kwargs)
+        pSource.ScriptRequestInformation, _ = extract.extract_script(object.ScriptRequestInformation, kwargs)
+
+    registrationName = None
+    if 'registrationName' in kwargs:
+        registrationName = kwargs['registrationName']
 
     # Add kwargs as properties to make pSource have options
     # that can be obtained with GetProperty() in the same way that a
@@ -40,6 +49,7 @@ def CreateProgrammableSource(sourceName, **kwargs):
     pSource.ListProperties = ListProperties
     pSource.GetProperty = GetProperty
 
+    # TODO: Similar code exists in CreateViewAndLayout(). Combine.
     # Set a registration name using the following logic.
     # If registrationName
     #      Use it. If used, ValueError.
@@ -56,9 +66,8 @@ def CreateProgrammableSource(sourceName, **kwargs):
     for source in sources:
         registrationNames.append(source[0])
 
-    if 'registrationName' in kwargs:
+    if registrationName is not None:
         # Requested registrationName
-        registrationName = kwargs['registrationName']
         if registrationName in registrationNames:
             raise ValueError("registration name '" + registrationName + "' is used.")
     else:
@@ -75,5 +84,10 @@ def CreateProgrammableSource(sourceName, **kwargs):
             registrationName = registrationName + " #" + str(k)
 
     pvs.RenameSource(registrationName, pSource)
+    
+    import magnetovis as mvs
+    mvs.SetDisplayProperties(pSource)
+
+    mvs.logger.info("Finished.\n")
 
     return pSource

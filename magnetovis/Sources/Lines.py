@@ -3,89 +3,84 @@ def OutputDataSetType():
     # What is set in the drop-down menu for Output Data Set Type for a Programmable Source
     return "vtkPolyData"
 
-def ScriptRequestInformation(self):
 
-    pass
+def Script(time="2001-01-01", coord_sys="GSM",
+            Nlines=6,
+            closed=True,
+            point_function="circle",
+            point_array_functions=["position"],
+            cell_array_functions=None):
 
-def Script(self, time="2001-01-01", coord_sys='GSM', Npts=3, closed=False, point_function={"circle": {}}, point_array_functions=None, cell_array_functions=None):
+   debug = False
 
-    # What is entered in the Script box for a Programmable Source
-    
-    import vtk
-    import numpy as np
+   assert isinstance(point_array_functions, list), "point_array_functions must be a list"
+   assert isinstance(point_function, str), "point_function must be a str"
 
-    from magnetovis.vtk.set_arrays import set_arrays
-    from magnetovis.vtk.get_arrays import get_arrays
-    from hxform import hxform as hx
+   import vtk
+   import numpy as np
 
-    if (len(point_function) > 1):
-        # TODO: Error
-        pass
+   from hxform import hxform as hx
+   import magnetovis as mvs
 
-    function_name = list(point_function.keys())[0]
-    points = get_arrays(point_function, Npts)[function_name]
+   if closed:
+      points = mvs.vtk.get_arrays(point_function, Nlines)
+   else:
+      points = mvs.vtk.get_arrays(point_function, Nlines+1)
 
-    if coord_sys != 'GSM':
-        assert time != None, 'magnetovis.Lines(): If coord_sys in not GSM, time cannot be None'
-        points = hx.transform(points, time, 'GSM', coord_sys, 'car', 'car')
+   if coord_sys != 'GSM':
+     from hxform import hxform as hx
+     assert time != None, 'magnetovis.Lines(): If coord_sys in not GSM, time cannot be None'
+     points = hx.transform(points, time, 'GSM', coord_sys, 'car', 'car')
 
-    point_data = get_arrays(point_array_functions, points)
-    #cell_data = get_arrays(cell_array_functions, cell_centers)
+   point_data = mvs.vtk.get_arrays(point_array_functions, points)
+   #cell_data = get_arrays(cell_array_functions, cell_centers)
 
-    try:
-      # Being executed in Programmable Source
-      output = self.GetPolyDataOutput()
-    except:
-      # Being executed in Plugin
-      from vtkmodules.vtkCommonDataModel import vtkPolyData
-      output = vtkPolyData.GetData(outInfo, 0)
+   Npts = points.shape[0]
 
-    Npts = points.shape[0]
-    Nlines = Npts - 1
+   if debug:
+      np.set_printoptions(precision=1, floatmode='fixed')
+      print("Nlines = {}; closed={}; Npts = {}\n".format(Nlines, closed, Npts))
 
-    vtkPoints = vtk.vtkPoints()
-    points2 = np.zeros(((Npts-2)*2 + 2, 3))
-    # Duplicate interior points
-    for i in range(Nlines):
-        points2[2*i, :] = points[i, :]
-        points2[2*i+1, :] = points[i+1, :]
+   points2 = np.zeros((2*Npts, 3))
+   output.Allocate(Nlines, 1)
 
-    output.Allocate(Nlines, 1)
-    output.SetPoints(vtkPoints)
+   for i in range(Nlines-1):
+      points2[2*i, :] = points[i, :]
+      points2[2*i+1, :] = points[i+1, :]
+      vtkPolyLine = vtk.vtkPolyLine()
+      vtkPolyLine.GetPointIds().SetNumberOfIds(2)
+      vtkPolyLine.GetPointIds().SetId(0, 2*i) 
+      vtkPolyLine.GetPointIds().SetId(1, 2*i+1)
+      output.InsertNextCell(vtkPolyLine.GetCellType(), vtkPolyLine.GetPointIds())
+      if debug:
+         print("p{} = {}".format(2*i, points2[2*i, :]))
+         print("p{} = {}".format(2*i+1, points2[2*i+1, :]))
+         print("Line {}: p{}-p{}\n".format(i, 2*i, 2*i+1))
 
-    vtkPolyLine = vtk.vtkPolyLine()
-    for i in range(Nlines):
-        vtkPolyLine.GetPointIds().SetNumberOfIds(2)
-        vtkPolyLine.GetPointIds().SetId(0, 2*i) 
-        vtkPolyLine.GetPointIds().SetId(1, 2*i+1)
-        output.InsertNextCell(vtkPolyLine.GetCellType(), vtkPolyLine.GetPointIds())
+   vtkPolyLine = vtk.vtkPolyLine()
+   vtkPolyLine.GetPointIds().SetNumberOfIds(2)
+   i = i + 1
+   if closed:
+      points2[2*i, :] = points[i, :]
+      points2[2*i+1, :] = points[0, :]
+      vtkPolyLine.GetPointIds().SetId(0, 2*i) 
+      vtkPolyLine.GetPointIds().SetId(1, 0)
+      if debug:
+         print("p{} = {}".format(2*i, points2[2*i, :]))
+         print("p{} = {}".format(0, points2[2*i+1, :]))
+         print("Line {}: p{}-p{}".format(i, 2*i, 0))
+   else:
+      points2[2*i, :] = points[i, :]
+      points2[2*i+1, :] = points[i+1, :]
+      vtkPolyLine.GetPointIds().SetId(0, 2*i) 
+      vtkPolyLine.GetPointIds().SetId(1, 2*i+1)
+      if debug:
+         print("p{} = {}".format(2*i, points2[2*i, :]))
+         print("p{} = {}".format(2*i+1, points2[2*i+1, :]))
+         print("Line {}: p{}-p{}".format(i, 2*i, 2*i+1))
 
-    output = set_arrays(self, output, points2, point_data=point_data)
+   output.InsertNextCell(vtkPolyLine.GetCellType(), vtkPolyLine.GetPointIds())
 
-def Display(self, source, display, renderView, **displayArguments):
-
-    # Base this on code that is displayed by trace in ParaView GUI
-
-    import paraview
-    import paraview.simple as pvs
-
-    name = 'cell_index'
-
-    n_cells = source.GetCellDataInformation().GetArray(name).GetNumberOfTuples()
-
-    if "displayRepresentation" in displayArguments:
-        display.Representation = displayArguments['displayRepresentation']
-
-    scalarBarVisibility = True
-    if "scalarBarVisibility" in displayArguments:
-        scalarBarVisibility = displayArguments['scalarBarVisibility']
-
-    pvs.ColorBy(display, ('CELLS', name))
-    lookupTable = pvs.GetColorTransferFunction(name)
-    lookupTable.NumberOfTableValues = n_cells-1
-    if (n_cells < 11):
-        lookupTable.InterpretValuesAsCategories = 1
-
-    display.SetScalarBarVisibility(renderView, scalarBarVisibility)
-
-    return display
+   mvs.vtk.set_points(output, points2)
+   point_arrays = mvs.vtk.get_arrays(point_array_functions, points)
+   mvs.vtk.set_arrays(output, point_data=point_arrays, include=["CellId"])

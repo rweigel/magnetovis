@@ -1,17 +1,20 @@
 #from magnetovis.objects import *
 
-import logging
-logging.basicConfig(format='%(asctime)s.%(msecs)03d:%(filename)s:%(funcName)s(): %(message)s',
-                    level=logging.INFO, datefmt='%S')
-logging.info("Called.")
-
 from magnetovis import util
 from magnetovis import vtk
+from magnetovis.logging import logger
+
 from magnetovis.paraview import ProxyInfo
-from magnetovis.paraview.SetDisplayProperties import SetDisplayProperties
-from magnetovis.paraview.ColorByCellId import ColorByCellId
 from magnetovis.paraview.CreateProgrammableSource import CreateProgrammableSource
+from magnetovis.paraview.CreateViewAndLayout import CreateViewAndLayout
+
+from magnetovis.paraview.GetDisplayDefaults import GetDisplayDefaults
+from magnetovis.paraview.GetProperties import GetProperties
+from magnetovis.paraview.GetRegistrationName import GetRegistrationName
+from magnetovis.paraview.SetDisplayProperties import SetDisplayProperties
 from magnetovis.paraview.SetCamera import SetCamera
+from magnetovis.paraview.SetColoring import SetColoring
+from magnetovis.paraview.SetTitle import SetTitle
 
 # Generate Programmable Sources from files in ./Sources.
 # Technique based on

@@ -10,11 +10,11 @@ def ScriptRequestInformation(self):
    pass
 
 
-def Script(self, coord_sys='GSM', start="2001-01-01T00:00:00", stop="2001-01-02T00:00:00", id='ace', tube_radius=1.):
+def Script(self, coord_sys='GSM', start="2001-01-01T00:00:00", stop="2001-01-03T00:00:00", id='geotail', tube_radius=1.):
 
 
     import vtk
-    import logging
+    import magnetovis
 
     import numpy as np
     from itertools import groupby
@@ -50,7 +50,7 @@ def Script(self, coord_sys='GSM', start="2001-01-01T00:00:00", stop="2001-01-02T
     parameters = "X_{},Y_{},Z_{},Spacecraft_Region" \
                     .format(coord_sys, coord_sys, coord_sys)
 
-    logging.info("Getting data.")
+    magnetovis.logger.info("Getting data.")
     data, meta = hapi(server, id, parameters, start, stop, **opts)
 
     points = np.column_stack([data['X_'+coord_sys], data['Y_'+coord_sys], data['Z_'+coord_sys]])
@@ -87,7 +87,7 @@ def Script(self, coord_sys='GSM', start="2001-01-01T00:00:00", stop="2001-01-02T
         output = output.DeepCopy(vtkTubeFilterOutput)
 
 
-def SetDisplayProperties(programmableSource, renderView=None, displayProperties=None, **displayArguments):
+def SetDisplayProperties(source, view=None, display=None, **kwargs):
 
     # Base this on code that is displayed by trace in ParaView GUI
 
@@ -112,10 +112,10 @@ def SetDisplayProperties(programmableSource, renderView=None, displayProperties=
     }
 
     # Over-ride default based on input
-    if "region_colors" in displayArguments:
+    if "region_colors" in kwargs:
         for name in region_colors.keys():
-            if name in displayArguments['region_colors']:
-                region_colors[name] = displayArguments['region_colors'][name]
+            if name in kwargs['region_colors']:
+                region_colors[name] = kwargs['region_colors'][name]
 
     id_names = ['D_Msheath', 'N_Msheath', 'D_Msphere', 'N_Msphere',
                 'D_Psphere', 'N_Psphere', 'Tail_Lobe', 'Plasma_Sh',
@@ -136,7 +136,7 @@ def SetDisplayProperties(programmableSource, renderView=None, displayProperties=
                         "Interplanetary\nMedium"
                     ]
 
-    sourceData = paraview.servermanager.Fetch(programmableSource)
+    sourceData = paraview.servermanager.Fetch(source)
     region_ids = sourceData.GetCellData().GetArray('region_id')
     region_ids = numpy_support.vtk_to_numpy(region_ids)
     region_ids = np.unique(region_ids)
@@ -161,32 +161,32 @@ def SetDisplayProperties(programmableSource, renderView=None, displayProperties=
     index_colored_list = np.array(index_colored_list).flatten()
     LUT.IndexedColors = index_colored_list
 
-    displayProperties.LookupTable = LUT
-    displayProperties.OpacityArray = ['CELLS', 'region_id']
-    displayProperties.ColorArrayName = ['CELLS', 'region_id']
-    displayProperties.SetScalarBarVisibility(renderView, True)
+    display.LookupTable = LUT
+    display.OpacityArray = ['CELLS', 'region_id']
+    display.ColorArrayName = ['CELLS', 'region_id']
+    display.SetScalarBarVisibility(view, True)
 
-    LookupTableColorBar = pvs.GetScalarBar(LUT, renderView)
+    LookupTableColorBar = pvs.GetScalarBar(LUT, view)
     LookupTableColorBar.Title = 'Satellite Region'
     LookupTableColorBar.ComponentTitle = ''
 
-    if "displayRepresentation" in displayArguments:
-        displayProperties.Representation = displayArguments['displayRepresentation']
+    if "displayRepresentation" in kwargs:
+        display.Representation = kwargs['displayRepresentation']
 
-    if "opacity" in displayArguments:
-        if displayArguments["opacity"] is not None:
-            displayProperties.Opacity = displayArguments['opacity']
+    if "opacity" in kwargs:
+        if kwargs["opacity"] is not None:
+            display.Opacity = kwargs['opacity']
 
-    displayProperties.AmbientColor = [0.5, 0.5, 0.5]
-    if "ambientColor" in displayArguments:
-        if displayArguments["ambientColor"] is not None:
-            displayProperties.AmbientColor = displayArguments["ambientColor"]
+    display.AmbientColor = [0.5, 0.5, 0.5]
+    if "ambientColor" in kwargs:
+        if kwargs["ambientColor"] is not None:
+            display.AmbientColor = kwargs["ambientColor"]
 
-    displayProperties.DiffuseColor = [0.5, 0.5, 0.5]
-    if "diffuseColor" in displayArguments:
-        if displayArguments["diffuseColor"] is not None:
-            displayProperties.DiffuseColor = displayArguments["diffuseColor"]
+    display.DiffuseColor = [0.5, 0.5, 0.5]
+    if "diffuseColor" in kwargs:
+        if kwargs["diffuseColor"] is not None:
+            display.DiffuseColor = kwargs["diffuseColor"]
 
-    renderView.ResetCamera()
+    view.ResetCamera()
 
-    return displayProperties
+    return display

@@ -1,7 +1,9 @@
 def CreatePlugin(name):
 
-    import logging
     import importlib
+
+    import magnetovis as mvs
+    mvs.logger.info("Called.")
 
     from magnetovis import extract
     from magnetovis.paraview import PluginSetFunctions
@@ -17,10 +19,11 @@ def CreatePlugin(name):
     @smhint.xml('<ShowInMenu category="Magnetovis"/>')
     class Plugin(VTKPythonAlgorithmBase):
 
-        logging.info("Called.")
+        import magnetovis as mvs
+        mvs.logger.info("Called.")
 
         # This is used to populate Script text area
-        ScriptBodyText = extract.extract_script(Script, None, xml_encode=True)
+        ScriptBodyText, _ = extract.extract_script(Script, None, xml_encode=True)
         ScriptBodyText = "# If script modified, drop-down values will be ignored&#xa;" + ScriptBodyText
 
         # Ordering of GUI elements is alphabetical. See proposed fix for this at
@@ -38,7 +41,7 @@ def CreatePlugin(name):
 
         def __init__(self, **default_values):
 
-            logging.info("Called.")
+            mvs.logger.info("Called.")
 
             VTKPythonAlgorithmBase.__init__(self,
                     nInputPorts=0,
@@ -48,7 +51,7 @@ def CreatePlugin(name):
             self._logging = logging
 
             self.Script = Script
-            ScriptBodyText = extract.extract_script(Script, None, xml_encode=False)
+            ScriptBodyText, _ = extract.extract_script(Script, None, xml_encode=False)
             # Note the use of "\n" instead of &#xa; in comment when set as default.
             ScriptBodyText = "# If script modified, drop-down values will be ignored\n" + ScriptBodyText
             self.ScriptBodyTextOriginal = ScriptBodyText
@@ -80,16 +83,16 @@ def CreatePlugin(name):
 
         def RequestData(self, request, inInfo, outInfo):
 
-            logging.info("Called.")
+            mvs.logger.info("Called.")
 
             if self.ScriptBodyText == self.ScriptBodyTextOriginal:
                 from magnetovis import extract
                 kwargs = self.GetKwargs(self)
-                logging.info("Executing script using kwargs from menu of " + str(kwargs))
+                mvs.logger.info("Executing script using kwargs from menu of " + str(kwargs))
                 ScriptBodyText = extract.extract_script(self.Script, kwargs, xml_encode=False)
                 # TODO: Update script in text area
             else:
-                logging.info("Executing script in Script text area.")
+                mvs.logger.info("Executing script in Script text area.")
                 ScriptBodyText = self.ScriptBodyText
 
             import vtk
@@ -99,13 +102,13 @@ def CreatePlugin(name):
 
             exec(ScriptBodyText)
 
-            logging.info("Finished execution of script")
+            mvs.logger.info("Finished execution of script.")
 
             return 1
 
 
         def RequestInformation(self, request, inInfoVec, outInfoVec):
-            logging.info("Called.")
+            mvs.logger.info("Called.")
             ScriptRequestInformation(self, dimensions=self.dimensions)
             return 1
 

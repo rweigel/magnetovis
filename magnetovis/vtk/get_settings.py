@@ -7,17 +7,20 @@ def get_settings(vtkName, form='list'):
       >>> # {'SetCenter': (0.0, 0.0, 0.0), 'SetRadius': 0.5}
    """
 
-   import logging
    import types
    import vtk
+
+   import magnetovis as mvs
 
    if isinstance(vtkName, str):
       try:
          vtkObject = getattr(vtk, vtkName)()
+         mvs.logger.info("Called with input = {}".format(vtkName))
       except:
-         logging.info("Cannot get settings for " + vtkName)
+         mvs.logger.info("Cannot get settings for " + vtkName)
          return {}
    else:
+      mvs.logger.info("Called with input = {}".format(vtkName.__vtkname__))
       vtkObject = vtkName
 
    # Ideally there would be a way to get only native methods so this would not be
@@ -46,7 +49,7 @@ def get_settings(vtkName, form='list'):
             except:
                settings[option] = False
 
-            #logging.info(option + " = " + str(settings[option]))
+            #mvs.logger.info(option + " = " + str(settings[option]))
 
    if form == 'dict':
       return settings

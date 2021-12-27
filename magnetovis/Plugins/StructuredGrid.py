@@ -5,5 +5,5 @@ import os
 from magnetovis.paraview import CreatePlugin
 exec(open(os.path.abspath(CreatePlugin.__file__)).read())
 
-name = "StructuredGrid"
+name = "GridData"
 Plugin = CreatePlugin(name)

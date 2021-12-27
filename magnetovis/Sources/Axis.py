@@ -21,8 +21,6 @@ def Script(time="2001-01-01", coord_sys='GSM', extent=[-40., 40.], direction='X'
     assert isinstance(extent, list or tuple or np.ndarray), \
         'magnetovis.Axis(): Extent must be a list, tuple, or numpy.ndarray'
 
-    extent = np.array(extent)
-
     assert extent[0] < extent[1], \
         'magnetovis.Axis(): Lower extent {} is larger than upper extent {}' \
             .format(extent[0], extent[1])
@@ -45,7 +43,7 @@ def Script(time="2001-01-01", coord_sys='GSM', extent=[-40., 40.], direction='X'
     vtkLineSource.Update()
 
     if tube == False:
-        output = output.ShallowCopy(vtkLineSource.GetOutputDataObject(0))
+        output.ShallowCopy(vtkLineSource.GetOutputDataObject(0))
         mvs.ProxyInfo.SetInfo(pvs.GetActiveSource(), locals())
     else:
         numberOfSides = 20
@@ -83,8 +81,7 @@ def Script(time="2001-01-01", coord_sys='GSM', extent=[-40., 40.], direction='X'
         vtkConeSource.SetRadius(coneRadius)
         vtkConeSource.SetHeight(coneHeight)
 
-        # TODO: Use vtkTranform to do the following translation.
-        # TODO: Rotate the cone so base points align with tube end points.
+        # TODO?: Use vtkTranform to do the following translation.
         import math
 
         # Position of end of tube
@@ -95,10 +92,10 @@ def Script(time="2001-01-01", coord_sys='GSM', extent=[-40., 40.], direction='X'
         for i in range(3):
             coneCenter.append(points[1][i] + (coneHeight/2.0)*points[1][i]/r)
         vtkConeSource.SetCenter(coneCenter)
+        vtkConeSource.Update()
 
         # Apply input settings
         mvs.vtk.set_settings(vtkConeSource, vtkConeSourceSettings)
-        vtkConeSource.Update()
 
         """Combine tube and cone into single PolyData object"""
         combinedSources = vtk.vtkAppendPolyData()
@@ -110,68 +107,103 @@ def Script(time="2001-01-01", coord_sys='GSM', extent=[-40., 40.], direction='X'
         mvs.ProxyInfo.SetInfo(pvs.GetActiveSource(), locals())
 
 
-def SetDisplayProperties(programmableSource, renderView=None, displayProperties=None,
-                        **displayArguments):
+def DefaultRegistrationName(**kwargs):
+    import magnetovis as mvs
+
+    registrationName = "{}-Axis/{}/{}" \
+                        .format(kwargs['direction'], mvs.util.trim_iso(kwargs['time']), kwargs['coord_sys'])
+
+    return registrationName
+
+
+def GetDisplayDefaults(all=False):
+
+    defaults = {
+        'display': {
+            'Representation': 'Surface',
+            'AmbientColor': [0.5, 0.5, 0.5],
+            'DiffuseColor': [0.5, 0.5, 0.5]
+        },
+        'label': {
+            "display": {
+                'FontSize': 24
+            }
+        } 
+    }
+
+    return defaults
+
+
+def SetDisplayProperties(source, view=None, display=None, **kwargs):
 
     # Base this on code that is displayed by trace in ParaView GUI
 
-    import paraview
+    import logging
     import paraview.simple as pvs
     import magnetovis
 
-    renderView.ResetCamera()
+    info = magnetovis.ProxyInfo.GetInfo(source)
+    magnetovis.logger.info("Source info: {}".format(info))
 
-    info = magnetovis.ProxyInfo.GetInfo(programmableSource)
-    print(info)
-    info = magnetovis.ProxyInfo.GetInfo(programmableSource, origin='server')
-    print(info)
+    direction = source.GetProperty('direction')
 
-    direction = programmableSource.GetProperty('direction')
     extent = info['extent']
     if info['tubeAndCone']:
         # TODO: Use justification instead of 1.2 factor.
-        extent[1] = extent[1] + 1.2*info['vtkConeSourceSettings']['Height']
+        extent[1] = extent[1] + 1.1*info['vtkConeSourceSettings']['Height']
 
-    labelObject = pvs.Text()
-    labelObject.Text = direction
-    if 'label' in displayArguments:
-        if 'Text' in displayArguments['label']:
-            labelObject.Text = displayArguments['label']['Text']
+    # Default keyword arguments
+    dkwargs = GetDisplayDefaults()
 
-    labelDisplayProperties = pvs.Show(labelObject, renderView, 'TextSourceRepresentation')
+    '''Display'''
 
-    labelDisplayProperties.TextPropMode = 'Billboard 3D Text'
-    labelDisplayProperties.FontSize = 14
-
-    displayProperties.AmbientColor = [0.5, 0.5, 0.5]
-    displayProperties.DiffuseColor = [0.5, 0.5, 0.5]
+    # Other defaults
     if direction == "X":
-        labelDisplayProperties.BillboardPosition = [extent[1], 0, 0]
-        displayProperties.AmbientColor = [1.0, 0.0, 0.0]
-        displayProperties.DiffuseColor = [1.0, 0.0, 0.0]
+        display.AmbientColor = [1.0, 0.0, 0.0]
+        display.DiffuseColor = [1.0, 0.0, 0.0]
     if direction == "Y":
-        labelDisplayProperties.BillboardPosition = [0, extent[1], 0]
-        displayProperties.AmbientColor = [1.0, 1.0, 0.0]
-        displayProperties.DiffuseColor = [1.0, 1.0, 0.0]
+        display.AmbientColor = [1.0, 1.0, 0.0]
+        display.DiffuseColor = [1.0, 1.0, 0.0]
     if direction == "Z":
-        labelDisplayProperties.BillboardPosition = [0, 0, extent[1]]
-        displayProperties.AmbientColor = [0.0, 1.0, 0.0]
-        displayProperties.DiffuseColor = [0.0, 1.0, 0.0]
+        display.AmbientColor = [0.0, 1.0, 0.0]
+        display.DiffuseColor = [0.0, 1.0, 0.0]
+
+    '''Text'''
+
+    # Text Source
+    textSourceSettings = {}
+    # Defaults
+    if 'label' in dkwargs and 'source' in dkwargs['label']:
+        textSourceSettings = dkwargs['label']['source']
+    # Other defaults
+    textSourceSettings['Text'] = direction
+    textSourceSettings['registrationName'] = "   Label for " + info['registrationName']
+    # Update defaults 
+    if 'label' in kwargs and 'source' in kwargs['label']:
+        textSourceSettings = {**textSourceSettings, **kwargs['label']['source']}
+    # Create source
+    textSource = pvs.Text(**textSourceSettings)
+
+    # Text Source Display Representation
+    textDisplaySettings = {}
+    # Defaults
+    if 'label' in dkwargs and 'display' in dkwargs['label']:
+        textDisplaySettings = dkwargs['label']['display']
+    # Other defaults
+    if direction == "X":
+        textDisplaySettings['BillboardPosition'] = [extent[1], 0, 0]
+    if direction == "Y":
+        textDisplaySettings['BillboardPosition'] = [0, extent[1], 0]
+    if direction == "Z":
+        textDisplaySettings['BillboardPosition'] = [0, 0, extent[1]]
+    # Update defaults 
+    if 'label' in kwargs and 'display' in kwargs['label']:
+        textDisplaySettings = {**textDisplaySettings, **kwargs['label']['display']}
+    
+    textRepresentation = pvs.Show(proxy=textSource,
+                                    view=view,
+                                    TextPropMode='Billboard 3D Text',
+                                    **textDisplaySettings)
 
 
-    # Override defaults
-    if 'label' in displayArguments:
-        for key, value in displayArguments['label'].items():
-            if hasattr(labelDisplayProperties, key):            
-                setattr(labelDisplayProperties, key, value)
-            else:
-                pass # TODO: Warn
-
-    if 'object' in displayArguments:
-        for key, value in displayArguments['object'].items():
-            if hasattr(displayProperties, key):            
-                setattr(displayProperties, key, value)
-            else:
-                pass # TODO: Warn
-
-    return displayProperties
+    return [textSource]

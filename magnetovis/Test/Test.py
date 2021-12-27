@@ -1,18 +1,31 @@
-import os
+# From this root directory, execute
+#   magnetovis pvbatch magnetovis/Test/Test.py 
 
-dirs = ["Demos", "Macros"]
+import os
+import logging
+
+#dirs = ["Demos", "Sources"]
+dirs = ["Sources"]
+testonly = []
+testonly = ["Axis_demo.py", "Grid_demo.py"]
+#testonly = ["Lines_demo.py","StructuredGrid_demo.py"]
 
 for dir in dirs:
     base = os.path.dirname(os.path.abspath(__file__))
     base = base + "/../" + dir
 
-    print("Reading " + base)
+    logging.info("Reading " + base)
 
     ls = os.listdir(base)
     files_py = []
     for entry in ls:
-        if entry.endswith(".py"):
-            files_py.append(entry)
+        if entry.endswith("_demo.py"):
+            if len(testonly) == 0:
+                files_py.append(entry)
+            else:
+                if entry in testonly:
+                    files_py.append(entry)
+
     #print(files_py)
     files_py.sort()
 
@@ -22,34 +35,33 @@ for dir in dirs:
     #[pvs.Delete(s) for s in pvs.GetSources().values()]
     #pvs.ResetSession()
 
-    # The commented out lines below cause random crashes.
-    # No crashes when pvs.Delete() loop is used.
-    #pvs.Disconnect()
-
-
     for file_py in files_py:
-        file_png = base + "/Figures/" + file_py[0:-3] + '.png'
-        file_py = base + "/" + file_py
+        file_py_abspath = base + "/" + file_py
         #print("Connecting", flush=True)
         #pvs.Connect()
         #print("Connected", flush=True)
-        print("Executing " + file_py, flush=True)
-        exec(open(file_py).read())
-        print("Executed " + file_py, flush=True)
-        renderView1 = pvs.GetActiveViewOrCreate('RenderView')
-        #renderView1.Update()
-        pvs.ResetCamera()
-        print(renderView1)
-        print("Writing " + file_png, flush=True)
-        pvs.SaveScreenshot(file_png, renderView1, ImageResolution=[1024, 768], TransparentBackground=1, FontScaling="Do not scale fonts")
-        print("Wrote " + file_png, flush=True)
+        logging.info("Executing " + file_py_abspath)
+        exec(open(file_py_abspath).read())
+        logging.info("Executed " + file_py_abspath)
+        for idx, renderView in enumerate(pvs.GetRenderViews()):
+            file_png = base + "/Figures/" + file_py[0:-3] + "-" + str(idx) + '.png'
+            logging.info("Writing " + file_png)
+            pvs.Render(renderView)
+            pvs.SaveScreenshot(file_png, renderView,
+                                ImageResolution=[2*1024, 2*768])
+            logging.info("Wrote " + file_png)
+            pvs.Delete(renderView)
+            del renderView
+            #pvs.Delete()
+
+        # Reset session should not be needed.
         #pvs.ResetSession()
-        for view in pvs.GetRenderViews():
-            pvs.Delete(view)
-        try:
-            print("Disconnecting", flush=True)
-            #pvs.Disconnect()
-            print("Disconnected", flush=True)
-        except:
-            print("Disconnect failed.", flush=True)
-            pass
+
+        if False:
+            try:
+                print("Disconnecting", flush=True)
+                #pvs.Disconnect()
+                print("Disconnected", flush=True)
+            except:
+                print("Disconnect failed.", flush=True)
+                pass

@@ -1,9 +1,7 @@
-def set_settings(vtkObj, settings):
+def SetProperties(vtkObj, settings):
 
     import vtk
-
     import magnetovis as mvs
-    from magnetovis.vtk.get_settings import get_settings
 
     if settings is None:
         return
@@ -11,6 +9,7 @@ def set_settings(vtkObj, settings):
     if isinstance(settings, str):
         settings = [settings]
 
+    from magnetovis.vtk.get_settings import get_settings
 
     vtkName = vtkObj.__vtkname__
     defaults = get_settings(vtkName, form='dict')

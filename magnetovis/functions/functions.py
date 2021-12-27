@@ -2,17 +2,30 @@ def linspace(dimensions, starts=(0.0, 0.0, 0.0), stops=(1.0, 1.0, 1.0), grid_typ
 
     import numpy as np
 
+    assert len(dimensions) == len(starts) == len(stops), "Required: len(dimensions) == len(starts) == len(stops)" 
+
     x = np.linspace(starts[0], stops[0], dimensions[0])
     y = np.linspace(starts[1], stops[1], dimensions[1])
+
+    if len(starts) == 2:
+        if grid_type == 'rectilinear':
+            points = {'x': x, 'y': y}
+        else:
+            X, Y = np.meshgrid(x, y, indexing='xy')
+            points = np.column_stack([X.flatten(), Y.flatten()])
+        
+        return points
+
     z = np.linspace(starts[2], stops[2], dimensions[2])
 
     if grid_type == 'rectilinear':
         return {'x': x, 'y': y, 'z': z}
 
     Y, Z, X = np.meshgrid(y, z, x)
-    points = np.column_stack([X.flatten(), Y.flatten(), Z.flatten()])
-    # Points has x varying the fastest, then y, then z
 
+    points = np.column_stack([X.flatten(), Y.flatten(), Z.flatten()])
+
+    # Points has x varying the fastest, then y, then z
     return points
 
 def cylinder(dimensions, radius=1.0, origin=(0.0, 0.0, 0.0)):
@@ -194,12 +207,11 @@ if False:
     print(magnetic_dipole([[0, 0, 1], [0, 0, -1]], m=[0, 0, 1], vectorized=True))
 
 
-def dipole(points, M=7.788E22):
+def dipole(points, M=7.788E22, r_nan=0.):
     import numpy as np
     r = np.linalg.norm(points, axis=1)
     B = np.zeros(points.shape)
-    r[r < 1] = np.nan
-    #r[r==0] = np.nan
+    r[r <= r_nan] = np.nan
     B[:,0] = 3*M*points[:,0]*points[:,2]/r**5 # Bx = 3*M*x*z/r^5
     B[:,1] = 3*M*points[:,1]*points[:,2]/r**5 # By = 3*M*y*z/r^5
     B[:,2] = M*(3*points[:,2]**2-r**2)/r**5   # Bz = M(3*z^2 - r^2)/r^5

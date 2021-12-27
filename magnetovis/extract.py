@@ -2,6 +2,9 @@ def extract_function_call(function, xml_encode=False):
 
     from magnetovis.functions import functions as mvsfunctions
 
+    import magnetovis as mvs
+    mvs.logger.info("Called.")
+
     if isinstance(function, str):
         function = getattr(mvsfunctions, function)
 
@@ -21,10 +24,111 @@ def extract_function_call(function, xml_encode=False):
 
     return call_str
 
+
+def test_extract_kwargs():
+
+    assert extract_kwargs("abc") == {}
+    assert extract_kwargs("abc()") == {}
+    assert extract_kwargs("abc(a, b=1)") == {'b': 1}
+    assert extract_kwargs("abc(a, b=1)", default_kwargs={'b': 2}) == {'b': 2}
+    assert extract_kwargs("abc(a, b=1)", default_kwargs={'b': 2, 'c': 2}) == {'b': 2}
+    assert extract_kwargs("abc(a, b=1, c=2)") == {'b': 1, 'c': 2}
+    assert extract_kwargs("abc(a, b=1, c=2)", default_kwargs={'b': 2, 'c': 3}) == {'b': 2, 'c': 3}
+
+    from magnetovis import extract
+    def __circle(N, radius=1, center=(0, 0, 0)): pass
+    # The following is equivalent to putting the above def outside of this function.
+    setattr(extract, "__circle", __circle)
+    assert extract_kwargs("magnetovis.extract.__circle()") == {}
+    assert extract_kwargs("magnetovis.extract.__circle") == {'radius': 1, 'center': (0, 0, 0)}
+    assert extract_kwargs("magnetovis.extract.__circle", default_kwargs={'radius': 2}) == {'radius': 2, 'center': (0, 0, 0)}
+    assert extract_kwargs("magnetovis.extract.__circle(N, radius=3)") == {'radius': 3}
+
+    from magnetovis import functions
+    # The following is equivalent to putting the above def in functions.py
+    setattr(functions, "__circle", __circle)
+    assert extract_kwargs("__circle()") == {}
+    assert extract_kwargs("__circle") == {'radius': 1, 'center': (0, 0, 0)}
+    assert extract_kwargs("__circle", default_kwargs={'radius': 2}) == {'radius': 2, 'center': (0, 0, 0)}
+    assert extract_kwargs("__circle(N, radius=3)") == {'radius': 3}
+
+    assert extract_kwargs(__circle) == {'radius': 1, 'center': (0, 0, 0)}
+    assert extract_kwargs(__circle, default_kwargs={'radius': 2}) == {'radius': 2, 'center': (0, 0, 0)}
+
+
 def extract_kwargs(function, default_kwargs=None):
+    """Extract keyword arguments given string or function reference
+
+    kwargs = extract_kwargs(function, default_kwargs=None)
+    
+    function is string:
+    -------------------
+        If the magnetovis.functions.circle is a function with signature
+        def circle(N, radius=1):
+
+        extract_kwargs("magnetovis.functions.circle")
+                    => {'radius': 1}
+
+        magnetovis.functions may be omitted if the function is in that module:
+
+        extract_kwargs("circle")
+                    => {'radius': 1}
+
+        extract_kwargs("circle(a, radius=2)")
+                    => {'radius': 2}
+
+        extract_kwargs("circle(a, radius=2)", default_kwargs={'radius': 3})
+                    => {'radius': 3}
+
+
+    function is function pointer:
+    -----------------------------
+    If a function `circle` is defined according to
+
+        def circle(N, radius=2, center=[0, 0, 0]): pass
+
+    then
+
+        extract_kwargs(circle)
+            => {"radius": 2, "center": [0, 0, 0]}
+
+        extract_kwargs(circle, default_kwargs={"radius": 3})
+            => {"radius": 3, "center": [0, 0, 0]}
+
+
+    function is string and function not in magnetovis.functions 
+    -----------------------------------------------------------
+        In this case, the string is parsed
+
+        extract_kwargs("abc")
+                    => {}
+
+        extract_kwargs("abc()")
+                    => {}
+
+        extract_kwargs("abc(radius=1)")
+                    => {"radius": 1}
+
+        extract_kwargs("abc", default_kwargs={"radius": 2}) 
+                    => {"radius": 2}
+
+        extract_kwargs("abc(radius=1)", default_kwargs={"radius": 2}) 
+                    => {"radius": 2}
+
+        extract_kwargs("abc(radius=1)", default_kwargs={"radius": 2, "ignored": -1}) 
+                    => {"radius": 2}
+
+
+
+    """
 
     import types
+    import importlib
     from inspect import signature, Parameter
+
+    import magnetovis as mvs
+
+    mvs.logger.info("Called with function = " + str(function))
 
     kwargs = {}
     if isinstance(function, str):
@@ -32,11 +136,27 @@ def extract_kwargs(function, default_kwargs=None):
         # https://stackoverflow.com/questions/2626582/running-exec-inside-function
         function_call_parts = function.split("(")
         if len(function_call_parts) == 1:
-            return {}
+            # e.g.,
+            #   magnetovis.Sources.StructuredGrid.Script
+            # or
+            #   circle
+            if not function.startswith("magnetovis"):
+                # e.g., circle
+                function = "magnetovis.functions." + function
+
+            module = ".".join(function.split(".")[0:-1])
+            function = function.split(".")[-1]
+
+            try:
+                module = importlib.import_module(module)
+                function = getattr(module, function)
+                return extract_kwargs(function, default_kwargs=default_kwargs)
+            except:
+                return extract_kwargs(function + "()", default_kwargs=default_kwargs)
+
         function_call_parts[0] = "function_pointer"
         function_call = '('.join(function_call_parts)
         function_def = "def " + function_call + ": pass"
-        #print(function_def)
         exec_dict = {}
         exec(function_def, exec_dict)
         function_pointer = exec_dict["function_pointer"]
@@ -58,11 +178,15 @@ def extract_kwargs(function, default_kwargs=None):
 
     return kwargs
 
+
 def extract_script(function, sourceArguments, xml_encode=False):
 
-    import inspect
-
     debug = False
+
+    import inspect
+    import magnetovis as mvs
+
+    mvs.logger.info("Called with function = {}".format(function))
 
     kwargs = extract_kwargs(function, default_kwargs=sourceArguments)
 
@@ -114,7 +238,11 @@ def extract_script(function, sourceArguments, xml_encode=False):
     if xml_encode is True:
         script = script.replace("\n","&#xa;").replace("'","&#39;").replace('"',"&quot;").replace("<","&lt;").replace(">","&gt;")
 
-    return script
+    return script, kwargs
+
+
+if __name__ == "__main__":
+    test_extract_kwargs()
 
 if False:
     def myfun(a, b=1,
