@@ -4,12 +4,6 @@ def OutputDataSetType():
    return "vtkPolyData"
 
 
-def ScriptRequestInformation(self):
-
-   # What is entered in the Script (RequestInformation) box for a Programmable Source
-   pass
-
-
 def Script(self, coord_sys='GSM', start="2001-01-01T00:00:00", stop="2001-01-03T00:00:00", id='geotail', tube_radius=1.):
 
 
@@ -186,7 +180,3 @@ def SetDisplayProperties(source, view=None, display=None, **kwargs):
     if "diffuseColor" in kwargs:
         if kwargs["diffuseColor"] is not None:
             display.DiffuseColor = kwargs["diffuseColor"]
-
-    view.ResetCamera()
-
-    return display
