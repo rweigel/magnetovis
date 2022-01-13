@@ -11,20 +11,20 @@ def ScriptRequestInformation(self, dimensions=None):
         import magnetovis as mvs
         function = "magnetovis.Sources.NeutralSheet.Script"
         dimensions = mvs.extract.extract_kwargs(function)['dimensions']
-    
+
     dimensions.append(1)
     return mvs.Sources.GridData.ScriptRequestInformation(self, dimensions=dimensions)
 
 
 def Script(time="2001-01-01T12:00:00", coord_sys='GSM', dimensions=[20, 20],
             psi=10., Rh=8., d=4., G=10., Lw=10.,
-            point_function="linspace(starts=(-20., -2.), stops=(-10., 2.))",
+            point_function="linspace(starts=(-20., -15.), stops=(-4., 15.))",
             point_array_functions=["xyz: position()"]):
 
     assert isinstance(point_array_functions, list), "point_array_functions must be a list"
     assert isinstance(point_function, str), "point_function must be a str"
-    assert len(dimensions) == 2, "Required: len(dimensions) == 2" 
-    
+    assert len(dimensions) == 2, "Required: len(dimensions) == 2"
+
     import numpy as np
     import magnetovis as mvs
     import paraview.simple as pvs
