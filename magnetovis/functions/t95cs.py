@@ -60,7 +60,7 @@ def t95cs(xypoints, time=None, psi=0.0, Rh=8., d=4., G=10., Lw=10.):
         dipole = hx.MAGtoGSM(np.array([0., 0., 1.]), time, 'car', 'sph')
         # dipole array with [radius, latitude, longitude]
         psi = 90. - dipole[1]
-        psi = np.deg2rad(psi)
+    psi = np.deg2rad(psi)
 
     z1 = 0.5 * np.tan(psi) \
              * (np.sqrt((x - Rh*np.cos(psi))**2 + (d*np.cos(psi))**2) \
@@ -73,7 +73,7 @@ def t95cs(xypoints, time=None, psi=0.0, Rh=8., d=4., G=10., Lw=10.):
 
 if False:
     import numpy as np
-     
+
     x = np.linspace(-10, -20, 2)
     y = np.linspace(-2, 2, 2)
     print(x)
