@@ -1,13 +1,14 @@
-import paaraview.simple as pvs
+import paraview.simple as pvs
 sphere = pvs.Sphere()
 
 def UpdateDisplayOptions(caller, event):
     import paraview.simple as pvs
-    print("Event: " + event)
-    print("Caller: " + caller)
+    #print("Event: " + event)
+    #print("Caller: " + caller)
     # TODO: Figure out how to get source out of caller object (which is a SMSourceProxy).
-    source = pvs.GetActiveSource()
-    print(source)
+    #source = pvs.GetActiveSource()
+    #print(source)
+    print("here")
     #source.RemoveObserver('UpdateInformationEvent')
     #mvs.SetDefaultDisplayProperties(pvs.GetActiveSource())
 

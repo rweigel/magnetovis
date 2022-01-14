@@ -7,9 +7,12 @@ def ScriptRequestInformation(self, dimensions=None):
 
     import magnetovis as mvs
 
+    import magnetovis as mvs
+    mvs.logger.info("T95CurrentSheet.ScriptRequestInformation Called.")
+
     if dimensions is None:
         import magnetovis as mvs
-        function = "magnetovis.Sources.NeutralSheet.Script"
+        function = "magnetovis.Sources.T95CurrentSheet.Script"
         dimensions = mvs.extract.extract_kwargs(function)['dimensions']
     
     dimensions.append(1)
@@ -20,6 +23,9 @@ def Script(time="2001-01-01T12:00:00", coord_sys='GSM', dimensions=[20, 20],
             psi=10., Rh=8., d=4., G=10., Lw=10.,
             point_function="linspace(starts=(-20., -2.), stops=(-10., 2.))",
             point_array_functions=["xyz: position()"]):
+
+    import magnetovis as mvs
+    mvs.logger.info("T95CurrentSheet.Script Called")
 
     assert isinstance(point_array_functions, list), "point_array_functions must be a list"
     assert isinstance(point_function, str), "point_function must be a str"
@@ -33,7 +39,7 @@ def Script(time="2001-01-01T12:00:00", coord_sys='GSM', dimensions=[20, 20],
     # an keyword arguments specified in point_function keyword argument of this
     # function (Script).
     xypoints = mvs.vtk.get_arrays(point_function, dimensions)
-    points = mvs.functions.neutralsheet(xypoints, time=time, psi=psi, Rh=Rh, d=d, G=G, Lw=Lw)
+    points = mvs.functions.t95cs(xypoints, time=time, psi=psi, Rh=Rh, d=d, G=G, Lw=Lw)
     dimensions.append(1)
 
     if coord_sys != 'GSM':
@@ -58,6 +64,7 @@ def DefaultRegistrationName(**kwargs):
         arg = "$\psi$={}$^\circ$".format(kwargs['psi'])
 
     return "T95 Neutral Sheet/{}/{}".format(arg, kwargs['coord_sys'])
+
 
 def GetDisplayDefaults():
 

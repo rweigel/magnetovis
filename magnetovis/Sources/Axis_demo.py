@@ -23,7 +23,8 @@ dkwargs = {
                 "Representation": "Surface",
                 "Opacity": 1.0,
                 "AmbientColor": [1, 1, 0],
-                "DiffuseColor": [1, 1, 0]
+                "DiffuseColor": [1, 1, 0],
+                "Visibility": 0
             },
 
             "label":
@@ -39,7 +40,7 @@ dkwargs = {
 
 skwargs['direction'] = "Y"
 skwargs['extent'] = [-40, 40]
-yAxis = mvs.Axis(registrationName="α^2/β Axis", **skwargs)
+yAxis = mvs.Axis(registrationName="s^2/β Axis", **skwargs)
 mvs.SetDisplayProperties(source=yAxis, **dkwargs)
 
 #print(mvs.GetDisplayDefaults('Axis'))

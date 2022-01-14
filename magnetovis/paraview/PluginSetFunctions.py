@@ -26,7 +26,7 @@ def SetTime(default_values, name="time", label="time", panel_visibility="default
     from paraview.util.vtkAlgorithm import smproxy, smproperty, smhint, smdomain
     @smproperty.stringvector(name=name, label=label, command="SetTime", documentation="Time in ISO8601 format (YYYY-MM-DD[THH[:MM[:SS]]])", default_values=default_values)
     def SetTime(self, Time):
-        self._logging.info(name + " = " + Time)
+        self.mvs.logger.info(name + " = " + Time)
         setattr(self, name, Time)
         self.Modified()
     return SetTime
@@ -53,7 +53,7 @@ def SetCoordinateSystem(default_values, name="coord_sys", panel_visibility="defa
        <Documentation>Coordinate System</Documentation>
      </IntVectorProperty>""".format(name, default_values))
     def SetCoordinateSystem(self, idx):
-        self._logging.info("idx = " + str(idx))
+        self.mvs.logger.info("idx = " + str(idx))
         values = ["MAG", "GEI", "GEO", "GSE", "GSM", "SM"]
         setattr(self, name, values[idx])
         self.Modified()
@@ -65,7 +65,7 @@ def SetDimensions(default_values, name="dimensions", label="dimensions", panel_v
     from paraview.util.vtkAlgorithm import smproxy, smproperty, smhint, smdomain
     @smproperty.intvector(name=name, label=label, command="SetDimensions", documentation="Nx, Ny, Nz", default_values=default_values)
     def SetDimensions(self, Nx, Ny, Nz):
-        self._logging.info("Nx, Ny, Nz = {}, {}, {}".format(Nx, Ny, Nz))
+        self.mvs.logger.info("Nx, Ny, Nz = {}, {}, {}".format(Nx, Ny, Nz))
         setattr(self, name, [Nx, Ny, Nz])
         self.Modified()
     return SetDimensions
@@ -75,7 +75,7 @@ def SetPointFunction(default_values, name="point_function", label="point_functio
     from paraview.util.vtkAlgorithm import smproxy, smproperty, smhint, smdomain
     @smproperty.stringvector(name=name, label="point_function", command="SetPointFunction", default_values=default_values, panel_visibility=panel_visibility)
     def SetPointFunction(self, PointFunction):
-        self._logging.info(name + " = " + PointFunction)
+        self.mvs.logger.info(name + " = " + PointFunction)
         setattr(self, name, PointFunction)
         self.Modified()
     return SetPointFunction
@@ -144,8 +144,8 @@ def SetPointArrayFunctionsOld(default_values, name="point_array_functions", labe
             self._external_call = True
             self.point_array_functions = []
 
-        self._logging.info("PointArrayFunctions")
-        self._logging.info(PointArrayFunctions)
+        self.mvs.logger.info("PointArrayFunctions")
+        self.mvs.logger.info(PointArrayFunctions)
         if not hasattr(self, 'point_array_functions'):
             self.point_array_functions = []
         self.point_array_functions.append(PointArrayFunctions)

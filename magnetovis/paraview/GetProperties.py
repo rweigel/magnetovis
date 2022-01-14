@@ -3,13 +3,24 @@ def GetProperties(pvName, form='dict'):
    # TODO: Is there a way to get properties without putting an object
    #       in the pipeline? See the following for a start.
    if False:
-     import paraview.servermanager as sm
-     pxm = sm.ProxyManager()
-     a = pxm.GetPrototypeProxy('sources','SphereSource')
-     b = a.GetProperty('Center')
-     b.GetNumberOfElements()
-     b.GetElement(0)
+      # https://github.com/Kitware/ParaView/blob/master/Wrapping/Python/paraview/servermanager.py#L2801
+      import paraview.servermanager as sm
+      pxm = sm.ProxyManager()
+      proto = pxm.GetPrototypeProxy('sources','TextSource')
+      iter = sm.PropertyIterator(proto)
+      properties = {}
+      for prop in iter:
+         key = iter.GetKey()
+         n = prop.GetNumberOfElements()
+         if n == 1:
+            properties[key] = prop.GetElement(0)
+         else:
+            properties[key] = []
+            for i in range(n):
+               properties[key].append(prop.GetElement(i))
+      print(properties)
 
+   # https://github.com/Kitware/ParaView/blob/master/Wrapping/Python/paraview/servermanager.py#L408
    import types
    import paraview.simple as pvs
    import magnetovis as mvs
@@ -57,7 +68,10 @@ def GetProperties(pvName, form='dict'):
          settings_list[i] = settings_list[i].replace("'", "\'")
          return "['" + "', '".join(settings_list) + "']"
 
-if False:
+if __name__ == "__main__":
    import paraview.simple as pvs
    import pprint
+   print("Text")
    pprint.pprint(GetProperties("Text"))
+   print("Sphere")
+   pprint.pprint(GetProperties("Sphere"))

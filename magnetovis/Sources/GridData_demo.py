@@ -68,7 +68,11 @@ dkwargs = {
         }
 }
 
+#mvs.SetViewProperties(view=None, **vkwargs)
 mvs.SetDisplayProperties(**dkwargs)
+#mvs.SetDisplayProperties(source=None, view=None, **dkwargs)
+#mvs.SetColorProperties(source=None, *ckwargs)
+#mvs.SetCameraProperties(view=None, camera=None, *ckwargs)
 mvs.SetCamera(Azimuth=225.0)
 mvs.SetTitle(r"$\alpha$/β", title=registrationName)
 

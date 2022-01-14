@@ -2,19 +2,19 @@
 #   magnetovis pvbatch magnetovis/Test/Test.py 
 
 import os
-import logging
+import magnetovis as mvs
 
 #dirs = ["Demos", "Sources"]
 dirs = ["Sources"]
 testonly = []
-testonly = ["Axis_demo.py", "Grid_demo.py"]
+#testonly = ["Axis_demo.py", "Grid_demo.py"]
 #testonly = ["Lines_demo.py","StructuredGrid_demo.py"]
 
 for dir in dirs:
     base = os.path.dirname(os.path.abspath(__file__))
     base = base + "/../" + dir
 
-    logging.info("Reading " + base)
+    mvs.logger.info("Reading " + base)
 
     ls = os.listdir(base)
     files_py = []
@@ -40,16 +40,18 @@ for dir in dirs:
         #print("Connecting", flush=True)
         #pvs.Connect()
         #print("Connected", flush=True)
-        logging.info("Executing " + file_py_abspath)
+        mvs.logger.info("Executing " + file_py_abspath)
         exec(open(file_py_abspath).read())
-        logging.info("Executed " + file_py_abspath)
+        mvs.logger.info("Executed " + file_py_abspath)
+        # See https://gitlab.kitware.com/paraview/paraview/-/issues/21109
+        # for issues with font sizes not matching that on screen.
         for idx, renderView in enumerate(pvs.GetRenderViews()):
             file_png = base + "/Figures/" + file_py[0:-3] + "-" + str(idx) + '.png'
-            logging.info("Writing " + file_png)
+            mvs.logger.info("Writing " + file_png)
             pvs.Render(renderView)
             pvs.SaveScreenshot(file_png, renderView,
-                                ImageResolution=[2*1024, 2*768])
-            logging.info("Wrote " + file_png)
+                                ImageResolution=[1920, 1080])
+            mvs.logger.info("Wrote " + file_png)
             pvs.Delete(renderView)
             del renderView
             #pvs.Delete()

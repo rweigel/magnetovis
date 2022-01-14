@@ -23,13 +23,12 @@ def CreatePlugin(name):
         mvs.logger.info("Called.")
 
         # This is used to populate Script text area
-        ScriptBodyText, _ = extract.extract_script(Script, None, xml_encode=True)
+        ScriptBodyText, ScriptKwargs = extract.extract_script(Script, None, xml_encode=True)
         ScriptBodyText = "# If script modified, drop-down values will be ignored&#xa;" + ScriptBodyText
 
         # Ordering of GUI elements is alphabetical. See proposed fix for this at
         # https://gitlab.kitware.com/paraview/paraview/-/merge_requests/2846
 
-        ScriptKwargs = extract.extract_kwargs(Script)
         SetTime = PluginSetFunctions.SetTime(ScriptKwargs["time"])
         SetCoordinateSystem = PluginSetFunctions.SetCoordinateSystem(ScriptKwargs["coord_sys"])
         SetDimensions = PluginSetFunctions.SetDimensions(ScriptKwargs["dimensions"])
@@ -48,7 +47,7 @@ def CreatePlugin(name):
                     nOutputPorts=1,
                     outputType=OutputDataSetType)
 
-            self._logging = logging
+            self._logger = mvs.logger
 
             self.Script = Script
             ScriptBodyText, _ = extract.extract_script(Script, None, xml_encode=False)
@@ -89,7 +88,7 @@ def CreatePlugin(name):
                 from magnetovis import extract
                 kwargs = self.GetKwargs(self)
                 mvs.logger.info("Executing script using kwargs from menu of " + str(kwargs))
-                ScriptBodyText = extract.extract_script(self.Script, kwargs, xml_encode=False)
+                ScriptBodyText, _ = extract.extract_script(self.Script, kwargs, xml_encode=False)
                 # TODO: Update script in text area
             else:
                 mvs.logger.info("Executing script in Script text area.")
@@ -99,7 +98,7 @@ def CreatePlugin(name):
             # Equivalent to, e.g., vtkDataSet = vtk.StructuredGrid()
             vtkDataSet = getattr(vtk, OutputDataSetType)()
             output = vtkDataSet.GetData(outInfo, 0)
-
+            print(ScriptBodyText)
             exec(ScriptBodyText)
 
             mvs.logger.info("Finished execution of script.")

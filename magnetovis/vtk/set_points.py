@@ -7,7 +7,12 @@ def set_points(output, points, dimensions=None):
     import vtk
     from vtk.numpy_interface import dataset_adapter as dsa
 
-    OutputDataSetType = output.VTKObject.GetClassName()
+    if hasattr(output, 'VTKObject'):
+        # Programmable Source
+        OutputDataSetType = output.VTKObject.GetClassName()
+    else:
+        # Plugin
+        OutputDataSetType = output.GetClassName()
 
     if OutputDataSetType == "vtkImageData":
 

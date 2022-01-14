@@ -1,8 +1,9 @@
-def neutralsheet(xypoints, time=None, psi=0.0, Rh=8., d=4., G=10., Lw=10.):
+def t95cs(xypoints, time=None, psi=0.0, Rh=8., d=4., G=10., Lw=10.):
 
     """
-    Creates the position of the Current Sheet from model outlined in Tsyganenko 1995
-    [https://doi.org/10.1029/94JA03193]
+
+    Creates the position of the current sheet from model outlined in Tsyganenko
+    1995 [https://doi.org/10.1029/94JA03193].
 
     Defaults parameters are Rh = 8, d = 4, G = 10, Lw = 10 used by
     https://sscweb.gsfc.nasa.gov/users_guide/ssc_reg_doc.shtml
@@ -57,7 +58,7 @@ def neutralsheet(xypoints, time=None, psi=0.0, Rh=8., d=4., G=10., Lw=10.):
     if psi is None:
         from hxform import hxform as hx
         dipole = hx.MAGtoGSM(np.array([0., 0., 1.]), time, 'car', 'sph')
-        # dipole array with [radius, latitude,longitude]
+        # dipole array with [radius, latitude, longitude]
         psi = 90. - dipole[1]
         psi = np.deg2rad(psi)
 

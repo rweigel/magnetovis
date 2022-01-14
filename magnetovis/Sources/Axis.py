@@ -116,7 +116,7 @@ def DefaultRegistrationName(**kwargs):
     return registrationName
 
 
-def GetDisplayDefaults(all=False):
+def GetDisplayDefaults():
 
     defaults = {
         'display': {
@@ -125,6 +125,7 @@ def GetDisplayDefaults(all=False):
             'DiffuseColor': [0.5, 0.5, 0.5]
         },
         'label': {
+            "sourceType": "Text",
             "display": {
                 'FontSize': 24
             }
@@ -135,8 +136,6 @@ def GetDisplayDefaults(all=False):
 
 
 def SetDisplayProperties(source, view=None, display=None, **kwargs):
-
-    # Base this on code that is displayed by trace in ParaView GUI
 
     import logging
     import paraview.simple as pvs

@@ -1,5 +1,5 @@
-def SetCamera(view=None, camera=None, source=None, viewType=None,
-                Azimuth=45.0, Elevation=35.264, Roll=0.0):
+def SetCamera(view=None, source=None, viewType=None,
+                Azimuth=0.0, Elevation=0.0, Dolly=0.0, Roll=0.0, Yaw=0.0, Zoom=1.5):
 
     import paraview.simple as pvs
 
@@ -9,8 +9,18 @@ def SetCamera(view=None, camera=None, source=None, viewType=None,
     if view is None:
         view = pvs.GetActiveViewOrCreate('RenderView')
 
-    if viewType is None:
-        viewType == "isometric"
+    camera = view.GetActiveCamera() 
+
+    # Azimuth, Elevation, etc. are defined at
+    # https://vtk.org/doc/nightly/html/classvtkCamera.html
+
+    if viewType == "isometric":
+        Azimuth = 45.0
+        Elevation = 35.264
+        Dolly = 0.0
+        Roll = 0.0
+        Yaw = 0.0
+        Zoom = 1.5
 
     if source is None:
         sources = pvs.GetSources()
@@ -30,31 +40,32 @@ def SetCamera(view=None, camera=None, source=None, viewType=None,
     else:
         bounds = source.GetDataInformation().GetBounds()
 
-    if camera is None:
-        camera = view.GetActiveCamera()
+    # Ideally we would use 
+    #   import paraview.simple as pvs
+    #   pvs.SetProperties(proxy=camera, **cameraSettings)
+    # This does not work b/c camera does not have a ListProperties method
+    # (it seems like it should). Relevant code is at       
+    # https://github.com/Kitware/ParaView/blob/master/Wrapping/Python/paraview/servermanager.py#L438
 
-    view.CameraPosition = [(bounds[1]-bounds[0])*5, 0.5, 0.5]
-    view.CameraFocalPoint = [0, 0, 0]
-    view.CameraViewUp = [0, 0, 1]
-    view.Update()
-
-    # It seems that the following should work and it would 
-    # make more sense to apply these settings to the camera
-    # than to the view.
-    # TODO: Figure out why.
-    #camera.FocalPoint = [0, 0, 0]
-    #camera.Position = [(bounds[1]-bounds[0])*5, 0.5, 0.5]
-    #camera.ViewUp = [0, 0, 1]
+    camera.SetFocalPoint([0, 0, 0])
+    camera.SetPosition([(bounds[1]-bounds[0])*5, 0.5, 0.5])
+    camera.SetViewUp([0, 0, 1])
 
     camera.Azimuth(Azimuth)
+    camera.Dolly(Dolly)
     camera.Elevation(Elevation)
+    camera.Roll(Roll)
+    camera.Yaw(Yaw)
+    camera.Zoom(Zoom)
 
     # Reset camera settings to include entire scene while
     # preserving orientation 
     view.ResetCamera()
+
+    # TODO: Only set if origin is in volume.
     view.CenterOfRotation = [0, 0, 0]
 
-    # Needed for pvbatch.
+    # Apply camera settings
     view.StillRender()
 
     return camera

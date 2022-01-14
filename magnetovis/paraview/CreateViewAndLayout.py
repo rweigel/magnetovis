@@ -4,11 +4,11 @@ def CreateViewAndLayout(name=None):
 
     name = __GetUniqueLayoutName(name)
     pvs.SetActiveView(None)
-    renderView = pvs.CreateView('RenderView')
+    view = pvs.CreateView('RenderView')
     layout = pvs.CreateLayout(name=name)
-    pvs.AssignViewToLayout(view=renderView, layout=layout)
+    pvs.AssignViewToLayout(view=view, layout=layout)
 
-    return renderView, layout
+    return view, layout
 
 def __GetUniqueLayoutName(name):
 

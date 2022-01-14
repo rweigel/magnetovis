@@ -12,7 +12,6 @@ def CreateProgrammableSource(sourceName, **kwargs):
     pSource = pvs.ProgrammableSource()
 
     pSource.Script, kwargs = extract.extract_script(object.Script, kwargs)
-    #kwargs = extract.extract_kwargs(object.Script, default_kwargs=kwargs)
 
     if hasattr(object, 'OutputDataSetType'):
         pSource.OutputDataSetType = object.OutputDataSetType()
