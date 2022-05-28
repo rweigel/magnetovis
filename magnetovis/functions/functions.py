@@ -148,6 +148,7 @@ def t89c(points, ut=100, iopt=0, ps=0.0):
     ps = geopack.recalc(ut)
     print(ps*180.0/np.pi)
     print(geopack.dip(-5.1,0.3,2.8))
+    print(geopack.igrf_gsm(-5.1,0.3,2.8))
     B = np.zeros(points.shape)
     for i in range(points.shape[0]):
         r = np.linalg.norm(points[i,:])
@@ -156,11 +157,11 @@ def t89c(points, ut=100, iopt=0, ps=0.0):
             B[i,1] = np.nan
             B[i,2] = np.nan
         else:
-            b0xgsm,b0ygsm,b0zgsm = geopack.dip(points[i,0], points[i,1], points[i,2])
-            #dbxgsm,dbygsm,dbzgsm = t89.t89(iopt, ps, points[i,0], points[i,1], points[i,2])
-            B[i,0] = b0xgsm# + dbxgsm
-            B[i,1] = b0ygsm# + dbygsm
-            B[i,2] = b0zgsm# + dbzgsm
+            b0xgsm,b0ygsm,b0zgsm = geopack.igrf_gsm(points[i,0], points[i,1], points[i,2])
+            dbxgsm,dbygsm,dbzgsm = t89.t89(iopt, ps, points[i,0], points[i,1], points[i,2])
+            B[i,0] = b0xgsm + dbxgsm
+            B[i,1] = b0ygsm + dbygsm
+            B[i,2] = b0zgsm + dbzgsm
 
     return B
 

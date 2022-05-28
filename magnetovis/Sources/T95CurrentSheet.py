@@ -61,7 +61,7 @@ def DefaultRegistrationName(**kwargs):
     if kwargs['psi'] is None:
         arg = kwargs['time']
     else:
-        arg = "$\psi$={}$^\circ$".format(kwargs['psi'])
+        arg = "ψ={}°".format(kwargs['psi'])
 
     return "T95 Neutral Sheet/{}/{}".format(arg, kwargs['coord_sys'])
 

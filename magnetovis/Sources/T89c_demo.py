@@ -4,7 +4,7 @@ import magnetovis as mvs
 t89c = mvs.T89c()
 
 streamTracer1 = pvs.StreamTracer(registrationName='StreamTracer1', Input=t89c, SeedType='Line')
-streamTracer1.Vectors = ['POINTS', 't89c']
+streamTracer1.Vectors = ['POINTS', 'B']
 streamTracer1.MaximumStreamlineLength = 50.0
 
 # init the 'Line' selected for 'SeedType'

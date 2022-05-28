@@ -28,7 +28,7 @@ def ScriptRequestInformation(self, dimensions=None):
     outInfo.Set(executive.WHOLE_EXTENT(), 0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1)
 
 
-def Script(time="2001-01-01T00:00:00", coord_sys='GSM', dimensions=[4, 4, 3],
+def Script(time="2001-01-01T00:00:00", coord_sys="GSM", dimensions=[4, 4, 3],
             point_function="linspace(starts=(0., 0., 0.), stops=(1., 1., 1.))",
             point_array_functions=["xyz: position()"],
             cell_array_functions=["xyz: position()"],

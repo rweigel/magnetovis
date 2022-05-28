@@ -11,15 +11,21 @@ def CreateProgrammableSource(sourceName, **kwargs):
 
     pSource = pvs.ProgrammableSource()
 
+    mvs.logger.info("Extracting script and kwarg defaults; replacing defaults with passed kwargs.")
     pSource.Script, kwargs = extract.extract_script(object.Script, kwargs)
 
     if hasattr(object, 'OutputDataSetType'):
-        pSource.OutputDataSetType = object.OutputDataSetType()
-
-    if 'OutputDataSetType' in kwargs:
-        pSource.OutputDataSetType = kwargs['OutputDataSetType']
+        mvs.logger.info("Getting OutputDataSetType default.")
+        default = object.OutputDataSetType()
+        mvs.logger.info("Setting OutputDataSetType to " + default)
+        pSource.OutputDataSetType = default
+    else:
+        if 'OutputDataSetType' in kwargs:
+            mvs.logger.info("Setting OutputDataSetType passed as kwarg.")
+            pSource.OutputDataSetType = kwargs['OutputDataSetType']
 
     if hasattr(object, 'ScriptRequestInformation'):
+        mvs.logger.info("Extracting ScriptRequestInformation script.")
         pSource.ScriptRequestInformation, _ = extract.extract_script(object.ScriptRequestInformation, kwargs)
 
     registrationName = None
