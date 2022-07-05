@@ -1,14 +1,20 @@
 # Execute using
 #   magnetovis --script=Axis_demo.py
 
-import paraview.simple as pvs
 import magnetovis as mvs
-
-mvs.Axis()
 
 '''
 # Demo #1
 '''
+mvs.Axis()
+
+# Print all display options
+mvs.PrintDisplayDefaults('Axis', all=True)
+
+'''
+# Demo #2
+'''
+mvs.CreateViewAndLayout()
 
 skwargs = {
             "time": "2001-01-01",
@@ -24,7 +30,7 @@ dkwargs = {
                 "Opacity": 1.0,
                 "AmbientColor": [1, 1, 0],
                 "DiffuseColor": [1, 1, 0],
-                "Visibility": 0
+                "Visibility": 1
             },
 
             "label":

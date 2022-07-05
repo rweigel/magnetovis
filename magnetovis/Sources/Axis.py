@@ -4,7 +4,10 @@ def OutputDataSetType():
    return "vtkPolyData"
 
 
-def Script(time="2001-01-01", coord_sys='GSM', extent=[-40., 40.], direction='X',
+def Script(time="2001-01-01",
+            coord_sys='GSM',
+            extent=[-40., 40.],
+            direction='X',
             tube=True,
             tubeAndCone=True,
             vtkTubeFilterSettings=None,
@@ -148,7 +151,7 @@ def SetDisplayProperties(source, view=None, display=None, **kwargs):
 
     extent = info['extent']
     if info['tubeAndCone']:
-        # TODO: Use justification instead of 1.2 factor.
+        # TODO: Use justification instead of scale factor.
         extent[1] = extent[1] + 1.1*info['vtkConeSourceSettings']['Height']
 
     # Default keyword arguments
