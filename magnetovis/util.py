@@ -155,8 +155,26 @@ def compatability_check(debug=False):
 
     PARAVIEW_PYTHON_VERSIONS = {
                                 "5.9.0": [3,8,8],
-                                "5.9.1": [3,8,8]
+                                "5.9.1": [3,8,8],
+                                "5.10.1": [3,9,5]
                                 }
+
+    def pvpython_version(PVPYTHON):
+        util_path = os.path.dirname(os.path.realpath(__file__))
+        ver_path = os.path.join(util_path,'version.py')
+        if debug:
+            print("Executing %s %s" % (PVPYTHON, ver_path))
+        try:
+            cmd = 'import sys;ver = sys.version_info;print(str(ver.major) + "." + str(ver.minor) + "." + str(ver.micro))'
+            cmd = [PVPYTHON,'-c',cmd]
+            stdout = subprocess.check_output(cmd, encoding='utf-8')
+
+        except:
+            print("Could not execute " + PVPYTHON + " " + ver_path + ". Exiting.")
+            sys.exit(1)
+        version_list = stdout.strip().split(".")
+        version_listi = [int(i) for i in version_list]
+        return [stdout.strip(), version_listi]
 
     if debug:
         print('sys.platform = ' + sys.platform)
@@ -166,9 +184,9 @@ def compatability_check(debug=False):
         version = versions[-1]
         if len(version) == 0:
             print("ParaView not found in /Applications directory." \
-                " To install ParaView, see https://www.paraview.org/download/.")
+                  " See https://www.paraview.org/download/.")
             print("Exiting.")
-            # TODO?: Allow for ParaView not located in /Applications/
+            # TODO?: Allow for ParaView not located in /Applications
             sys.exit(1)
         use = ""
         # versions list will have elements of, e.g.,
@@ -183,6 +201,8 @@ def compatability_check(debug=False):
             version_strs.append(version_str)
             version_num = [int(i) for i in version_str.split(".")]
             # version_num is tuple of (major, minor, patch)
+            pvpython_ver_info = pvpython_version(version +  "/Contents/bin/pvpython")
+            #print(pvpython_ver_info)
             if version_str in PARAVIEW_PYTHON_VERSIONS \
                 and SYSTEM_PYTHON_VERSION[0:2] == PARAVIEW_PYTHON_VERSIONS[version_str][0:2]:
                 use = version
@@ -191,7 +211,11 @@ def compatability_check(debug=False):
                 PVBATCH = use + "/Contents/bin/pvbatch"
 
         if use == "":
-            msg = "System Python version (" + SYSTEM_PYTHON_VERSION_STRING + ") does not match Python used by available ParaView version(s) " + ", ".join(version_strs) + ". Consider installing the needed Python version in a virtual environment. Using Anaconda the commands are\n\n  conda create --name 3.8 python=3.8\n  conda activate 3.8\n  pip install magnetovis\n"
+            msg = "System Python version (" + SYSTEM_PYTHON_VERSION_STRING \
+                    + f") does not match Python version ({pvpython_ver_info[0]}) used by newest ParaView version on this system (" \
+                    + ", ".join(version_strs) + ")" \
+                    + f".\nConsider installing the needed Python version in a virtual environment.\n" \
+                    + f"Using Anaconda the commands are\n\n  conda create --name {pvpython_ver_info[0]} python={pvpython_ver_info[0]}\n  conda activate {pvpython_ver_info[0]}\n  pip install -e .\n"
             msg = msg + "\nAllowed Paraview/Python versions:\n"
             for pv_ver in PARAVIEW_PYTHON_VERSIONS:                
                 msg = msg + " ParaView " + pv_ver + " and Python " + ".".join(str(x) for x in PARAVIEW_PYTHON_VERSIONS[pv_ver][0:2]) + "\n"
@@ -299,15 +323,5 @@ def compatability_check(debug=False):
         print("Installation implemented only for Linux and OS-X.")
         sys.exit(0)
 
-    if False:
-        util_path = os.path.dirname(os.path.realpath(__file__))
-        ver_path = os.path.join(util_path,'..','etc','version.py')
-        if debug:
-            print("Executing %s %s" % (PVPYTHON, ver_path))
-        try:
-                pvpython_version_str = subprocess.check_output([PVPYTHON, ver_path])
-        except:
-            print("Could not execute " + PVPYTHON + " " + ver_path + ". Exiting.")
-            sys.exit(1)
-
     return PARAVIEW, PVPYTHON, PVBATCH
+
