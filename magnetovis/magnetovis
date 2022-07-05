@@ -42,13 +42,16 @@ if "PYTHONPATH" in my_env:
 else:
 	my_env["PYTHONPATH"] = PYTHONPATH + ":."
 
-# this is done to resolve import error on _sysconfig__darwin_darwin for macos 11.4
+# This is done to resolve import error on _sysconfig__darwin_darwin for macos 11.4
+# However, it creates a problem on M1 with OS-X 11.6.1
+#   ImportError: dlopen(/Users/weigel/miniconda3/envs/3.9.5/lib/python3.9/lib-dynload/math.cpython-39-darwin.so, 2): no suitable image found
 stdlib = sysconfig.get_path('stdlib')
-if stdlib not in my_env["PYTHONPATH"].split(":"):
-    my_env["PYTHONPATH"] = stdlib + ":" + my_env["PYTHONPATH"]
+if True:
+    if stdlib not in my_env["PYTHONPATH"].split(":"):
+        my_env["PYTHONPATH"] = stdlib + ":" + my_env["PYTHONPATH"]
 
-# this is done to resolve import error of _lzma for macos 11.4 (note: importing lzma works but inside of lzma.py there is a call to _lzma)
-if sys.platform == 'darwin':
+# This is done to resolve import error of _lzma for macos 11.4 (note: importing lzma works but inside of lzma.py there is a call to _lzma)
+if False and sys.platform == 'darwin':
     lib_dynload = os.path.join(stdlib,'lib-dynload')
     if lib_dynload not in my_env["PYTHONPATH"]:
         my_env["PYTHONPATH"] = lib_dynload + ":" + my_env["PYTHONPATH"]
