@@ -1,21 +1,15 @@
 import os
 import sys
 from setuptools import setup, find_packages
+# https://stackoverflow.com/a/60740731/18433855
+# Does not work.
+#dist.Distribution().fetch_build_eggs(['Cython', 'numpy'])
 
 install_requires = [
     "numpy",
     "hapiclient",
     "hxform @ git+https://github.com/rweigel/hxform@main#egg=hxform"
 ]
-
-if sys.version_info[0] < 3:
-    if sys.maxunicode > 65535:
-        print('UCS4 build')
-    else:
-        print('UCS2 build')
-else:
-    build_ext = None
-
         
 debug = False
 if len(sys.argv) > 1 and sys.argv[1] == 'develop':
@@ -23,7 +17,7 @@ if len(sys.argv) > 1 and sys.argv[1] == 'develop':
     #install_requires.append("pytest")
 
 # https://stackoverflow.com/a/8663557
-# Temporarily modify path so that util functions can be used.
+# Temporarily modify path so that util.py functions can be used.
 setup_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(setup_path, 'magnetovis'))
 import util
