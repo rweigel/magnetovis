@@ -40,12 +40,16 @@ def CreateProgrammableSource(sourceName, **kwargs):
         for key in dict(kwargs):
             Properties.append(key)
         Properties.append("__magnetovis_name__")
+        Properties.append("__magnetovis_children__")
         return Properties
 
+    children = ""
     GetPropertyOriginal = pSource.GetProperty
     def GetProperty(property):
         if property == "__magnetovis_name__":
             return sourceName
+        if property == "__magnetovis_children__":
+            return children
         if property in kwargs:
             return kwargs[property]
         else:
@@ -91,7 +95,7 @@ def CreateProgrammableSource(sourceName, **kwargs):
     pvs.RenameSource(registrationName, pSource)
     
     import magnetovis as mvs
-    mvs.SetDisplayProperties(pSource)
+    children = mvs.SetDisplayProperties(pSource)
 
     mvs.logger.info("Finished.\n")
 

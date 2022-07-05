@@ -1,5 +1,5 @@
 def CreateViewAndLayout(name=None):
-
+    
     import paraview.simple as pvs
 
     name = __GetUniqueLayoutName(name)

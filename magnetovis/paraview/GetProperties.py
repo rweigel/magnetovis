@@ -45,6 +45,7 @@ def GetProperties(pvName, form='dict'):
       removeObject = False
       displayObject = object
 
+
    props = displayObject.ListProperties()
    settings = {}
    for prop in props:

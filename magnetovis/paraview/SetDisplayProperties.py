@@ -28,8 +28,6 @@ def SetDisplayProperties(source=None, view=None, **kwargs):
         view = kwargs['view']
     if view is None:
         view = pvs.GetActiveViewOrCreate('RenderView')
-
-    #logging.info("View settings: {}".format(mvs.GetSettings(view)))
     
     import importlib
     mvsObj = importlib.import_module('magnetovis.Sources.' + name)
@@ -46,7 +44,6 @@ def SetDisplayProperties(source=None, view=None, **kwargs):
 
     mvs.logger.info("Calling Show()")
     display = pvs.Show(proxy=source, view=view, **displaySettings)
-    #logging.info("Display settings: {}".format(mvs.GetSettings(display)))
 
     coloringSettings = {}
     if defaults is not None and 'coloring' in defaults:

@@ -9,6 +9,7 @@ from magnetovis.paraview.CreateProgrammableSource import CreateProgrammableSourc
 from magnetovis.paraview.CreateViewAndLayout import CreateViewAndLayout
 
 from magnetovis.paraview.GetDisplayDefaults import GetDisplayDefaults
+from magnetovis.paraview.GetDisplayDefaults import PrintDisplayDefaults
 from magnetovis.paraview.GetProperties import GetProperties
 from magnetovis.paraview.GetRegistrationName import GetRegistrationName
 from magnetovis.paraview.SetDisplayProperties import SetDisplayProperties
