@@ -47,7 +47,7 @@ def GetInfo(proxy, origin='client'):
     return None
 
 
-def SetInfo(proxy, local_vars):
+def SetInfo(output, local_vars, include=None):
     """Store keyword arguments used for proxy.
 
     Information is stored in magnetivis.__proxy_info[id], where id
@@ -61,6 +61,8 @@ def SetInfo(proxy, local_vars):
     import paraview.simple as pvs
     import magnetovis
 
+    proxy = pvs.GetActiveSource()
+
     source_name = proxy.GetProperty('__magnetovis_name__')
 
     if source_name is None:
@@ -68,6 +70,7 @@ def SetInfo(proxy, local_vars):
 
     import importlib
     Script = importlib.import_module('magnetovis.Sources.' + source_name).Script
+
     # Get default keyword arguments
     ScriptKwargs = magnetovis.extract.extract_kwargs(Script)
     for key, val in local_vars.items():
@@ -79,6 +82,9 @@ def SetInfo(proxy, local_vars):
                 if ScriptKwargs[key] != val:
                     mvs.logger.info("Value of {} in script differs from default. Using value in script.".format(key))
                     ScriptKwargs[key] = val
+        if include is not None and key in include:
+            ScriptKwargs[key] = val
+
         if hasattr(val, '__vtkname__'):
             # Store keywords that start with the name of a vtk method and
             # end with "Settings" as a dict.
@@ -90,7 +96,7 @@ def SetInfo(proxy, local_vars):
     ScriptKwargs['registrationName'] = registrationName
 
     # Set field data
-    magnetovis.vtk.set_arrays(local_vars['output'], field_data=ScriptKwargs)
+    magnetovis.vtk.set_arrays(output, field_data=ScriptKwargs)
 
     if not hasattr(magnetovis, '__proxy_info'):
         magnetovis.__proxy_info = {}

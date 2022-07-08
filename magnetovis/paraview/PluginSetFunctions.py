@@ -125,7 +125,7 @@ def SetPointArrayFunctionsOld(default_values, name="point_array_functions", labe
         repeat_command="1"
         default_values_delimiter=":"
         default_values="{}">
-        <Documentation short_help='hello'></Documentation>
+        <Documentation short_help=''></Documentation>
         </StringVectorProperty>""".format(name, name, ":".join(default_values)))
     def SetPointArrayFunctionsOld(self, *PointArrayFunctions):
         # This function is called once for each row after the Apply button is clicked.        

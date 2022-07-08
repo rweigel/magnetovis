@@ -17,14 +17,17 @@ if len(sys.argv) > 1:
         pvbatch = True
         sys.argv[1] = ''
 
+
+import magnetovis as mvs
+
+setup_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 # https://stackoverflow.com/a/8663557
 # Temporarily modify path so that util functions can be used.
-setup_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-sys.path.insert(0, os.path.join(setup_path, 'magnetovis'))
-import util
-del sys.path[0]
+#sys.path.insert(0, os.path.join(setup_path, 'magnetovis'))
+#import util
+#del sys.path[0]
 
-PARAVIEW, PVPYTHON, PVBATCH = util.compatability_check()
+PARAVIEW, PVPYTHON, PVBATCH = mvs.util.compatability_check()
 
 PYTHONPATH = ":".join(site.getsitepackages())
 pvargs = " ".join(sys.argv[1:])
@@ -36,11 +39,20 @@ elif pvbatch:
 else:
     syscom = PARAVIEW + " " + pvargs
 
+# Paraview is not able to find modules in PYTHONPATH that were installed
+# using pip install -e . (which creates symlinks to the local directory).
+# As a result, we need to append the path of this file to PYTHONPATH.
+# TODO:
+
+extra_path = ""
+if os.path.exists(PYTHONPATH + "/magnetovis.egg-link"):
+    extra_path = ":" + setup_path
+
 my_env = os.environ.copy()
 if "PYTHONPATH" in my_env:
-	my_env["PYTHONPATH"] = PYTHONPATH + ":.:" + my_env["PYTHONPATH"]
+	my_env["PYTHONPATH"] = PYTHONPATH + ":" + my_env["PYTHONPATH"] + extra_path
 else:
-	my_env["PYTHONPATH"] = PYTHONPATH + ":."
+	my_env["PYTHONPATH"] = PYTHONPATH + extra_path
 
 # This is done to resolve import error on _sysconfig__darwin_darwin for macos 11.4
 # However, it creates a problem on M1 with OS-X 11.6.1
@@ -58,11 +70,12 @@ if False and sys.platform == 'darwin':
 
 
 # TODO: Get base path
-my_env["PV_MACRO_PATH"] = 'magnetovis/Macros'
-my_env["PV_PLUGIN_PATH"] = 'magnetovis/Plugins'
+my_env["PV_MACRO_PATH"] = os.path.join(setup_path, 'magnetovis/Macros')
+my_env["PV_PLUGIN_PATH"] = os.path.join(setup_path, 'magnetovis/Plugins')
 
 # The following prints the equivalent of what is being executed.
-print("Executing:\nPV_MACRO_PATH=" + my_env["PV_MACRO_PATH"] + " PV_PLUGIN_PATH=" + my_env["PV_PLUGIN_PATH"] + " PYTHONPATH=" + my_env["PYTHONPATH"] + " " + syscom)
+mvs.logger.info("Executing:\n\nPV_MACRO_PATH=" + my_env["PV_MACRO_PATH"] + " PV_PLUGIN_PATH=" + my_env["PV_PLUGIN_PATH"] + " PYTHONPATH=" + my_env["PYTHONPATH"] + " " + syscom + "\n")
+
 try:
     args = shlex.split(syscom)
     process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=my_env)

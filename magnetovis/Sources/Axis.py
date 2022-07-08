@@ -10,16 +10,12 @@ def Script(time="2001-01-01",
             direction='X',
             tube=True,
             tubeAndCone=True,
-            vtkTubeFilterSettings=None,
-            vtkConeSourceSettings=None):
+            vtkTubeFilterSettings=["Capping: 1"],
+            vtkConeSourceSettings=["Capping: 1"]):
 
     import vtk
     import numpy as np
     import magnetovis as mvs
-
-    from hxform import hxform as hx
-
-    import paraview.simple as pvs
 
     assert isinstance(extent, list or tuple or np.ndarray), \
         'magnetovis.Axis(): Extent must be a list, tuple, or numpy.ndarray'
@@ -36,6 +32,7 @@ def Script(time="2001-01-01",
         points = np.array([[0.0, 0.0, extent[0]],[0.0, 0.0, extent[1]]])
 
     if coord_sys != 'GSM':
+        from hxform import hxform as hx
         assert time != None, 'magnetovis.Axis(): If coord_sys in not GSM, time cannot be None'
         points = hx.transform(points, time, 'GSM', coord_sys, 'car', 'car')
 
@@ -45,8 +42,9 @@ def Script(time="2001-01-01",
     vtkLineSource.SetResolution(1)
     vtkLineSource.Update()
 
-    if tube == False:
+    if tube == False or tubeAndCone == False:
         output.ShallowCopy(vtkLineSource.GetOutputDataObject(0))
+        import paraview.simple as pvs
         mvs.ProxyInfo.SetInfo(pvs.GetActiveSource(), locals())
     else:
         numberOfSides = 20
@@ -68,6 +66,7 @@ def Script(time="2001-01-01",
 
         if tube == True and tubeAndCone == False:
             output.ShallowCopy(vtkTubeFilter.GetOutputDataObject(0))
+            import paraview.simple as pvs
             mvs.ProxyInfo.SetInfo(pvs.GetActiveSource(), locals())
             return
 
@@ -107,7 +106,8 @@ def Script(time="2001-01-01",
         combinedSources.Update()
 
         output.ShallowCopy(combinedSources.GetOutputDataObject(0))
-        mvs.ProxyInfo.SetInfo(pvs.GetActiveSource(), locals())
+
+        mvs.ProxyInfo.SetInfo(output, locals())
 
 
 def DefaultRegistrationName(**kwargs):
@@ -128,7 +128,7 @@ def GetDisplayDefaults():
             'DiffuseColor': [0.5, 0.5, 0.5]
         },
         'label': {
-            "sourceType": "Text",
+            'source': {},
             "display": {
                 'FontSize': 24
             }
@@ -140,7 +140,6 @@ def GetDisplayDefaults():
 
 def SetDisplayProperties(source, view=None, display=None, **kwargs):
 
-    import logging
     import paraview.simple as pvs
     import magnetovis
 
@@ -149,17 +148,7 @@ def SetDisplayProperties(source, view=None, display=None, **kwargs):
 
     direction = source.GetProperty('direction')
 
-    extent = info['extent']
-    if info['tubeAndCone']:
-        # TODO: Use justification instead of scale factor.
-        extent[1] = extent[1] + 1.1*info['vtkConeSourceSettings']['Height']
-
-    # Default keyword arguments
-    dkwargs = GetDisplayDefaults()
-
-    '''Display'''
-
-    # Other defaults
+    # Display defaults that depend on parent source
     if direction == "X":
         display.AmbientColor = [1.0, 0.0, 0.0]
         display.DiffuseColor = [1.0, 0.0, 0.0]
@@ -170,42 +159,46 @@ def SetDisplayProperties(source, view=None, display=None, **kwargs):
         display.AmbientColor = [0.0, 1.0, 0.0]
         display.DiffuseColor = [0.0, 1.0, 0.0]
 
-    '''Text'''
+    # Default keyword arguments
+    dkwargs = GetDisplayDefaults()
 
-    # Text Source
-    textSourceSettings = {}
-    # Defaults
-    if 'label' in dkwargs and 'source' in dkwargs['label']:
-        textSourceSettings = dkwargs['label']['source']
-    # Other defaults
-    textSourceSettings['Text'] = direction
-    textSourceSettings['registrationName'] = "   Label for " + info['registrationName']
-    # Update defaults 
-    if 'label' in kwargs and 'source' in kwargs['label']:
-        textSourceSettings = {**textSourceSettings, **kwargs['label']['source']}
+    # Source defaults
+    labelSettings = dkwargs['label']['source']
+
+    # Source defaults that depend on parent source
+    labelSettings['Text'] = direction
+    labelSettings['registrationName'] = "  Label for " + info['registrationName']
+
+    if 'label' in kwargs:
+      if kwargs['label'] is None:
+         return
+      if 'source' in kwargs['label']:
+         # Update defaults 
+         labelSettings = {**labelSettings, **kwargs['label']['source']}
+
     # Create source
-    textSource = pvs.Text(**textSourceSettings)
+    labelSource = pvs.Text(**labelSettings)
 
     # Text Source Display Representation
-    textDisplaySettings = {}
-    # Defaults
-    if 'label' in dkwargs and 'display' in dkwargs['label']:
-        textDisplaySettings = dkwargs['label']['display']
-    # Other defaults
+    labelDisplay = dkwargs['label']['display']
+
+    extent = info['extent']
+    if info['tubeAndCone']:
+        # TODO: Use justification instead of scale factor.
+        extent[1] = extent[1] + 1.1*info['vtkConeSourceSettings']['Height']
+
+    # Display defaults that depend on parent source
     if direction == "X":
-        textDisplaySettings['BillboardPosition'] = [extent[1], 0, 0]
+        labelDisplay['BillboardPosition'] = [extent[1], 0, 0]
     if direction == "Y":
-        textDisplaySettings['BillboardPosition'] = [0, extent[1], 0]
+        labelDisplay['BillboardPosition'] = [0, extent[1], 0]
     if direction == "Z":
-        textDisplaySettings['BillboardPosition'] = [0, 0, extent[1]]
+        labelDisplay['BillboardPosition'] = [0, 0, extent[1]]
+
     # Update defaults 
     if 'label' in kwargs and 'display' in kwargs['label']:
-        textDisplaySettings = {**textDisplaySettings, **kwargs['label']['display']}
+        labelDisplay = {**labelDisplay, **kwargs['label']['display']}
     
-    textRepresentation = pvs.Show(proxy=textSource,
-                                    view=view,
-                                    TextPropMode='Billboard 3D Text',
-                                    **textDisplaySettings)
+    pvs.Show(labelSource, view, TextPropMode='Billboard 3D Text', **labelDisplay)
 
-
-    return [textSource]
+    return [{'label': labelSource}]

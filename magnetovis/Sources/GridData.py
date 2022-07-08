@@ -44,10 +44,10 @@ def Script(time="2001-01-01T00:00:00", coord_sys="GSM", dimensions=[4, 4, 3],
     assert isinstance(point_array_functions, list), "point_array_functions must be a list"
     assert isinstance(cell_array_functions, list), "cell_array_functions must be a list"
 
-    import paraview.simple as pvs
     import magnetovis as mvs
 
-    # Get NumPy array by calling point_function with `arg[0]` or `dimensions`.
+    # Get NumPy array by calling point_function with `arg[0]` of `dimensions`
+    # and keyword arguments given in the point_function string.
     # NumPy array will have size=(np.prod(dimensions), 3)
     points = mvs.vtk.get_arrays(point_function, dimensions)
 
@@ -63,19 +63,27 @@ def Script(time="2001-01-01T00:00:00", coord_sys="GSM", dimensions=[4, 4, 3],
     #   https://gitlab.kitware.com/vtk/textbook/raw/master/VTKBook/VTKTextBook.pdf
     output.SetExtent([0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1])
 
-    # Get Python list of NumPy arrays. Element `i` of list is return value
-    # from a call to `point_array_functions[i]` with `arg[0]` of `points`.
-    point_arrays = mvs.vtk.get_arrays(point_array_functions, points)
-
     # Add points to the VTK object `output` after converting `points` to VTK arrays. 
     mvs.vtk.set_points(output, points, dimensions=dimensions)
 
+    # Get Python list of NumPy arrays. Element `i` of list is return value
+    # from a call to `point_array_functions[i]` with `arg[0]` of `points`
+    # and keyword arguments given in point_array_functions[i].
+    point_arrays = None
+    if point_array_functions is not None:
+        point_arrays = mvs.vtk.get_arrays(point_array_functions, points)
+
+    cell_arrays = None
+    if cell_array_functions is not None:
+        centers = mvs.vtk.get_centers(output)
+        cell_arrays = mvs.vtk.get_arrays(cell_array_functions, centers)
+
     # Add point data and cell data to `output`.
-    mvs.vtk.set_arrays(output, point_data=point_arrays, include=["CellId", "PointId"])
+    mvs.vtk.set_arrays(output, point_data=point_arrays, cell_data=cell_arrays, include=["CellId", "PointId"])
 
     # Attach metadata to `output`. The metadata is the value of the
     # keyword variables.
-    mvs.ProxyInfo.SetInfo(pvs.GetActiveSource(), locals())
+    mvs.ProxyInfo.SetInfo(output, locals())
 
 
 def DefaultRegistrationName(**kwargs):

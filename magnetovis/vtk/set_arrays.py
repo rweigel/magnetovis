@@ -13,7 +13,7 @@ def set_arrays(output, point_data=None, cell_data=None, field_data=None,
         point_data = [point_data]
 
     if isinstance(cell_data, str):
-        cell_data = [point_data]
+        cell_data = [cell_data]
 
     if point_data is not None:
         for name, array in point_data.items():
@@ -142,11 +142,14 @@ def set_arrays(output, point_data=None, cell_data=None, field_data=None,
             vtkCellSizeFilter.Update()
             output.DeepCopy(vtkCellSizeFilter.GetOutput())
 
-        if "CellCenter" in include:
+        if all or "CellCenter" in include:
             vtkCellCenters = vtk.vtkCellCenters()
-            vtkCellCenters.SetInputDataObject(output.VTKObject)
+            if hasattr(output, "VTKObject"):
+                vtkCellCenters.SetInputDataObject(output.VTKObject)
+            else:
+                vtkCellCenters.SetInputDataObject(output)
             vtkCellCenters.Update()
-            centers = dsa.WrapDataObject(vtkCellCenters.GetOutput()).Points
-            centers = nps.numpy_to_vtk(centers)
+            cell_points = dsa.WrapDataObject(vtkCellCenters.GetOutput()).Points
+            centers = nps.numpy_to_vtk(cell_points)
             centers.SetName('CellCenter')
             output.GetCellData().AddArray(centers)

@@ -26,6 +26,11 @@ magnetovis --script=magnetovis_demo.py
 
 # Getting started
 
+`magnetovis` has three distinct parts
+
+1. A collection of helper functions for creating objects ("Sources" in Paraview/VTK terminology). The functions are in the `vtk` folder.
+2. A set of default display options that are applied automatically to objects. In Paraview, when a source is added to the pipeline, no display options are set and the user must select the options in the GUI or write a script that sets the options. `magnetovis` objects have default display options that are applied when the object is added to the pipeline.
+3. A collection of Programmable Sources and Plugins that create and filter Heliophyiscs-related objects.
 
 # Approach
 

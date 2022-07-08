@@ -47,8 +47,12 @@ def SetCamera(view=None, source=None, viewType=None,
     # (it seems like it should). Relevant code is at       
     # https://github.com/Kitware/ParaView/blob/master/Wrapping/Python/paraview/servermanager.py#L438
 
+    xb = bounds[1]-bounds[0]
+    yb = bounds[3]-bounds[2]
+    zb = bounds[5]-bounds[4]
+
     camera.SetFocalPoint([0, 0, 0])
-    camera.SetPosition([(bounds[1]-bounds[0])*5, 0.5, 0.5])
+    camera.SetPosition([max(xb,yb,zb)*5, 0.5, 0.5])
     camera.SetViewUp([0, 0, 1])
 
     camera.Azimuth(Azimuth)

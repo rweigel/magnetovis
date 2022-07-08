@@ -28,6 +28,7 @@ def linspace(dimensions, starts=(0.0, 0.0, 0.0), stops=(1.0, 1.0, 1.0), grid_typ
     # Points has x varying the fastest, then y, then z
     return points
 
+
 def cylinder(dimensions, radius=1.0, origin=(0.0, 0.0, 0.0)):
 
     import numpy as np
@@ -63,6 +64,7 @@ def cylinder(dimensions, radius=1.0, origin=(0.0, 0.0, 0.0)):
     #points[2] = points[0]*np.cos(points[2])
 
     return points
+
 
 def circle(Npts, radius=1.0, origin=(0.0, 0.0, 0.0), orientation=(0.0, 0.0, 1.0)):
 
@@ -213,6 +215,7 @@ if False:
 
 
 def dipole(points, M=7.788E22, r_nan=0.):
+
     import numpy as np
     r = np.linalg.norm(points, axis=1)
     B = np.zeros(points.shape)

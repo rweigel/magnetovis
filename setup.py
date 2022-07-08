@@ -30,8 +30,13 @@ setup(
     version='0.1.0',
     author='Bob Weigel, Angel Gutarra-Leon, Gary Quaresima',
     author_email='rweigel@gmu.edu',
+    url='https://github.com/rweigel/magnetovis',
+    license='LICENSE.txt',
     packages=find_packages(),
     description='Magnetosphere visualization in ParaView using Python',
+    long_description=open('README.md').read(),
+    long_description_content_type="text/markdown",
     install_requires=install_requires,
-    scripts=["magnetovis/magnetovis"]
+    scripts=["magnetovis/magnetovis"],
+    include_package_data=True
 )

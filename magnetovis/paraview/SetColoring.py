@@ -9,6 +9,15 @@ def SetColoring(source=None, view=None, display=None, **kwargs):
     if "colorBy" not in kwargs:
         ColorByCellId(source=source, view=view, display=display, **kwargs)
         return
+    else:
+        if kwargs['colorBy'] is None:
+            mvs.logger.info('coloring = None. Not coloring by an array.')
+            try:
+                # Will fail if colorBy was not previously set.
+                pvs.ColorBy(display, None)
+            except:
+                pass
+            return
 
     #print(kwargs['colorBy'])
     pvs.ColorBy(display, value=kwargs['colorBy'], separate=True)
@@ -50,7 +59,9 @@ def ColorByCellId(source=None, view=None, display=None, **displayArguments):
 
     name = 'CellId'
     cellIdInfo = source.GetCellDataInformation().GetArray(name)
+
     if cellIdInfo is None:
+        mvs.logger.info('No CellId array. No coloring performed.')
         return
     else:
         n_cells = cellIdInfo.GetNumberOfTuples()
@@ -115,3 +126,7 @@ def ColorByCellId(source=None, view=None, display=None, **displayArguments):
         colorBar.LabelFormat = '%.f'
         colorBar.AddRangeLabels = 0
 
+    #print("----Deleting")
+    #print(colorBar)
+    #pvs.Delete(colorBar)
+    #del colorBar

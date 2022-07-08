@@ -110,7 +110,7 @@ def install_paraview(paraview_version, install_path='/tmp/'):
 
     def extract(fullpath, install_path):
         cmd_list = ['tar', 'zxf', '--checkpoint', 10000, '--checkpoint-action="echo=Extracted file %u/124000"',fullpath, '--directory', install_path]
-        print('Executing ' + ' '.join(cmd_list))
+        mvs.logger.info('Executing ' + ' '.join(cmd_list))
         import subprocess
         subprocess.run(cmd_list)
         
@@ -122,7 +122,7 @@ def install_paraview(paraview_version, install_path='/tmp/'):
         extract(fullpath, install_path)
         return
     
-    print('Downloading ' + file + ' to ' + tmpdir)
+    mvs.logger.info('Downloading ' + file + ' to ' + tmpdir)
     url = 'https://www.paraview.org/paraview-downloads/download.php?' + \
           'submit=Download&version=v5.8&type=binary&os=Linux&downloadFile=' + file 
 
@@ -147,6 +147,7 @@ def compatability_check(debug=False):
     import warnings
     import subprocess
         
+    import magnetovis as mvs
     debug = True
 
     ver = sys.version_info
@@ -161,54 +162,59 @@ def compatability_check(debug=False):
 
     def pvpython_version(PVPYTHON):
         util_path = os.path.dirname(os.path.realpath(__file__))
-        ver_path = os.path.join(util_path,'version.py')
-        if debug:
-            print("Executing %s %s" % (PVPYTHON, ver_path))
         try:
             cmd = 'import sys;ver = sys.version_info;print(str(ver.major) + "." + str(ver.minor) + "." + str(ver.micro))'
+            mvs.logger.info("Executing:\n\n" + PVPYTHON + " " + cmd + "\n")
             cmd = [PVPYTHON,'-c',cmd]
             stdout = subprocess.check_output(cmd, encoding='utf-8')
-
         except:
-            print("Could not execute " + PVPYTHON + " " + ver_path + ". Exiting.")
+            mvs.logger.error("Could not execute " + PVPYTHON + " " + cmd + ". Exiting.")
             sys.exit(1)
         version_list = stdout.strip().split(".")
         version_listi = [int(i) for i in version_list]
         return [stdout.strip(), version_listi]
 
-    if debug:
-        print('sys.platform = ' + sys.platform)
+    mvs.logger.info('sys.platform = ' + sys.platform)
     if sys.platform.startswith("darwin"):
         versions = glob.glob("/Applications/ParaView*")
         versions.sort()
         version = versions[-1]
         if len(version) == 0:
-            print("ParaView not found in /Applications directory." \
-                  " See https://www.paraview.org/download/.")
-            print("Exiting.")
+            mvs.logger.error("ParaView not found in /Applications directory." \
+                            " See https://www.paraview.org/download/.")
+            mvs.logger.error("Exiting.")
             # TODO?: Allow for ParaView not located in /Applications
             sys.exit(1)
-        use = ""
+
         # versions list will have elements of, e.g.,
         # ["/Applications/ParaView-5.7.0.app", "/Applications/ParaView-5.8.0.app"].
         version_strs = []
+        use = ""
         for version in versions:
-            if debug:
-                print("Found " + version)
+            mvs.logger.info("Found " + version)
             version_str = version \
                             .replace("/Applications/ParaView-", "") \
                             .replace(".app", "")
             version_strs.append(version_str)
-            version_num = [int(i) for i in version_str.split(".")]
-            # version_num is tuple of (major, minor, patch)
-            pvpython_ver_info = pvpython_version(version +  "/Contents/bin/pvpython")
-            #print(pvpython_ver_info)
-            if version_str in PARAVIEW_PYTHON_VERSIONS \
-                and SYSTEM_PYTHON_VERSION[0:2] == PARAVIEW_PYTHON_VERSIONS[version_str][0:2]:
-                use = version
-                PARAVIEW = use + "/Contents/MacOS/paraview"
-                PVPYTHON = use + "/Contents/bin/pvpython"
-                PVBATCH = use + "/Contents/bin/pvbatch"
+
+        #version_num = [int(i) for i in version_str.split(".")]
+        # version_num is tuple of (major, minor, patch)
+        pvpython_ver_info = pvpython_version(version +  "/Contents/bin/pvpython")
+        #print(pvpython_ver_info)
+
+        if SYSTEM_PYTHON_VERSION[0:1] == pvpython_ver_info[1][0:1]:
+            use = versions[-1]
+            PARAVIEW = use + "/Contents/MacOS/paraview"
+            PVPYTHON = use + "/Contents/bin/pvpython"
+            PVBATCH = use + "/Contents/bin/pvbatch"
+
+        #print(pvpython_ver_info)
+        #if version_str in PARAVIEW_PYTHON_VERSIONS \
+        #    and SYSTEM_PYTHON_VERSION[0:2] == PARAVIEW_PYTHON_VERSIONS[version_str][0:2]:
+        #    use = version
+        #    PARAVIEW = use + "/Contents/MacOS/paraview"
+        #    PVPYTHON = use + "/Contents/bin/pvpython"
+        #    PVBATCH = use + "/Contents/bin/pvbatch"
 
         if use == "":
             msg = "System Python version (" + SYSTEM_PYTHON_VERSION_STRING \
@@ -219,13 +225,12 @@ def compatability_check(debug=False):
             msg = msg + "\nAllowed Paraview/Python versions:\n"
             for pv_ver in PARAVIEW_PYTHON_VERSIONS:                
                 msg = msg + " ParaView " + pv_ver + " and Python " + ".".join(str(x) for x in PARAVIEW_PYTHON_VERSIONS[pv_ver][0:2]) + "\n"
-            print(msg)
-            print("Exiting.")
+            mvs.logger.info(msg)
+            mvs.logger.info("Exiting.")
             #raise ValueError(msg)
             sys.exit(1)
         else:
-            if debug:
-                print("Using " + use)
+            mvs.logger.info("Using " + use)
 
     elif sys.platform.startswith("linux"):
 
@@ -240,52 +245,45 @@ def compatability_check(debug=False):
         config_file = os.path.expanduser('~') + '/.magnetovis.conf'
         PARAVIEWPATH = ''
         if 'PARAVIEWPATH' in os.environ:
-            if debug:
-                print('PARAVIEW os environment variable set as ' + os.environ['PARAVIEWPATH'])
+            mvs.logger.info('PARAVIEW os environment variable set as ' + os.environ['PARAVIEWPATH'])
             PARAVIEWPATH = os.path.expanduser(config['DEFAULT']['PARAVIEWPATH'])                
             PARAVIEW = PARAVIEWPATH + '/bin/paraview'
             PVPYTHON = PARAVIEWPATH + '/bin/pvpython'
             PVBATCH = PARAVIEWPATH + '/bin/pvbatch'
 
         else:
-            if debug:
-                print('PARAVIEW os environment not set.')
+            mvs.logger.info('PARAVIEW os environment not set.')
             
         if PARAVIEWPATH == '' and os.path.exists(config_file):
-            if debug:
-                print('File ' + config_file + ' found')
+            mvs.logger.info('File ' + config_file + ' found')
             config.read(config_file)
             try:
                 PARAVIEWPATH = os.path.expanduser(config.get('DEFAULT', 'PARAVIEWPATH'))
-                if debug:
-                    print('Found PARAVIEWPATH = ' + PARAVIEWPATH + ' in [DEFAULT] section of ' + config_file + '.')
+                mvs.logger.info('Found PARAVIEWPATH = ' + PARAVIEWPATH + ' in [DEFAULT] section of ' + config_file + '.')
                 if os.path.exists(PARAVIEWPATH):
                     PARAVIEW = PARAVIEWPATH + '/bin/paraview'
                     PVPYTHON = PARAVIEWPATH + '/bin/pvpython'
                 else:
-                    print(PARAVIEWPATH + ' not found.')
+                    mvs.logger.info(PARAVIEWPATH + ' not found.')
                     PARAVIEWPATH = ''
             except:
-                if debug:
-                    print('unable to get PARAVIEWPATH variable in ' + config_file + ' file')
+                mvs.logger.info('Unable to get PARAVIEWPATH variable in ' + config_file + ' file')
 
         if PARAVIEWPATH == '':
             PVPYTHON = ''
             try:
-                if debug:
-                    print('Trying output of `which paraview`')
+                mvs.logger.info('Trying output of `which paraview`')
                 PARAVIEW = subprocess.check_output(['which','paraview'])
                 try:
-                    if debug:
-                        print('Trying output of `which pvpython`')
+                    mvs.logger.info('Trying output of `which pvpython`')
                     PVPYTHON = subprocess.check_output(['which','pvpython'])
                 except:
-                    print("Executable named 'pvpython' was not found in path, but 'paraview' found at " \
+                    mvs.logger.error("Executable named 'pvpython' was not found in path, but 'paraview' found at " \
                           + PARAVIEW + ". Check installation; pvpython binary should be in the " \
                           + "same directory as paraview binary.")
                     sys.exit(1)
             except:
-                print("Executable named 'paraview' was not found in path.")
+                mvs.logger.info("Executable named 'paraview' was not found in path.")
                 if prompt('Attempt to install? [y]/n', default='y') == 'y':
                     install_path = prompt('Enter installation path [~]', default='~')
                     install_path = os.path.expanduser(install_path)
@@ -296,9 +294,9 @@ def compatability_check(debug=False):
                     PVPYTHON = PARAVIEWPATH + '/bin/pvpython'
                     config = configparser.ConfigParser()
                     if os.path.exists(config_file):
-                        if debug:
-                            print("Found " + config_file + ". Updating PARAVIEWPATH " + \
-                                  "variable to " + PARAVIEWPATH)
+                        mvs.logger.info("Found " + config_file \
+                                        + ". Updating PARAVIEWPATH " \
+                                        + "variable to " + PARAVIEWPATH)
                         config.read(config_file)
                         if 'PARAVIEWPATH' in config['DEFAULT']:
                             config['DEFAULT']['PARAVIEWPATH'] = PARAVIEWPATH
@@ -306,21 +304,18 @@ def compatability_check(debug=False):
                             config['DEFAULT'] = {'PARAVIEWPATH': PARAVIEWPATH}
                         with open(config_file, 'w') as f:
                             config.write(f)
-                        if debug:
-                            print("Updated PARAVIEWPATH variable to " + PARAVIEWPATH)
+                        mvs.logger.info("Updated PARAVIEWPATH variable to " + PARAVIEWPATH)
                     else:
-                        if debug:
-                            print("Writing " + config_file)
+                        mvs.logger.info("Writing " + config_file)
                         config['DEFAULT'] = {'PARAVIEWPATH': install_path}
                         with open(config_file, 'w') as f:
                             config.write(f)
-                        if debug:
-                            print("Wrote " + config_file)
+                        mvs.logger.info("Wrote " + config_file)
                 else:
                     sys.exit(1)
                             
     else:
-        print("Installation implemented only for Linux and OS-X.")
+        mvs.logger.error("Installation implemented only for Linux and OS-X.")
         sys.exit(0)
 
     return PARAVIEW, PVPYTHON, PVBATCH

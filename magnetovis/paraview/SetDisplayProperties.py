@@ -19,6 +19,16 @@ def SetDisplayProperties(source=None, view=None, **kwargs):
         name = source.GetProperty("__magnetovis_name__")
     mvs.logger.info("Source object is a Magnetovis " + name)
 
+    # If called more than once, need to delete existing children.
+    children = source.GetProperty("__magnetovis_children__")
+    if children is not None:
+        for child in children:
+            cname = list(child.keys())[0]
+            mvs.logger.info("Deleting child " + cname)
+            pvs.Delete(child[cname])
+    else:
+        mvs.logger.info("No children.")
+
     sourceVisibility = True
     if 'sourceVisibility' in kwargs:
         sourceVisibility = kwargs['sourceVisibility']
@@ -61,10 +71,8 @@ def SetDisplayProperties(source=None, view=None, **kwargs):
 
     children = None
     if hasattr(mvsObj, 'SetDisplayProperties'):
-        if hasattr(source, "__magnetovis_children"):
-            for child in source.__magnetovis_children:
-                pvs.Delete(child)
 
+        # Call the function magnetovis/Sources/{name}.py
         children = mvsObj \
                     .SetDisplayProperties( \
                         source, view=view, display=display, **kwargs)
@@ -72,8 +80,9 @@ def SetDisplayProperties(source=None, view=None, **kwargs):
         if children is not None:
             if not isinstance(children, list):
                 children = [children]
-            source.add_attribute("__magnetovis_children", children)
 
+        # Active source will be the last child. Set it back
+        # to the main source.
         pvs.SetActiveSource(source)
     
     if sourceVisibility == False:

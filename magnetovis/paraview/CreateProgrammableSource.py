@@ -43,7 +43,7 @@ def CreateProgrammableSource(sourceName, **kwargs):
         Properties.append("__magnetovis_children__")
         return Properties
 
-    children = ""
+    children = None
     GetPropertyOriginal = pSource.GetProperty
     def GetProperty(property):
         if property == "__magnetovis_name__":

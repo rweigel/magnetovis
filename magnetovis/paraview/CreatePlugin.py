@@ -47,6 +47,32 @@ def CreatePlugin(name):
                     nOutputPorts=1,
                     outputType=OutputDataSetType)
 
+            #################################################
+            # The following hack is used to automatically set
+            # the default display properties after the source
+            # is shown.
+            def UpdateDisplayOptions(caller, event):
+                import paraview.simple as pvs
+                import magnetovis as mvs
+                #print("Caller")
+                #print(caller)
+                #print("Event: " + str(event))
+                sources = pvs.GetSources()
+                for key in sources.keys():
+                    if not hasattr(sources[key],'_default_display_properies_set'):
+                        sources[key].add_attribute('_default_display_properies_set', True)
+                        #print("Removing " + str(cb_id))
+                        self.RemoveObserver(cb_id)
+                        mvs.SetDisplayProperties(source=sources[key])
+                else:
+                    #print("Already set.")
+                    pass
+
+            cb_id = self.AddObserver('EndEvent', UpdateDisplayOptions)
+            #print("cb_id = " + str(cb_id))
+            #################################################
+
+ 
             self._logger = mvs.logger
 
             self.Script = Script
@@ -98,7 +124,7 @@ def CreatePlugin(name):
             # Equivalent to, e.g., vtkDataSet = vtk.StructuredGrid()
             vtkDataSet = getattr(vtk, OutputDataSetType)()
             output = vtkDataSet.GetData(outInfo, 0)
-            print(ScriptBodyText)
+            #print(ScriptBodyText)
             exec(ScriptBodyText)
 
             mvs.logger.info("Finished execution of script.")
@@ -108,6 +134,7 @@ def CreatePlugin(name):
 
         def RequestInformation(self, request, inInfoVec, outInfoVec):
             mvs.logger.info("Called.")
+
             ScriptRequestInformation(self, dimensions=self.dimensions)
             return 1
 

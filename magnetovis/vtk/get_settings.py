@@ -4,7 +4,7 @@ def get_settings(vtkName, form='list'):
     Example:
     --------
       >>> print(get_settings("vtkSphere"))
-      >>> # {'SetCenter': (0.0, 0.0, 0.0), 'SetRadius': 0.5}
+      >>> # ['Center: (0.0, 0.0, 0.0)', 'ObjectName: None', 'Radius: 0.5', 'Transform: None']
    """
 
    import types
@@ -66,10 +66,8 @@ def get_settings(vtkName, form='list'):
       return "['" + "', '".join(settings_list) + "']"
 
 
-#import vtk
-#print(get_settings("vtkSphere"))
-#print(get_settings(vtk.vtkSphere()))
-#print(get_settings("vtkTubeFilter"))
-#print(get_settings("vtkUniformGrid"))
-#print(get_settings("vtkRectilinearGrid"))
-#print(get_settings("vtkStructuredGrid"))
+
+if __name__ == "__main__":
+   print(get_settings("vtkSphere"))
+   print(get_settings("vtkTubeFilter"))
+

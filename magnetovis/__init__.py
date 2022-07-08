@@ -10,7 +10,9 @@ from magnetovis.paraview.CreateViewAndLayout import CreateViewAndLayout
 
 from magnetovis.paraview.GetDisplayDefaults import GetDisplayDefaults
 from magnetovis.paraview.GetDisplayDefaults import PrintDisplayDefaults
-from magnetovis.paraview.GetProperties import GetProperties
+from magnetovis.paraview.GetSourceDefaults import GetSourceDefaults
+from magnetovis.paraview.GetSourceDefaults import PrintSourceDefaults
+
 from magnetovis.paraview.GetRegistrationName import GetRegistrationName
 from magnetovis.paraview.SetDisplayProperties import SetDisplayProperties
 from magnetovis.paraview.SetCamera import SetCamera

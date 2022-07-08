@@ -4,8 +4,12 @@ def OutputDataSetType():
    return "vtkPolyData"
 
 
-def Script(self, coord_sys='GSM', start="2001-01-01T00:00:00", stop="2001-01-03T00:00:00", id='geotail', tube_radius=1.):
-
+def Script(self,
+        coord_sys='GSM',
+        start="2001-01-01T00:00:00",
+        stop="2001-01-03T00:00:00",
+        id='geotail',
+        tube_radius=1.):
 
     import vtk
     import magnetovis
@@ -13,11 +17,10 @@ def Script(self, coord_sys='GSM', start="2001-01-01T00:00:00", stop="2001-01-03T
     import numpy as np
     from itertools import groupby
 
-    from hxform import hxform as hx
     from hapiclient import hapi
     from vtk.numpy_interface import dataset_adapter as dsa
 
-    region_id = {
+    region_ids = {
                   'D_Msheath' : 0,
                   'N_Msheath' : 1,
                   'D_Msphere' : 2,
@@ -40,12 +43,13 @@ def Script(self, coord_sys='GSM', start="2001-01-01T00:00:00", stop="2001-01-03T
         output = vtkPolyData.GetData(outInfo, 0)
 
     server     = 'http://hapi-server.org/servers/SSCWeb/hapi';
-    opts       = {'logging': False, 'usecache': True}
+    opts       = {'logging': True, 'usecache': True}
     parameters = "X_{},Y_{},Z_{},Spacecraft_Region" \
                     .format(coord_sys, coord_sys, coord_sys)
 
     magnetovis.logger.info("Getting data.")
     data, meta = hapi(server, id, parameters, start, stop, **opts)
+    magnetovis.logger.info("Got data.")
 
     points = np.column_stack([data['X_'+coord_sys], data['Y_'+coord_sys], data['Z_'+coord_sys]])
     pvtk = dsa.numpyTovtkDataArray(points)
@@ -57,19 +61,25 @@ def Script(self, coord_sys='GSM', start="2001-01-01T00:00:00", stop="2001-01-03T
     output.SetPoints(pts)
 
     polyline = vtk.vtkPolyLine()
-    vtk_region_id = vtk.vtkIntArray()
-    vtk_region_id.SetNumberOfComponents(1)
-    vtk_region_id.SetName('region_id')
+    vtk_region_ids = vtk.vtkIntArray()
+    vtk_region_ids.SetNumberOfComponents(1)
+    vtk_region_ids.SetName('region_id')
     point_id = 0
     for region, group in groupby(data['Spacecraft_Region']):
-        vtk_region_id.InsertNextTuple([region_id[region.decode('UTF-8')]])
+        try:
+            # Types changed at some point hapiclient.
+            region_decoded = region.decode('UTF-8')
+        except:
+            region_decoded = region
+
+        vtk_region_ids.InsertNextTuple([region_ids[region_decoded]])
         group = list(group)
         polyline.GetPointIds().SetNumberOfIds(len(group))
         for line_id in range(len(group)):
             polyline.GetPointIds().SetId(line_id, point_id)
             point_id += 1
         output.InsertNextCell(polyline.GetCellType(), polyline.GetPointIds())
-    output.GetCellData().AddArray(vtk_region_id)
+    output.GetCellData().AddArray(vtk_region_ids)
 
     if tube_radius:
         vtkTubeFilter = vtk.vtkTubeFilter()
@@ -78,7 +88,23 @@ def Script(self, coord_sys='GSM', start="2001-01-01T00:00:00", stop="2001-01-03T
         vtkTubeFilter.SetRadius(tube_radius)
         vtkTubeFilter.Update()
         vtkTubeFilterOutput = vtkTubeFilter.GetOutputDataObject(0)
-        output = output.DeepCopy(vtkTubeFilterOutput)
+        output.DeepCopy(vtkTubeFilterOutput)
+
+    # Add point data and cell data to `output`.
+    point_array_functions=["xyz: position()"]
+    point_arrays = mvs.vtk.get_arrays(point_array_functions, points)
+    mvs.vtk.set_arrays(output, point_data=point_arrays)
+
+    mvs.ProxyInfo.SetInfo(output, locals())
+
+def DefaultRegistrationName(**kwargs):
+
+    import magnetovis as mvs
+
+    return "{}/{}-{}/{}".format(kwargs['id'],
+                mvs.util.trim_iso(kwargs['start']),
+                mvs.util.trim_iso(kwargs['stop']),
+                kwargs['coord_sys'])
 
 
 def SetDisplayProperties(source, view=None, display=None, **kwargs):
@@ -130,12 +156,18 @@ def SetDisplayProperties(source, view=None, display=None, **kwargs):
                         "Interplanetary\nMedium"
                     ]
 
+    import magnetovis
+    info = magnetovis.ProxyInfo.GetInfo(source)
+    magnetovis.logger.info("Source info: {}".format(info))
+    magnetovis.logger.info("kwargs: {}".format(kwargs))
+
     sourceData = paraview.servermanager.Fetch(source)
     region_ids = sourceData.GetCellData().GetArray('region_id')
     region_ids = numpy_support.vtk_to_numpy(region_ids)
     region_ids = np.unique(region_ids)
 
-    LUT = pvs.GetColorTransferFunction('region_id')
+    # Create look-up table
+    LUT = pvs.GetColorTransferFunction(info['id'] + '_region')
     LUT.InterpretValuesAsCategories = 1
     LUT.AnnotationsInitialized = 1
 
@@ -161,7 +193,7 @@ def SetDisplayProperties(source, view=None, display=None, **kwargs):
     display.SetScalarBarVisibility(view, True)
 
     LookupTableColorBar = pvs.GetScalarBar(LUT, view)
-    LookupTableColorBar.Title = 'Satellite Region'
+    LookupTableColorBar.Title = info['id']
     LookupTableColorBar.ComponentTitle = ''
 
     if "displayRepresentation" in kwargs:
@@ -180,3 +212,28 @@ def SetDisplayProperties(source, view=None, display=None, **kwargs):
     if "diffuseColor" in kwargs:
         if kwargs["diffuseColor"] is not None:
             display.DiffuseColor = kwargs["diffuseColor"]
+
+
+    labelSettings = {'Text': info['id']}
+    if 'label' in kwargs:
+      if kwargs['label'] is None:
+         return
+      if 'source' in kwargs['label']:
+         # Update defaults 
+         labelSettings = {**labelSettings, **kwargs['label']['source']}
+
+    positions = sourceData.GetPointData().GetArray('xyz')
+    positions = numpy_support.vtk_to_numpy(positions)
+    last_position = list(positions[-1,:])
+
+    registrationName = "  Label for " + info['registrationName']
+    labelSource = pvs.Text(registrationName=registrationName, **labelSettings)
+
+    labelDisplay = {}
+    if 'label' in kwargs and 'display' in kwargs['label']:
+        labelDisplay = kwargs['label']['display']
+
+    labelDisplay['BillboardPosition'] = last_position
+    pvs.Show(labelSource, view, TextPropMode='Billboard 3D Text', **labelDisplay)
+
+    return [{'label': labelSource}]
