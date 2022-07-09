@@ -32,8 +32,9 @@ root = os.path.dirname(os.path.abspath(__file__))
 sources = glob.glob(os.path.join(root, os.path.join("Sources", "*.py")))
 for source in sources:
     file = os.path.basename(os.path.splitext(source)[0])
-    #logging.info("Creating programmable source function from " + source)
-    exec('def ' + file + "(**kwargs): return CreateProgrammableSource('" + file + "', **kwargs)")
+    if not file.endswith("_demo") and not file.startswith("__"):
+        logger.info("Creating programmable source function from " + source)
+        exec('def ' + file + "(**kwargs): return CreateProgrammableSource('" + file + "', **kwargs)")
 
 del os
 del glob

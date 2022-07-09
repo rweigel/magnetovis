@@ -6,10 +6,12 @@ import magnetovis as mvs
 
 #dirs = ["Demos", "Sources"]
 dirs = ["Sources"]
-#testonly = []
+testonly = []
 #testonly = ["Axis_demo.py", "Grid_demo.py"]
 #testonly = ["Lines_demo.py","StructuredGrid_demo.py"]
-testonly = ["Axis_demo.py", "Curve_demo.py", "StructuredGrid_demo.py", "Satellite_demo.py"]
+#testonly = ["Axis_demo.py", "Curve_demo.py", "StructuredGrid_demo.py", "Satellite_demo.py"]
+#testonly = ["Axis_demo.py"]
+
 # https://gitlab.kitware.com/paraview/paraview/-/issues/21459
 for dir in dirs:
     base = os.path.dirname(os.path.abspath(__file__))

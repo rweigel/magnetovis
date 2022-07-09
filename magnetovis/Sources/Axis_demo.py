@@ -1,20 +1,21 @@
 # Execute using
 #   magnetovis --script=Axis_demo.py
 
-import magnetovis as mvs
 
 '''
 # Demo #1
 '''
+import magnetovis as mvs
 mvs.Axis()
-
-# Print all display options
-mvs.PrintDisplayDefaults('Axis', all=True)
+#mvs.PrintSourceDefaults('Axis')
+mvs.SetTitle("Axis with default options")
+#mvs.PrintDisplayDefaults('Axis', all=True)
 
 
 '''
 # Demo #2
 '''
+import magnetovis as mvs
 mvs.CreateViewAndLayout()
 
 skwargs = {
@@ -45,23 +46,17 @@ dkwargs = {
         }
 
 
+skwargs['direction'] = "X"
+skwargs['extent'] = [-40, 40]
+xAxis = mvs.Axis()
+
 skwargs['direction'] = "Y"
 skwargs['extent'] = [-40, 40]
 yAxis = mvs.Axis(registrationName="s^2/β Axis", **skwargs)
 mvs.SetDisplayProperties(source=yAxis, **dkwargs)
-
-#print(mvs.GetDisplayDefaults('Axis'))
-#print(mvs.GetSourceDefaults('Axis'))
-
-skwargs['direction'] = "X"
-skwargs['extent'] = [-40, 40]
-xAxis = mvs.Axis(**skwargs)
-#mvs.SetDisplayProperties(xAxis)
+mvs.SetTitle("Three Axes")
 
 skwargs['direction'] = "Z"
 skwargs['extent'] = [-40, 40]
 zAxis = mvs.Axis(**skwargs)
-#mvs.SetDisplayProperties(zAxis)
-
-camera = mvs.SetCamera(viewType="isometric")
 

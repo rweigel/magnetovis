@@ -6,8 +6,13 @@ def CreateProgrammableSource(sourceName, **kwargs):
 
     import magnetovis as mvs
     mvs.logger.info("Called. sourceName = " + sourceName)
-
     object = importlib.import_module('magnetovis.Sources.' + sourceName)
+
+    # If registrationName is not a keyword for source, it will be removed
+    # by the call to extract_script. So we need to get it here.
+    registrationName = None
+    if 'registrationName' in kwargs:
+        registrationName = kwargs['registrationName']
 
     pSource = pvs.ProgrammableSource()
 
@@ -27,10 +32,6 @@ def CreateProgrammableSource(sourceName, **kwargs):
     if hasattr(object, 'ScriptRequestInformation'):
         mvs.logger.info("Extracting ScriptRequestInformation script.")
         pSource.ScriptRequestInformation, _ = extract.extract_script(object.ScriptRequestInformation, kwargs)
-
-    registrationName = None
-    if 'registrationName' in kwargs:
-        registrationName = kwargs['registrationName']
 
     # Add kwargs as properties to make pSource have options
     # that can be obtained with GetProperty() in the same way that a

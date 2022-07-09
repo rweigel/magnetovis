@@ -189,7 +189,8 @@ def extract_script(function, sourceArguments, xml_encode=False):
     mvs.logger.info("Called with function = {}".format(function))
 
     kwargs = extract_kwargs(function, default_kwargs=sourceArguments)
-
+    print(kwargs)
+    
     head = ""
     for key in kwargs:
         if isinstance(kwargs[key], str):
