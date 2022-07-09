@@ -65,7 +65,7 @@ dkwargs = {
         'coloring': {
             'colorBy': ('POINTS', 'dipole'),
             'scalarBar': {
-                            'Title': "$|\\mathbf{B}|$ [nT]",
+                            'Title': r"$\|\mathbf{B}\|$ [nT]",
                             'ComponentTitle': '',
                             'HorizontalTitle': 1,
                             'TitleJustification': 'Left',
