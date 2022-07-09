@@ -10,7 +10,11 @@ def Script(time="2001-01-01", coord_sys='GSM',
             closed=True,
             point_array_functions=None):
 
-    # Note that this script is not needed. Could use paraview.simple.Disk.
+    # This script is to demonstrate the creation of an object
+    # using VTK. This is a generalization of paraview.simple.Disk,
+    # which only has options of ro and rf. (One could use
+    # LinearExtrusion to achieve results similar to that in this
+    # script).
 
     debug = False
 

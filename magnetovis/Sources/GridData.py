@@ -27,18 +27,24 @@ def ScriptRequestInformation(self, dimensions=None):
     outInfo = executive.GetOutputInformation(0)
     outInfo.Set(executive.WHOLE_EXTENT(), 0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1)
 
+    return outInfo
 
 def Script(time="2001-01-01T00:00:00", coord_sys="GSM", dimensions=[4, 4, 3],
             point_function="linspace(starts=(0., 0., 0.), stops=(1., 1., 1.))",
             point_array_functions=["xyz: position()"],
             cell_array_functions=["xyz: position()"],
-            OutputDataSetType="vtkStructuredGrid"):
+            OutputDataSetType="vtkStructuredGrid",
+            xoutput=None):
+
+    # The keyword argument OutputDataSetType is not used explicitly here 
+    # but is needed by CreateProgrammableSource(), which reads this
+    # script to buid a Programmable Source.
+
+    if xoutput is not None:
+        output = xoutput
 
     import magnetovis as mvs
     mvs.logger.info("Called.")
-
-    # Note that OutputDataSetType is not used explicitly here but is needed
-    # by CreateProgrammableSource().
 
     assert isinstance(point_function, str), "point_function must be a str" 
     assert isinstance(point_array_functions, list), "point_array_functions must be a list"

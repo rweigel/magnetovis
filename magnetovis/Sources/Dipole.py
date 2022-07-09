@@ -3,35 +3,38 @@ def OutputDataSetType():
     import magnetovis as mvs
     mvs.logger.info("Called.")
 
-    OutputDataSetType = mvs.extract.extract_kwargs("magnetovis.Sources.T89c.Script")['OutputDataSetType']
+    import importlib
+    OutputDataSetType = importlib.import_module('magnetovis.Sources.GridData').OutputDataSetType()
+
+    #OutputDataSetType = mvs.extract.extract_kwargs("magnetovis.Sources.T89c.Script")['OutputDataSetType']
 
     return OutputDataSetType
 
 
 def ScriptRequestInformation(self, dimensions=None):
 
-    # Needed for UniformGrid, RectilinearGrid, and StructuredGrid. See
-    #   https://discourse.paraview.org/t/problem-displaying-structured-grid-when-loading-from-programmable-source/3051/2
-    # and comment above SetExtent call in the following function (Script).
-
     import magnetovis as mvs
 
     mvs.logger.info("Called.")
 
-    if dimensions is None:
-        import magnetovis
-        dimensions = magnetovis.extract.extract_kwargs("magnetovis.Sources.GridData.Script")['dimensions']
+    import importlib
+    outInfo = importlib.import_module('magnetovis.Sources.GridData').ScriptRequestInformation(self, dimensions=dimensions)
 
-    mvs.logger.info("dimensions = [{}, {}, {}]".format(dimensions[0], dimensions[1], dimensions[2]))
-    executive = self.GetExecutive()
-    outInfo = executive.GetOutputInformation(0)
-    outInfo.Set(executive.WHOLE_EXTENT(), 0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1)
+    if False:
+	    if dimensions is None:
+	        import magnetovis
+	        dimensions = magnetovis.extract.extract_kwargs("magnetovis.Sources.GridData.Script")['dimensions']
+
+	    mvs.logger.info("dimensions = [{}, {}, {}]".format(dimensions[0], dimensions[1], dimensions[2]))
+	    executive = self.GetExecutive()
+	    outInfo = executive.GetOutputInformation(0)
+	    outInfo.Set(executive.WHOLE_EXTENT(), 0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1)
 
 
 def Script(time="2001-01-01T00:00:00", coord_sys='GSM', dimensions=[20, 20, 20],
             point_function="linspace(starts=(-20., -10., -10.), stops=(20., 10., 10.))",
-            point_array_functions=["B: dipole()"],
-            cell_array_functions=["xyz: position()"],
+            point_array_functions=["B: dipole()", "xyz: position()"],
+            cell_array_functions=["B: dipole()", "xyz: position()"],
             OutputDataSetType="vtkStructuredGrid"):
 
     import magnetovis as mvs
@@ -58,7 +61,7 @@ def GetDisplayDefaults():
             'DiffuseColor': [0.5, 0.5, 0.5]
         },
         'coloring': {
-            'colorBy': ('POINTS', 'B'),
+            'colorBy': ('CELLS', 'B'),
             'scalarBar': {
                             'Title': "$|\\mathbf{B}|$ [nT]",
                             'ComponentTitle': '',
@@ -85,5 +88,5 @@ def DefaultRegistrationName(**kwargs):
     import magnetovis as mvs
 
     return "{}/{}/{}" \
-                .format("T89c", mvs.util.trim_iso(kwargs['time']), kwargs['coord_sys'])
+                .format("Dipole", mvs.util.trim_iso(kwargs['time']), kwargs['coord_sys'])
 

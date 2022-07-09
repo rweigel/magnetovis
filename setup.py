@@ -1,16 +1,19 @@
 import os
 import sys
 from setuptools import setup, find_packages
-# https://stackoverflow.com/a/60740731/18433855
-# Does not work.
-#dist.Distribution().fetch_build_eggs(['Cython', 'numpy'])
+
+# TODO: If Mac M1, verify that Python is using arm64 architecture?
+#       Anaconda or Miniconda for x86_64 can be installed and will
+#       work on Mac M1; most of magnetovis will also work. However,
+#       hxform will not work because it will be compiled as x86_64
+#       and Paraview on Mac M1 is compiled using arm64.
 
 install_requires = [
     "numpy",
     "hapiclient",
     "hxform @ git+https://github.com/rweigel/hxform@main#egg=hxform"
 ]
-        
+
 debug = False
 if len(sys.argv) > 1 and sys.argv[1] == 'develop':
     debug = True

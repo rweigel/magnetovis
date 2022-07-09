@@ -27,7 +27,6 @@ def Script(output, time="2001-01-01T12:00:00", coord_sys="GSM", R=1, Nt=180, Np=
     import paraview.simple as pvs
     import numpy as np
     from vtk.numpy_interface import dataset_adapter as dsa
-    from hxform import hxform as hx
 
     # Needed for UniformGrid, RectilinearGrid, and StructuredGrid.
     output.SetExtent([0, Nt-1, 0, Np-1, 0, 0])
@@ -46,7 +45,8 @@ def Script(output, time="2001-01-01T12:00:00", coord_sys="GSM", R=1, Nt=180, Np=
     points = np.column_stack((x,y,z))
 
     if coord_sys != 'GEO':
-        points = hx.transform(points, mvs.util.iso2ints(time), 'GEO', coord_sys)
+        from hxform import hxform as hx
+        points = hx.transform(points, mvs.util.iso2ints(time), 'GEO', coord_sys, lib='cxform')
 
     pvtk = dsa.numpyTovtkDataArray(points)
     pts = vtk.vtkPoints()

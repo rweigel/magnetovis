@@ -1,5 +1,14 @@
-# From this directory, execute
+# Execute using
 #   magnetovis --script=Lines_demo.py
+
+'''
+Demo #1
+'''
+import magnetovis as mvs
+mvs.Lines()
+#mvs.PrintSourceDefaults('Lines')
+mvs.SetTitle("Line with default options")
+#mvs.PrintDisplayDefaults('Lines', all=True)
 
 import magnetovis as mvs
 
