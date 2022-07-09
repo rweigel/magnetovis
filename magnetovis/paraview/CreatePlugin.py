@@ -124,7 +124,7 @@ def CreatePlugin(name):
             # Equivalent to, e.g., vtkDataSet = vtk.StructuredGrid()
             vtkDataSet = getattr(vtk, OutputDataSetType)()
             output = vtkDataSet.GetData(outInfo, 0)
-            #print(ScriptBodyText)
+
             exec(ScriptBodyText)
 
             mvs.logger.info("Finished execution of script.")

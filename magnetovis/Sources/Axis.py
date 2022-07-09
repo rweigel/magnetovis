@@ -1,7 +1,7 @@
 def OutputDataSetType():
 
-   # What is set in the drop-down menu for Output Data Set Type for a Programmable Source
-   return "vtkPolyData"
+  # What is set in the drop-down menu for Output Data Set Type for a Programmable Source
+  return "vtkPolyData"
 
 
 def Script(time="2001-01-01",
@@ -25,16 +25,16 @@ def Script(time="2001-01-01",
             .format(extent[0], extent[1])
 
     if direction == 'X':
-        points = np.array([[extent[0], 0.0, 0.0],[extent[1], 0.0, 0.0]])
+      points = np.array([[extent[0], 0.0, 0.0],[extent[1], 0.0, 0.0]])
     if direction == 'Y':
-        points = np.array([[0.0, extent[0], 0.0],[0.0, extent[1], 0.0]])
+      points = np.array([[0.0, extent[0], 0.0],[0.0, extent[1], 0.0]])
     if direction == 'Z':
-        points = np.array([[0.0, 0.0, extent[0]],[0.0, 0.0, extent[1]]])
+      points = np.array([[0.0, 0.0, extent[0]],[0.0, 0.0, extent[1]]])
 
     if coord_sys != 'GSM':
-        from hxform import hxform as hx
-        assert time != None, 'magnetovis.Axis(): If coord_sys in not GSM, time cannot be None'
-        points = hx.transform(points, time, 'GSM', coord_sys, 'car', 'car')
+      from hxform import hxform as hx
+      assert time != None, 'magnetovis.Axis(): If coord_sys in not GSM, time cannot be None'
+      points = hx.transform(points, time, 'GSM', coord_sys, 'car', 'car')
 
     vtkLineSource = vtk.vtkLineSource()
     vtkLineSource.SetPoint1(*points[0])
@@ -43,71 +43,71 @@ def Script(time="2001-01-01",
     vtkLineSource.Update()
 
     if tube == False or tubeAndCone == False:
-        output.ShallowCopy(vtkLineSource.GetOutputDataObject(0))
-        import paraview.simple as pvs
-        mvs.ProxyInfo.SetInfo(pvs.GetActiveSource(), locals())
+      output.ShallowCopy(vtkLineSource.GetOutputDataObject(0))
+      import paraview.simple as pvs
+      mvs.ProxyInfo.SetInfo(pvs.GetActiveSource(), locals())
     else:
-        numberOfSides = 20
+      numberOfSides = 20
 
-        """Tube"""
-        tubeRadius = 0.5
+      """Tube"""
+      tubeRadius = 0.5
 
-        vtkTubeFilter = vtk.vtkTubeFilter()
+      vtkTubeFilter = vtk.vtkTubeFilter()
 
-        # Set defaults
-        vtkTubeFilter.SetNumberOfSides(numberOfSides)
-        vtkTubeFilter.SetRadius(tubeRadius)
+      # Set defaults
+      vtkTubeFilter.SetNumberOfSides(numberOfSides)
+      vtkTubeFilter.SetRadius(tubeRadius)
 
-        # Apply input settings
-        mvs.vtk.set_settings(vtkTubeFilter, vtkTubeFilterSettings)
+      # Apply input settings
+      mvs.vtk.set_settings(vtkTubeFilter, vtkTubeFilterSettings)
 
-        vtkTubeFilter.SetInputData(vtkLineSource.GetOutput())
-        vtkTubeFilter.Update()
+      vtkTubeFilter.SetInputData(vtkLineSource.GetOutput())
+      vtkTubeFilter.Update()
 
-        if tube == True and tubeAndCone == False:
-            output.ShallowCopy(vtkTubeFilter.GetOutputDataObject(0))
-            import paraview.simple as pvs
-            mvs.ProxyInfo.SetInfo(pvs.GetActiveSource(), locals())
-            return
+      if tube == True and tubeAndCone == False:
+          output.ShallowCopy(vtkTubeFilter.GetOutputDataObject(0))
+          import paraview.simple as pvs
+          mvs.ProxyInfo.SetInfo(pvs.GetActiveSource(), locals())
+          return
 
-        """Cone"""
+      """Cone"""
 
-        vtkConeSource = vtk.vtkConeSource()
+      vtkConeSource = vtk.vtkConeSource()
 
-        # Set defaults
-        coneRadius = 2.0*vtkTubeFilter.GetRadius()
-        coneHeight = coneRadius
-        vtkConeSource.SetResolution(numberOfSides-1)
-        vtkConeSource.SetAngle(45)
-        vtkConeSource.SetDirection(*points[1])
-        vtkConeSource.SetRadius(coneRadius)
-        vtkConeSource.SetHeight(coneHeight)
+      # Set defaults
+      coneRadius = 2.0*vtkTubeFilter.GetRadius()
+      coneHeight = coneRadius
+      vtkConeSource.SetResolution(numberOfSides-1)
+      vtkConeSource.SetAngle(45)
+      vtkConeSource.SetDirection(*points[1])
+      vtkConeSource.SetRadius(coneRadius)
+      vtkConeSource.SetHeight(coneHeight)
 
-        # TODO?: Use vtkTranform to do the following translation.
-        import math
+      # TODO?: Use vtkTranform to do the following translation.
+      import math
 
-        # Position of end of tube
-        r = math.sqrt(points[1][0]**2 + points[1][1]**2 + points[1][2]**2)
+      # Position of end of tube
+      r = math.sqrt(points[1][0]**2 + points[1][1]**2 + points[1][2]**2)
 
-        # Translate center by coneHeight/2 along tube
-        coneCenter = []
-        for i in range(3):
-            coneCenter.append(points[1][i] + (coneHeight/2.0)*points[1][i]/r)
-        vtkConeSource.SetCenter(coneCenter)
-        vtkConeSource.Update()
+      # Translate center by coneHeight/2 along tube
+      coneCenter = []
+      for i in range(3):
+          coneCenter.append(points[1][i] + (coneHeight/2.0)*points[1][i]/r)
+      vtkConeSource.SetCenter(coneCenter)
+      vtkConeSource.Update()
 
-        # Apply input settings
-        mvs.vtk.set_settings(vtkConeSource, vtkConeSourceSettings)
+      # Apply input settings
+      mvs.vtk.set_settings(vtkConeSource, vtkConeSourceSettings)
 
-        """Combine tube and cone into single PolyData object"""
-        combinedSources = vtk.vtkAppendPolyData()
-        combinedSources.AddInputData(vtkTubeFilter.GetOutput())
-        combinedSources.AddInputData(vtkConeSource.GetOutput())
-        combinedSources.Update()
+      """Combine tube and cone into single PolyData object"""
+      combinedSources = vtk.vtkAppendPolyData()
+      combinedSources.AddInputData(vtkTubeFilter.GetOutput())
+      combinedSources.AddInputData(vtkConeSource.GetOutput())
+      combinedSources.Update()
 
-        output.ShallowCopy(combinedSources.GetOutputDataObject(0))
+      output.ShallowCopy(combinedSources.GetOutputDataObject(0))
 
-        mvs.ProxyInfo.SetInfo(output, locals())
+      mvs.ProxyInfo.SetInfo(output, locals())
 
 
 def DefaultRegistrationName(**kwargs):

@@ -105,13 +105,13 @@ mvs.CreateViewAndLayout()
 
 def _parabola(Npts):
 
-    import numpy as np
-    xyz = np.zeros([Npts,3])
+  import numpy as np
+  xyz = np.zeros([Npts,3])
 
-    xyz[:,1] = 40*np.linspace(-1,1,Npts)
-    xyz[:,2] = xyz[:,1]**2/40
+  xyz[:,1] = 40*np.linspace(-1,1,Npts)
+  xyz[:,2] = xyz[:,1]**2/40
 
-    return xyz 
+  return xyz 
 
 from magnetovis.functions import functions as mvsfunctions
 mvsfunctions._parabola = _parabola

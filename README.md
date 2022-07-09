@@ -19,7 +19,6 @@ Please provide feedback by submitting an [issue](https://github.com/rweigel/magn
 ```
 git clone https://github.com/rweigel/magnetovis
 cd magnetovis
-pip install numpy
 pip install --editable .
 magnetovis --script=magnetovis_demo.py
 ```
@@ -34,12 +33,13 @@ magnetovis --script=magnetovis_demo.py
 
 # Approach
 
-The objects (e.g, Earth, Plasmapause, etc.) in `magnetovis` are created using `ParaView` [`Programmable Sources`](https://docs.paraview.org/en/latest/ReferenceManual/pythonProgrammableFilter.html). Programmable sources are short Python scripts that create [`VTK`](https://vtk.org) objects.
+The objects (e.g, Earth, Plasmapause, etc.) in `magnetovis` are created using `ParaView` [`Programmable Sources`](https://docs.paraview.org/en/latest/ReferenceManual/pythonProgrammableFilter.html). Programmable Sources are short Python scripts that create [`VTK`](https://vtk.org) objects.
 
-The objects were developed using the ParaView GUI and the [Programmable Source editor](https://docs.paraview.org/en/latest/ReferenceManual/pythonProgrammableFilter.html#recipes-for-programmable-source). The final scripts are then placed in a file in `magnetovis/Sources/`. Each file in this directory is associated with a object and the code that is used to genereate the object is in a function called `Script()`. When a file is executed, the content of `Script()` is placed in the `Programmable Source` editor and executed.
+When a a `magnetovis` Programmable Source is created in a Macro or one the Python command line in Paraview, the user can see and modify the script that created the object. Each Programmable Source in the [Sources](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources) directory has a corresponding `Plugin` that is automatically created from the Programmable Source file at startup.
 
-To demonstrate the general procedure by which magnetovis object are created, we will use the [Helix](https://docs.paraview.org/en/latest/ReferenceManual/pythonProgrammableFilter.html#helix-source) example from the ParaView user's guide.
+The objects were developed using the ParaView GUI and the [Programmable Source editor](https://docs.paraview.org/en/latest/ReferenceManual/pythonProgrammableFilter.html#recipes-for-programmable-source). The final scripts are then placed in a file in the [Sources](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources) directory. Each file in this directory is associated with a object and the code that is used to genereate the object is in a function called `Script()`.
 
+%To demonstrate the general procedure by which magnetovis object are created, we will use the [Helix](https://docs.paraview.org/en/latest/ReferenceManual/pythonProgrammableFilter.html#helix-source) example from the ParaView user's guide.
 
 %Magnetovis objects are listed in the ParaView `Sources` drop-down menu. 
 
