@@ -139,32 +139,27 @@ def install_paraview(paraview_version, install_path='/tmp/'):
                 f.flush()
 
                 
-def compatability_check(debug=False):
+def compatability_check():
 
     import os
     import glob
     import site
     import warnings
     import subprocess
-        
+
     import magnetovis as mvs
-    debug = True
+
+    mvs.logger.info("Called")
 
     ver = sys.version_info
     SYSTEM_PYTHON_VERSION = list(ver[0:2])
     SYSTEM_PYTHON_VERSION_STRING = str(ver.major) + "." + str(ver.minor) + "." + str(ver.micro)
 
-    PARAVIEW_PYTHON_VERSIONS = {
-                                "5.9.0": [3,8,8],
-                                "5.9.1": [3,8,8],
-                                "5.10.1": [3,9,5]
-                                }
-
     def pvpython_version(PVPYTHON):
         util_path = os.path.dirname(os.path.realpath(__file__))
         try:
             cmd = 'import sys;ver = sys.version_info;print(str(ver.major) + "." + str(ver.minor) + "." + str(ver.micro))'
-            mvs.logger.info("Executing:\n\n" + PVPYTHON + " " + cmd + "\n")
+            mvs.logger.info("Executing:\n\n" + PVPYTHON + " -c '" + cmd + "'\n")
             cmd = [PVPYTHON,'-c',cmd]
             stdout = subprocess.check_output(cmd, encoding='utf-8')
         except:
@@ -179,6 +174,7 @@ def compatability_check(debug=False):
         versions = glob.glob("/Applications/ParaView*")
         versions.sort()
         version = versions[-1]
+
         if len(version) == 0:
             mvs.logger.error("ParaView not found in /Applications directory." \
                             " See https://www.paraview.org/download/.")
@@ -189,7 +185,6 @@ def compatability_check(debug=False):
         # versions list will have elements of, e.g.,
         # ["/Applications/ParaView-5.7.0.app", "/Applications/ParaView-5.8.0.app"].
         version_strs = []
-        use = ""
         for version in versions:
             mvs.logger.info("Found " + version)
             version_str = version \
@@ -202,31 +197,22 @@ def compatability_check(debug=False):
         pvpython_ver_info = pvpython_version(version +  "/Contents/bin/pvpython")
         #print(pvpython_ver_info)
 
-        if SYSTEM_PYTHON_VERSION[0:1] == pvpython_ver_info[1][0:1]:
+        use = None
+        if SYSTEM_PYTHON_VERSION[0:2] == pvpython_ver_info[1][0:2]:
             use = versions[-1]
             PARAVIEW = use + "/Contents/MacOS/paraview"
             PVPYTHON = use + "/Contents/bin/pvpython"
             PVBATCH = use + "/Contents/bin/pvbatch"
 
-        #print(pvpython_ver_info)
-        #if version_str in PARAVIEW_PYTHON_VERSIONS \
-        #    and SYSTEM_PYTHON_VERSION[0:2] == PARAVIEW_PYTHON_VERSIONS[version_str][0:2]:
-        #    use = version
-        #    PARAVIEW = use + "/Contents/MacOS/paraview"
-        #    PVPYTHON = use + "/Contents/bin/pvpython"
-        #    PVBATCH = use + "/Contents/bin/pvbatch"
-
-        if use == "":
-            msg = "System Python version (" + SYSTEM_PYTHON_VERSION_STRING \
-                    + f") does not match Python version ({pvpython_ver_info[0]}) used by newest ParaView version on this system (" \
-                    + ", ".join(version_strs) + ")" \
-                    + f".\nConsider installing the needed Python version in a virtual environment.\n" \
-                    + f"Using Anaconda the commands are\n\n  conda create --name {pvpython_ver_info[0]} python={pvpython_ver_info[0]}\n  conda activate {pvpython_ver_info[0]}\n  pip install -e .\n"
-            msg = msg + "\nAllowed Paraview/Python versions:\n"
-            for pv_ver in PARAVIEW_PYTHON_VERSIONS:                
-                msg = msg + " ParaView " + pv_ver + " and Python " + ".".join(str(x) for x in PARAVIEW_PYTHON_VERSIONS[pv_ver][0:2]) + "\n"
-            mvs.logger.info(msg)
-            mvs.logger.info("Exiting.")
+        if use is None:
+            msg = "\n\nSystem Python version (" + SYSTEM_PYTHON_VERSION_STRING \
+                    + f") does not match Python version ({pvpython_ver_info[0]}) used by newest ParaView version on this system " \
+                    + f" ({version})" \
+                    + f". Consider installing the needed Python version in a virtual environment.\n\n" \
+                    + f"Using Anaconda, the commands are\n\n  conda create --name {pvpython_ver_info[0]} python={pvpython_ver_info[0]}\n  conda activate {pvpython_ver_info[0]}\n  pip install -e .\n"
+            msg = msg + "\nThe Python version used for a given version of Paraview can be found in the filenames at https://www.paraview.org/download/\n"
+            mvs.logger.error(msg)
+            mvs.logger.error("Exiting.")
             #raise ValueError(msg)
             sys.exit(1)
         else:
