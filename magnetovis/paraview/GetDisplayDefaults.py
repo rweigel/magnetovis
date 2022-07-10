@@ -1,13 +1,13 @@
-def PrintDisplayDefaults(mvsName, all=False):
+def PrintDisplayDefaults(sourceName, all=False):
 
   import pprint
 
-  defaults = GetDisplayDefaults(mvsName, all=all)
+  defaults = GetDisplayDefaults(sourceName, all=all)
   pp = pprint.PrettyPrinter(indent=2, sort_dicts=False) 
   pp.pprint(defaults)
 
 
-def GetDisplayDefaults(mvsName, all=False):
+def GetDisplayDefaults(sourceName, all=False):
 
   """
   Gets defaults for a magnetovis object by creating it.
@@ -26,11 +26,50 @@ def GetDisplayDefaults(mvsName, all=False):
 
   mvs.logger.info("Called.")
 
-  object = importlib.import_module('magnetovis.Sources.' + mvsName)
+  is_magnetovis = False
+  try:
+    object = importlib.import_module('magnetovis.Sources.' + sourceName)
+    is_magnetovis = True
+    proxy = getattr(mvs, sourceName)()
+  except:
+    if hasattr(pvs, sourceName) == False:
+      raise ValueError(sourceName + " is not a magnetovis or ParaView source.")
 
-  if 'GetDisplayDefaults' in object.__dict__:
+  if is_magnetovis == False:
+
+    try:
+      proxy = getattr(pvs, sourceName)()
+    except:
+      raise ValueError(sourceName + " is not a ParaView source (it may be a filter).")
+
+
+    defaults = {'source': {}, 'display': {}}
+
+    # TODO: Repeated code below
+    lastView = pvs.GetActiveView()
+    pvs.SetActiveView(None)
+    view = pvs.CreateView('RenderView')
+    s = pvs.Show(proxy=proxy, view=view)
+    props = proxy.ListProperties()
+    for prop in props:
+      defaults['source'][prop] = proxy.GetPropertyValue(prop)
+
+    for key in dir(s):
+      if key.startswith('_') == False and key != 'Input':
+        defaults['display'][key] = s.GetPropertyValue(key)
+
+    pvs.Delete(proxy)
+    del proxy
+    pvs.Delete(view)
+    del view
+    pvs.SetActiveView(lastView)
+
+    return defaults
+
+
+  if is_magnetovis and 'GetDisplayDefaults' in object.__dict__:
     # If function GetDisplayDefaults() in
-    # magnetovis/Sources/{mvsName}.py file
+    # magnetovis/Sources/{sourceName}.py file
     defaults = object.GetDisplayDefaults()
   else:
     defaults = {}
@@ -47,7 +86,6 @@ def GetDisplayDefaults(mvsName, all=False):
   view = pvs.CreateView('RenderView')
 
   # Create proxy
-  proxy = getattr(mvs, mvsName)()
   s = pvs.Show(proxy=proxy, view=view)
   for key in dir(s):
     if key.startswith('_') == False and not key in defaults['display']:
@@ -84,6 +122,6 @@ def GetDisplayDefaults(mvsName, all=False):
 
 
 if __name__ == "__main__":
-  import paraview.simple as pvs
+  PrintDisplayDefaults("Text")
   PrintDisplayDefaults("Axis", all=True)
-  PrintDisplayDefaults("Curve", all=True)
+  #PrintDisplayDefaults("Curve", all=True)
