@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.join(setup_path, 'magnetovis'))
 import util
 del sys.path[0]
 
-util.compatability_check(debug=debug)
+util.compatability_check()
 
 setup(
     name='magnetovis',
