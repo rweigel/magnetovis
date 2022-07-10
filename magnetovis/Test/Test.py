@@ -12,6 +12,10 @@ testonly = []
 #testonly = ["Axis_demo.py", "Curve_demo.py", "StructuredGrid_demo.py", "Satellite_demo.py"]
 #testonly = ["Axis_demo.py"]
 
+#FontScaling = "Do not scale fonts"
+FontScaling = "Scale fonts proportionally"
+ImageResolution = [1920, 1080]
+
 # https://gitlab.kitware.com/paraview/paraview/-/issues/21459
 for dir in dirs:
     base = os.path.dirname(os.path.abspath(__file__))
@@ -52,7 +56,8 @@ for dir in dirs:
             file_png = base + "/Figures/" + file_py[0:-3] + "-" + str(idx+1) + '.png'
             mvs.logger.info("Writing " + file_png)
             pvs.Render(renderView)
-            ImageResolution = [1368, 684]
+            #pvs.SaveScreenshot(file_png, renderView,
+            #    FontScaling=FontScaling, ImageResolution=ImageResolution)
             pvs.SaveScreenshot(file_png, renderView, ImageResolution=ImageResolution)
             mvs.logger.info("Wrote " + file_png)
             pvs.Delete(renderView)
