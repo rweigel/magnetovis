@@ -1,5 +1,7 @@
 import paraview.simple as pvs
 
+# https://gitlab.kitware.com/paraview/paraview/-/issues/21459
+
 # /Applications/ParaView-5.10.1.app/Contents/MacOS/paraview --script script.py
 # xattr -d com.apple.quarantine /Applications/ParaView-master-5.10.1-1472-g92b14e0412.app
 # /Applications/ParaView-master-5.10.1-1472-g92b14e0412.app/Contents/MacOS/paraview --script script.py
