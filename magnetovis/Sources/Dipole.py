@@ -63,7 +63,7 @@ def GetDisplayDefaults():
         'coloring': {
             'colorBy': ('CELLS', 'B'),
             'scalarBar': {
-                            'Title': "$|\\mathbf{B}|$ [nT]",
+                            'Title': r"$\|\mathbf{B}\|$ [nT]",
                             'ComponentTitle': '',
                             'HorizontalTitle': 1,
                             'TitleJustification': 'Left',

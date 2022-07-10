@@ -67,7 +67,7 @@ def _randpts(Npts):
 	import numpy as np
 	return  -0.5 + np.random.random_sample([Npts,3])
 
-from magnetovis.functions import functions as mvsfunctions
+from magnetovis import functions as mvsfunctions
 mvsfunctions._randpts = _randpts
 
 skwargs = {
@@ -113,7 +113,7 @@ def _parabola(Npts):
 
   return xyz 
 
-from magnetovis.functions import functions as mvsfunctions
+from magnetovis import functions as mvsfunctions
 mvsfunctions._parabola = _parabola
 
 skwargs = {

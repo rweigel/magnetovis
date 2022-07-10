@@ -35,7 +35,7 @@ kwargs = {
         "coord_sys": "GSM",
         "dimensions": [4,4,4],
         "point_array_functions": [
-                                "dipole(M=2)",
+                                "dipole()",
                                 "radius()"
                             ],
         "cell_array_functions": [

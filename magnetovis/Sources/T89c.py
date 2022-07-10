@@ -30,7 +30,7 @@ def ScriptRequestInformation(self, dimensions=None):
 
 def Script(time="2001-01-01T00:00:00", coord_sys='GSM', dimensions=[20, 20, 20],
             point_function="linspace(starts=(-20., -10., -10.), stops=(20., 10., 10.))",
-            point_array_functions=["B: dipole()"],
+            point_array_functions=["B: t89c()"],
             cell_array_functions=["xyz: position()"],
             OutputDataSetType="vtkStructuredGrid"):
 
@@ -48,6 +48,7 @@ def Script(time="2001-01-01T00:00:00", coord_sys='GSM', dimensions=[20, 20, 20],
     GridData = importlib.import_module('magnetovis.Sources.GridData')
     GridData.Script(**kwargs, xoutput=output)
 
+    mvs.ProxyInfo.SetInfo(output, locals())
 
 def GetDisplayDefaults():
 
@@ -60,7 +61,7 @@ def GetDisplayDefaults():
         'coloring': {
             'colorBy': ('POINTS', 'B'),
             'scalarBar': {
-                            'Title': "$|\\mathbf{B}|$ [nT]",
+                            'Title': r"$\|\mathbf{B}\|$ [nT]",
                             'ComponentTitle': '',
                             'HorizontalTitle': 1,
                             'TitleJustification': 'Left',

@@ -66,7 +66,6 @@ def get_settings(vtkName, form='list'):
       return "['" + "', '".join(settings_list) + "']"
 
 
-
 if __name__ == "__main__":
    print(get_settings("vtkSphere"))
    print(get_settings("vtkTubeFilter"))

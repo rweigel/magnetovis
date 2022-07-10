@@ -48,6 +48,8 @@ def Script(time="2001-01-01", coord_sys="GSM",
 
   mvs.ProxyInfo.SetInfo(output, locals())
 
+  mvs.ProxyInfo.SetInfo(output, locals())
+
 def GetDisplayDefaults():
 
    defaults = {

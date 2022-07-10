@@ -64,8 +64,8 @@ def Script(output, time="2001-01-01T12:00:00", coord_sys="GSM", R=1, Nt=180, Np=
     fvtk = dsa.numpyTovtkDataArray(UV)
     fvtk.SetName('TCoordArray')
     output.GetPointData().AddArray(fvtk)
-    mvs.ProxyInfo.SetInfo(pvs.GetActiveSource(), locals())
 
+    mvs.ProxyInfo.SetInfo(output, locals())
 
 def SetDisplayProperties(source, view=None, display=None, **kwargs):
 

@@ -11,8 +11,10 @@ from setuptools import setup, find_packages
 install_requires = [
     "numpy",
     "hapiclient",
+    "geopack",
     "hxform @ git+https://github.com/rweigel/hxform@main#egg=hxform"
 ]
+
 
 debug = False
 if len(sys.argv) > 1 and sys.argv[1] == 'develop':

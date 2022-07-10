@@ -1,11 +1,12 @@
 def PrintDisplayDefaults(sourceName, all=False):
 
   import pprint
-
+  import json
   defaults = GetDisplayDefaults(sourceName, all=all)
-  pp = pprint.PrettyPrinter(indent=2, sort_dicts=False) 
+  pp = pprint.PrettyPrinter(indent=2, sort_dicts=False, width=200) 
   pp.pprint(defaults)
-
+  #print(defaults)
+  #print(json.dumps(defaults, indent=1))
 
 def GetDisplayDefaults(sourceName, all=False):
 
@@ -25,6 +26,22 @@ def GetDisplayDefaults(sourceName, all=False):
   import magnetovis as mvs
 
   mvs.logger.info("Called.")
+
+  def convert_val(val):
+    if hasattr(val,'GetData'):
+      val = val.GetData()
+    return val
+
+  def keep_kv(key, val):
+    keep = key != 'Input' and key.startswith('_') == False
+    keep = keep and key.startswith('Get') == False
+    keep = keep and not hasattr(val,'ListProperties')
+    if False and keep:
+      print(key)
+      print(val)
+      print(type(val))
+      print(dir(val))
+    return keep    
 
   is_magnetovis = False
   try:
@@ -55,8 +72,9 @@ def GetDisplayDefaults(sourceName, all=False):
       defaults['source'][prop] = proxy.GetPropertyValue(prop)
 
     for key in dir(s):
-      if key.startswith('_') == False and key != 'Input':
-        defaults['display'][key] = s.GetPropertyValue(key)
+      val = s.GetPropertyValue(key)
+      if keep_kv(key, val) and not key in defaults[name]['display']:
+        defaults['display'][key] = convert_val(val)
 
     pvs.Delete(proxy)
     del proxy
@@ -88,25 +106,32 @@ def GetDisplayDefaults(sourceName, all=False):
   # Create proxy
   s = pvs.Show(proxy=proxy, view=view)
   for key in dir(s):
-    if key.startswith('_') == False and not key in defaults['display']:
-      defaults['display'][key] = s.GetPropertyValue(key)
+    val = s.GetPropertyValue(key)
+    if keep_kv(key, val) and not key in defaults['display']:
+      defaults['display'][key] = convert_val(val)
 
   children = proxy.GetProperty('__magnetovis_children__')
   if children is not None:
     for child in children:
       name = list(child.keys())[0]
+      mvs.logger.info("Getting properties for {}".format(name))
       cproxy = child[name]
       props = proxy.ListProperties()
+      mvs.logger.info("Properties = {}".format(props))
       if not 'source' in defaults[name]:
         defaults[name]['source'] = {}
-      for prop in props:
-        if prop != 'Input':
-          defaults[name]['source'][prop] = cproxy.GetPropertyValue(prop)
+      for key in props:
+        val = cproxy.GetPropertyValue(key)
+        if keep_kv(key, val):
+          defaults[name]['source'][key] = convert_val(val)
+          if all and key.startswith('vtk') and key.endswith('Settings'):
+            defaults[name]['source'][key] = mvs.vtk.get_settings(key.replace("Settings", ""))
 
       s = pvs.Show(proxy=cproxy, view=view)
       for key in dir(s):
-        if key.startswith('_') == False and not key in defaults[name]['display']:
-          defaults[name]['display'][key] = s.GetPropertyValue(key)
+        val = s.GetPropertyValue(key)
+        if keep_kv(key, val) and not key in defaults[name]['display']:
+          defaults[name]['display'][key] = convert_val(val)
 
       pvs.Delete(cproxy)
       del cproxy
@@ -122,6 +147,8 @@ def GetDisplayDefaults(sourceName, all=False):
 
 
 if __name__ == "__main__":
-  PrintDisplayDefaults("Text")
+  #PrintDisplayDefaults("Text")
+  #GetDisplayDefaults("Axis", all=True)
+  #print(GetDisplayDefaults("Axis", all=True))
   PrintDisplayDefaults("Axis", all=True)
   #PrintDisplayDefaults("Curve", all=True)
