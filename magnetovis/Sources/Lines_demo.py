@@ -10,7 +10,11 @@ mvs.Lines()
 mvs.SetTitle("Line with default options")
 #mvs.PrintDisplayDefaults('Lines', all=True)
 
+'''
+Demo #2
+'''
 import magnetovis as mvs
+mvs.CreateViewAndLayout()
 
 kwargs = {
             "time": "2001-01-01",
