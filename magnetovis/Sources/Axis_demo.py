@@ -59,4 +59,3 @@ mvs.SetTitle("Three Axes")
 skwargs['direction'] = "Z"
 skwargs['extent'] = [-40, 40]
 zAxis = mvs.Axis(**skwargs)
-

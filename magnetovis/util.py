@@ -139,7 +139,7 @@ def install_paraview(paraview_version, install_path='/tmp/'):
                 f.flush()
 
                 
-def compatability_check():
+def compatability_check(use=''):
 
     import os
     import glob
@@ -157,8 +157,8 @@ def compatability_check():
 
     def pvpython_version(PVPYTHON):
         util_path = os.path.dirname(os.path.realpath(__file__))
+        cmd = 'import sys;ver = sys.version_info;print(str(ver.major) + "." + str(ver.minor) + "." + str(ver.micro))'
         try:
-            cmd = 'import sys;ver = sys.version_info;print(str(ver.major) + "." + str(ver.minor) + "." + str(ver.micro))'
             mvs.logger.info("Executing:\n\n" + PVPYTHON + " -c '" + cmd + "'\n")
             cmd = [PVPYTHON,'-c',cmd]
             stdout = subprocess.check_output(cmd, encoding='utf-8')
@@ -171,52 +171,67 @@ def compatability_check():
 
     mvs.logger.info('sys.platform = ' + sys.platform)
     if sys.platform.startswith("darwin"):
-        versions = glob.glob("/Applications/ParaView*")
-        versions.sort()
-        version = versions[-1]
+        version_paths = glob.glob("/Applications/ParaView*")
+        version_paths.sort()
 
-        if len(version) == 0:
+        if len(version_paths) == 0:
             mvs.logger.error("ParaView not found in /Applications directory." \
                             " See https://www.paraview.org/download/.")
             mvs.logger.error("Exiting.")
-            # TODO?: Allow for ParaView not located in /Applications
             sys.exit(1)
 
-        # versions list will have elements of, e.g.,
+        # version_paths list will have elements of, e.g.,
         # ["/Applications/ParaView-5.7.0.app", "/Applications/ParaView-5.8.0.app"].
         version_strs = []
-        for version in versions:
-            mvs.logger.info("Found " + version)
-            version_str = version \
+        found = False
+        for version_path in version_paths:
+            mvs.logger.info("Found " + version_path)
+            version_str = version_path \
                             .replace("/Applications/ParaView-", "") \
                             .replace(".app", "")
             version_strs.append(version_str)
 
-        #version_num = [int(i) for i in version_str.split(".")]
-        # version_num is tuple of (major, minor, patch)
+            if use == '' and not 'master' in version_str:
+                version = version_path
+            if use == version_str:
+                found = True
+                version = version_path
+            if use == 'latest-release' and not 'master' in version_str:
+                found = True
+                version = version_path
+            if use == 'latest-master' and 'master' in version_str:
+                found = True
+                version = version_path
+
+        if not found:
+            if use != '':
+                mvs.logger.error(f"ParaView version {use} is not installed. Installed versions include {version_strs}")
+                mvs.logger.error("Exiting.")
+                sys.exit(1)
+            else:
+                version = version_paths[-1]
+
         pvpython_ver_info = pvpython_version(version +  "/Contents/bin/pvpython")
-        #print(pvpython_ver_info)
 
-        use = None
         if SYSTEM_PYTHON_VERSION[0:2] == pvpython_ver_info[1][0:2]:
-            use = versions[-1]
-            PARAVIEW = use + "/Contents/MacOS/paraview"
-            PVPYTHON = use + "/Contents/bin/pvpython"
-            PVBATCH = use + "/Contents/bin/pvbatch"
+            PARAVIEW = version + "/Contents/MacOS/paraview"
+            PVPYTHON = version + "/Contents/bin/pvpython"
+            PVBATCH = version + "/Contents/bin/pvbatch"
+            mvs.logger.info("Using " + use)
+        else:
+            descr = 'latest ParaView version on this system'
+            if use != '':
+                descr = 'requested ParaView version'
 
-        if use is None:
             msg = "\n\nSystem Python version (" + SYSTEM_PYTHON_VERSION_STRING \
-                    + f") does not match Python version ({pvpython_ver_info[0]}) used by newest ParaView version on this system " \
+                    + f") does not match Python version ({pvpython_ver_info[0]}) used by the {descr}" \
                     + f" ({version})" \
                     + f". Consider installing the needed Python version in a virtual environment.\n\n" \
                     + f"Using Anaconda, the commands are\n\n  conda create --name {pvpython_ver_info[0]} python={pvpython_ver_info[0]}\n  conda activate {pvpython_ver_info[0]}\n  pip install -e .\n"
             msg = msg + "\nThe Python version used for a given version of Paraview can be found in the filenames at https://www.paraview.org/download/\n"
             mvs.logger.error(msg)
             mvs.logger.error("Exiting.")
-            #raise ValueError(msg)
             sys.exit(1)
-        else:
-            mvs.logger.info("Using " + use)
 
     elif sys.platform.startswith("linux"):
 

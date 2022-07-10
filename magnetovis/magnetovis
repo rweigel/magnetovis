@@ -5,6 +5,89 @@ import site
 import shlex
 import subprocess
 import sysconfig
+import optparse
+
+
+desc = """
+Start ParaView with Magnetovis extensions
+
+    List options and usage:
+
+        magnetovis -h
+
+    This command line program sets environment variables needed to use Magnetovis
+    in ParaView and then launches the ParaView GUI or executed pvbatch or pvpython.
+
+    By default,
+
+        magnetovis
+
+    executes the command line program to launch the ParaView GUI with Magnetovis
+    environment variables set.
+
+        magnetovis filename
+
+    launches ParaView with --script=filename. See the Options section below for
+    additional Magnetovis command line options.
+
+    To pass additional command line options to the ParaView GUI program, use
+
+        magnetovis --paraview-options="..."
+
+    where ... is a string of options that are listed by executing
+
+        magnetovis --paraview-options="--help"
+
+    For example,
+
+        magnetovis --paraview-options="--force-offscreen-rendering --verbosity=INFO"
+
+    To use Magnetovis with pvbatch or pvpython, use
+
+        magnetovis pvbatch [magnetovis options] --pvbatch-options="..."
+        magnetovis pvpython [magnetovis options] --pvpython-options="..."
+
+    To see the options for pvbatch and pvpython, execute
+
+        magnetovis pvbatch --pvbatch-options="--help"
+        magnetovis pvpython --pvpython-options="--help"
+"""
+
+parser = optparse.OptionParser(add_help_option=False, usage="")
+
+parser.add_option('-h', '--help',
+                  dest='help',
+                  action='store_true',
+                  help='Show this help message and exit')
+
+parser.add_option('--paraview-version',
+            type='str',
+            help="ParaView version; 'latest-release', 'latest-master', or a specific version string", 
+            default='')
+
+parser.add_option('--paraview-options',
+            type='str',
+            help="Options to pass to the paraview program when executed", 
+            default='')
+
+parser.add_option('--pvbatch-options',
+            type='str',
+            help="Command line options to pass to the pvbatch program when executed", 
+            default='')
+
+parser.add_option('--pvpython-options',
+            type='str',
+            help="Command line options to pass to the pvpython program when executed", 
+            default='')
+
+(options, args) = parser.parse_args()
+
+if options.help:
+    print("Usage: magnotovis [pvbatch or pvpython] [filename] ...")
+    print(desc)
+    parser.print_help()
+    print("Version: 0.1.0")
+    sys.exit(0)
 
 pvpython = False
 pvbatch = False
@@ -21,28 +104,27 @@ if len(sys.argv) > 1:
 import magnetovis as mvs
 
 setup_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-# https://stackoverflow.com/a/8663557
-# Temporarily modify path so that util functions can be used.
-#sys.path.insert(0, os.path.join(setup_path, 'magnetovis'))
-#import util
-#del sys.path[0]
+PARAVIEW, PVPYTHON, PVBATCH = mvs.util.compatability_check(use=options.paraview_version)
 
-PARAVIEW, PVPYTHON, PVBATCH = mvs.util.compatability_check()
-
+# Path of Python used to execute this program
 PYTHONPATH = ":".join(site.getsitepackages())
-pvargs = " ".join(sys.argv[1:])
 
 if pvpython:
-    syscom = PVPYTHON + " " + pvargs
+    syscom = PVPYTHON + " " + options.paraview_options
+    if len(args) > 0:
+        syscom = PVPYTHON + " " + args[0] + " " + options.pvpython_options
 elif pvbatch:
-    syscom = PVBATCH + " " + pvargs
+    syscom = PVBATCH + " " + options.pvbatch_options
+    if len(args) > 0:
+        syscom = PVBATCH + " " + args[0] + " " + options.pvbatch_options
 else:
-    syscom = PARAVIEW + " " + pvargs
+    syscom = PARAVIEW + " " + options.pvpython_options
+    if len(args) > 0:
+        syscom = PARAVIEW + " --script=" + args[0] + " " + options.paraview_options
 
 # Paraview is not able to find modules in PYTHONPATH that were installed
 # using pip install -e . (which creates symlinks to the local directory).
 # As a result, we need to append the path of this file to PYTHONPATH.
-# TODO:
 
 extra_path = ""
 if os.path.exists(PYTHONPATH + "/magnetovis.egg-link"):

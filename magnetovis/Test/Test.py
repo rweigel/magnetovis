@@ -18,8 +18,8 @@ ImageResolution = [1920, 1080]
 
 # https://gitlab.kitware.com/paraview/paraview/-/issues/21459
 for dir in dirs:
-    base = os.path.dirname(os.path.abspath(__file__))
-    base = base + "/../" + dir
+    base = os.path.dirname(os.path.abspath(mvs.__file__))
+    base = base + "/" + dir
 
     mvs.logger.info("Reading " + base)
 
@@ -33,23 +33,16 @@ for dir in dirs:
                 if entry in testonly:
                     files_py.append(entry)
 
-    #print(files_py)
     files_py.sort()
 
     import paraview.simple as pvs
 
-    #pvs.Connect("localhost")
-    #[pvs.Delete(s) for s in pvs.GetSources().values()]
-    #pvs.ResetSession()
-
     for file_py in files_py:
         file_py_abspath = base + "/" + file_py
-        #print("Connecting", flush=True)
-        #pvs.Connect()
-        #print("Connected", flush=True)
         mvs.logger.info("Executing " + file_py_abspath)
         exec(open(file_py_abspath).read())
         mvs.logger.info("Executed " + file_py_abspath)
+
         # See https://gitlab.kitware.com/paraview/paraview/-/issues/21109
         # for issues with font sizes not matching that on screen.
         for idx, renderView in enumerate(pvs.GetRenderViews()):
@@ -60,18 +53,13 @@ for dir in dirs:
             #    FontScaling=FontScaling, ImageResolution=ImageResolution)
             pvs.SaveScreenshot(file_png, renderView, ImageResolution=ImageResolution)
             mvs.logger.info("Wrote " + file_png)
+            layout = pvs.GetLayout(view=renderView)
+            pvs.Delete(layout)
             pvs.Delete(renderView)
-            del renderView
-            #pvs.Delete()
 
-        # Reset session should not be needed.
-        #pvs.ResetSession()
-
-        if False:
-            try:
-                print("Disconnecting", flush=True)
-                #pvs.Disconnect()
-                print("Disconnected", flush=True)
-            except:
-                print("Disconnect failed.", flush=True)
-                pass
+        for source in pvs.GetSources().values():
+            pvs.Delete(source)
+        #del layout
+        #del source
+        #del renderView
+ 
