@@ -1,5 +1,5 @@
 # Execute using
-#   magnetovis --script=DifferentialDisk.py
+#   magnetovis DifferentialDisk.py
 
 """
 Demo #1
@@ -7,7 +7,7 @@ Demo #1
 
 import magnetovis as mvs
 mvs.DifferentialDisk()
-mvs.SetTitle("Defaults")
+mvs.SetTitle("Differential Disk with Default Options")
 
 """
 Demo #2

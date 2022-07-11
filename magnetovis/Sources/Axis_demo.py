@@ -1,5 +1,5 @@
 # Execute using
-#   magnetovis --script=Axis_demo.py
+#   magnetovis Axis_demo.py
 
 
 '''

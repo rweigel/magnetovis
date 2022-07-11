@@ -17,7 +17,7 @@ def ScriptRequestInformation(self, dimensions=None):
     return mvs.Sources.GridData.ScriptRequestInformation(self, dimensions=dimensions)
 
 
-def Script(output, time="2001-01-01T12:00:00", coord_sys="GSM", R=1, Nt=180, Np=180):
+def Script(output, time="2001-01-01", coord_sys="GSM", R=1, Nt=180, Np=180):
 
 
     from magnetovis.util import time2datetime
@@ -44,9 +44,10 @@ def Script(output, time="2001-01-01T12:00:00", coord_sys="GSM", R=1, Nt=180, Np=
     z = R*np.cos(B2)
     points = np.column_stack((x,y,z))
 
-    if coord_sys != 'GEO':
-        from hxform import hxform as hx
-        points = hx.transform(points, mvs.util.iso2ints(time), 'GEO', coord_sys, lib='cxform')
+    #if coord_sys != 'GEO':
+    from hxform import hxform as hx
+    points = hx.transform(points, mvs.util.iso2ints(time), 'GEO', 'GSM', lib='cxform')
+    points = hx.transform(points, mvs.util.iso2ints(time), 'GSM', coord_sys, lib='cxform')
 
     pvtk = dsa.numpyTovtkDataArray(points)
     pts = vtk.vtkPoints()
@@ -67,8 +68,7 @@ def Script(output, time="2001-01-01T12:00:00", coord_sys="GSM", R=1, Nt=180, Np=
 
     mvs.ProxyInfo.SetInfo(output, locals())
 
-def SetDisplayProperties(source, view=None, display=None, **kwargs):
-
+def SetDisplayProperties(source, view=None, **kwargs):
 
     import os
     import urllib3
@@ -76,6 +76,8 @@ def SetDisplayProperties(source, view=None, display=None, **kwargs):
     import tempfile
     import magnetovis as mvs
     import paraview.simple as pvs
+
+    display = pvs.Show(source, view)
 
     display.SelectTCoordArray = 'TCoordArray'
 

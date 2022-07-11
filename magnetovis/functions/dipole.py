@@ -1,4 +1,4 @@
-def dipole(r, m=[0, 0, 1], k=1e-7, vectorized=True, r_nan=None):
+def dipole(r, m=[0, 0, 1], k=1e-7, vectorized=True, r_nan=1.0):
   """Coordinate-free form of field for electric or magnetic dipole
 
     B = k ( 3(m dot r_hat)r_hat - m )/|r|^3

@@ -50,7 +50,7 @@ def Script(time="2001-01-01",
       numberOfSides = 20
 
       """Tube"""
-      tubeRadius = 0.5
+      tubeRadius = 0.1
 
       vtkTubeFilter = vtk.vtkTubeFilter()
 
@@ -138,29 +138,38 @@ def GetDisplayDefaults():
     return defaults
 
 
-def SetDisplayProperties(source, view=None, display=None, **kwargs):
+def SetDisplayProperties(source, view=None, **kwargs):
 
     import paraview.simple as pvs
-    import magnetovis
+    import magnetovis as mvs
 
-    info = magnetovis.ProxyInfo.GetInfo(source)
-    magnetovis.logger.info("Source info: {}".format(info))
+    info = mvs.ProxyInfo.GetInfo(source)
+    mvs.logger.info("Source info: {}".format(info))
+    mvs.logger.info("kwargs: {}".format(kwargs))
 
     direction = source.GetProperty('direction')
 
-    # Display defaults that depend on parent source
-    if direction == "X":
-        display.AmbientColor = [1.0, 0.0, 0.0]
-        display.DiffuseColor = [1.0, 0.0, 0.0]
-    if direction == "Y":
-        display.AmbientColor = [1.0, 1.0, 0.0]
-        display.DiffuseColor = [1.0, 1.0, 0.0]
-    if direction == "Z":
-        display.AmbientColor = [0.0, 1.0, 0.0]
-        display.DiffuseColor = [0.0, 1.0, 0.0]
-
     # Default keyword arguments
     dkwargs = GetDisplayDefaults()
+
+    # Display defaults that depend on parent source
+    if direction == "X":
+        dkwargs['display']['AmbientColor'] = [1.0, 0.0, 0.0]
+        dkwargs['display']['DiffuseColor'] = [1.0, 0.0, 0.0]
+    if direction == "Y":
+        dkwargs['display']['AmbientColor'] = [1.0, 1.0, 0.0]
+        dkwargs['display']['DiffuseColor'] = [1.0, 1.0, 0.0]
+    if direction == "Z":
+        dkwargs['display']['AmbientColor'] = [0.0, 1.0, 0.0]
+        dkwargs['display']['DiffuseColor'] = [0.0, 1.0, 0.0]
+
+    sourceDisplay = dkwargs['display']
+
+    # Update defaults 
+    if 'display' in kwargs:
+        sourceDisplay = {**dkwargs['display'], **kwargs['display']}
+
+    pvs.Show(source, view, **sourceDisplay)
 
     # Source defaults
     labelSettings = dkwargs['label']['source']
@@ -195,10 +204,15 @@ def SetDisplayProperties(source, view=None, display=None, **kwargs):
     if direction == "Z":
         labelDisplay['BillboardPosition'] = [0, 0, extent[1]]
 
+    if info['coord_sys'] != 'GSM':
+      from hxform import hxform as hx
+      labelDisplay['BillboardPosition'] = hx.transform(labelDisplay['BillboardPosition'], info['time'], 'GSM', info['coord_sys'], 'car', 'car')
+
     # Update defaults 
     if 'label' in kwargs and 'display' in kwargs['label']:
         labelDisplay = {**labelDisplay, **kwargs['label']['display']}
     
+    print(labelDisplay)
     pvs.Show(labelSource, view, TextPropMode='Billboard 3D Text', **labelDisplay)
 
     return [{'label': labelSource}]

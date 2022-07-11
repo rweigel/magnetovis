@@ -1,5 +1,5 @@
-# From this directory, execute
-#   magnetovis --script=Curve_demo.py
+# Execute using
+#   magnetovis Curve_demo.py
 
 '''
 Demo #1

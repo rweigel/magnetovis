@@ -50,7 +50,7 @@ def SetDisplayProperties(source=None, view=None, **kwargs):
             displaySettings = {**displaySettings, **defaults['display']}
     if 'display' in kwargs:
         displaySettings = {**displaySettings, **kwargs['display']}
-        del kwargs['display']
+        kwargs['display'] = displaySettings
 
     mvs.logger.info("Calling Show()")
     display = pvs.Show(proxy=source, view=view, **displaySettings)
@@ -75,7 +75,7 @@ def SetDisplayProperties(source=None, view=None, **kwargs):
         # Call the function magnetovis/Sources/{name}.py
         children = mvsObj \
                     .SetDisplayProperties( \
-                        source, view=view, display=display, **kwargs)
+                        source, view=view, **kwargs)
 
         if children is not None:
             if not isinstance(children, list):

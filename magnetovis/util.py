@@ -208,8 +208,6 @@ def compatability_check(use=''):
                 mvs.logger.error(f"ParaView version {use} is not installed. Installed versions include {version_strs}")
                 mvs.logger.error("Exiting.")
                 sys.exit(1)
-            else:
-                version = version_paths[-1]
 
         pvpython_ver_info = pvpython_version(version +  "/Contents/bin/pvpython")
 

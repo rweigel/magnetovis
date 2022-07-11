@@ -1,5 +1,5 @@
 # Execute using
-#   magnetovis --script=GridData_demo.py
+#   magnetovis GridData_demo.py
 
 """
 Demo #1
@@ -7,13 +7,16 @@ Demo #1
 
 import magnetovis as mvs
 mvs.GridData(OutputDataSetType="vtkImageData")
+mvs.Title("Dataset Type = vtkImageData")
 
 """
 Demo #2
 """
+
 import magnetovis as mvs
 mvs.CreateViewAndLayout()
 mvs.GridData(OutputDataSetType="vtkRectilinearGrid")
+mvs.Title("Dataset Type = vtkRectilinearGrid")
 
 """
 Demo #3
@@ -22,6 +25,7 @@ Demo #3
 import magnetovis as mvs
 mvs.CreateViewAndLayout()
 mvs.GridData(OutputDataSetType="vtkStructuredGrid")
+mvs.Title("Dataset Type = vtkStructuredGrid")
 
 """
 Demo #4
