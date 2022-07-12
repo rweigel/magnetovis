@@ -10,8 +10,8 @@ def Script(time="2001-01-01",
             direction='X',
             tube=True,
             tubeAndCone=True,
-            vtkTubeFilterSettings=["Capping: 1"],
-            vtkConeSourceSettings=["Capping: 1"]):
+            vtkTubeFilterSettings=["Radius: 0.1", "Capping: 1", "NumberOfSides: 10"],
+            vtkConeSourceSettings=["Capping: 1", "Angle: 45"]):
 
     import vtk
     import numpy as np
@@ -47,20 +47,21 @@ def Script(time="2001-01-01",
       import paraview.simple as pvs
       mvs.ProxyInfo.SetInfo(pvs.GetActiveSource(), locals())
     else:
-      numberOfSides = 20
 
       """Tube"""
-      tubeRadius = 0.1
 
       vtkTubeFilter = vtk.vtkTubeFilter()
 
-      # Set defaults
-      vtkTubeFilter.SetNumberOfSides(numberOfSides)
-      vtkTubeFilter.SetRadius(tubeRadius)
+      # Get default kwargs
+      defaults = mvs.GetSourceDefaults('Axis')
+      print(defaults)
+      from magnetovis.vtk.get_settings import update_defaults
+      vtkTubeFilterSettings = update_defaults(defaults['vtkTubeFilterSettings'], vtkTubeFilterSettings)
 
       # Apply input settings
-      mvs.vtk.set_settings(vtkTubeFilter, vtkTubeFilterSettings)
 
+      #print(tubeSettings)
+      mvs.vtk.set_settings(vtkTubeFilter, vtkTubeFilterSettings)
       vtkTubeFilter.SetInputData(vtkLineSource.GetOutput())
       vtkTubeFilter.Update()
 
@@ -71,6 +72,7 @@ def Script(time="2001-01-01",
           return
 
       """Cone"""
+      numberOfSides = 20
 
       vtkConeSource = vtk.vtkConeSource()
 

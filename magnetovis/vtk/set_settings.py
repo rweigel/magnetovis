@@ -1,48 +1,3 @@
-def update_defaults(defaults_dict, settings_list, form='list'):
-
-    import magnetovis as mvs
-
-    #print(settings_list)
-    #print(defaults_dict)
-    for setting in settings_list:
-
-        key = setting.split(":")[0].strip()        
-        val = setting.split(":")[1].lstrip().rstrip()
-
-        assert key in defaults_dict, key + " is not a valid setting."
-        default = defaults_dict[key]
-
-        val_is_bool = False
-        if val == 'True':
-            val = True
-            val_is_bool = True
-        if val == 'False':
-            val_is_bool = True
-            val = False
-
-        if isinstance(default, int) and val_is_bool == False:
-            val = int(val)
-        if isinstance(default, float):
-            val = float(val)
-        if isinstance(default, tuple):
-            val = val[1:-1].split(",")
-            if isinstance(default[0], float):
-                val = tuple([float(v) for v in val])
-            if isinstance(default[0], int):
-                val = tuple([int(v) for v in val])
-
-        mvs.logger.info("Setting {} = {}".format(key, val))
-        defaults_dict[key] = val
-
-    if form == 'dict':
-        return defaults_dict
-    else:
-        defaults_list = []
-        for key, default in defaults_dict.items():
-            defaults_list.append("{} = {}".format(key, default))
-        return defaults_list
-
-
 def set_settings(vtkObj, settings):
 
     import vtk
@@ -59,32 +14,38 @@ def set_settings(vtkObj, settings):
     vtkName = vtkObj.__vtkname__
     defaults = get_settings(vtkName, form='dict')
     for setting in settings:
+        print(setting)
+        if isinstance(settings, dict):
+            key = setting
+            val = settings[setting]            
+        else:
+            key = setting.split(":")[0].strip()        
+            val = setting.split(":")[1].lstrip().rstrip()
 
-        key = setting.split(":")[0].strip()        
-        val = setting.split(":")[1].lstrip().rstrip()
-
-        assert key in defaults, key + " is not a valid setting of " + vtkName
         default = defaults[key]
+        #assert key in defaults, key + " is not a valid setting of " + vtkName
         mvs.logger.info(vtkName + " default {} = {}".format(key, default))
 
-        val_is_bool = False
-        if val == 'True':
-            val = True
-            val_is_bool = True
-        if val == 'False':
-            val_is_bool = True
-            val = False
+        if isinstance(settings, list):
 
-        if isinstance(default, int) and val_is_bool == False:
-            val = int(val)
-        if isinstance(default, float):
-            val = float(val)
-        if isinstance(default, tuple):
-            val = val[1:-1].split(",")
-            if isinstance(default[0], float):
-                val = tuple([float(v) for v in val])
-            if isinstance(default[0], int):
-                val = tuple([int(v) for v in val])
+            val_is_bool = False
+            if val == 'True':
+                val = True
+                val_is_bool = True
+            if val == 'False':
+                val_is_bool = True
+                val = False
+
+            if isinstance(default, int) and val_is_bool == False:
+                val = int(val)
+            if isinstance(default, float):
+                val = float(val)
+            if isinstance(default, tuple):
+                val = val[1:-1].split(",")
+                if isinstance(default[0], float):
+                    val = tuple([float(v) for v in val])
+                if isinstance(default[0], int):
+                    val = tuple([int(v) for v in val])
 
         mvs.logger.info(vtkName + " setting {} = {}".format(key, val))
 
@@ -97,6 +58,11 @@ def set_settings(vtkObj, settings):
                 mvs.logger.warning("Cannot evaluate vtk." + vtkName + "().Set" + key + "()")
                 mvs.logger.warning("Cannot evaluate vtk." + vtkName + "().Set" + key + "(" + str(val) + ")")
                 #logging.warning("Input is probably a vtk data type (e.g., vtkBitArray, vtkIdTypeArray, etc.)")
+
+if __name__ == "__main__":
+    import vtk
+    #print(set_settings(vtk.vtkSphereSource(), ["Radius: 1"]))
+    print(set_settings(vtk.vtkSphereSource(), {"Radius": "1"}))
 
 if False:
     import vtk

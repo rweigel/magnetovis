@@ -35,25 +35,28 @@ def test_extract_kwargs():
     assert extract_kwargs("abc(a, b=1, c=2)") == {'b': 1, 'c': 2}
     assert extract_kwargs("abc(a, b=1, c=2)", default_kwargs={'b': 2, 'c': 3}) == {'b': 2, 'c': 3}
 
+    def check_circle():
+        assert extract_kwargs("magnetovis.extract.__circle()") == {}
+        assert extract_kwargs("magnetovis.extract.__circle") == {'radius': 1, 'center': (0, 0, 0)}
+        assert extract_kwargs("magnetovis.extract.__circle", default_kwargs={'radius': 2}) == {'radius': 2, 'center': (0, 0, 0)}
+        assert extract_kwargs("magnetovis.extract.__circle(N, radius=3)") == {'radius': 3}
+
     from magnetovis import extract
     def __circle(N, radius=1, center=(0, 0, 0)): pass
     # The following is equivalent to putting the above def outside of this function.
     setattr(extract, "__circle", __circle)
-    assert extract_kwargs("magnetovis.extract.__circle()") == {}
-    assert extract_kwargs("magnetovis.extract.__circle") == {'radius': 1, 'center': (0, 0, 0)}
-    assert extract_kwargs("magnetovis.extract.__circle", default_kwargs={'radius': 2}) == {'radius': 2, 'center': (0, 0, 0)}
-    assert extract_kwargs("magnetovis.extract.__circle(N, radius=3)") == {'radius': 3}
+    check_circle()
 
     from magnetovis import functions
     # The following is equivalent to putting the above def in functions.py
     setattr(functions, "__circle", __circle)
-    assert extract_kwargs("__circle()") == {}
-    assert extract_kwargs("__circle") == {'radius': 1, 'center': (0, 0, 0)}
-    assert extract_kwargs("__circle", default_kwargs={'radius': 2}) == {'radius': 2, 'center': (0, 0, 0)}
-    assert extract_kwargs("__circle(N, radius=3)") == {'radius': 3}
+    check_circle()
 
-    assert extract_kwargs(__circle) == {'radius': 1, 'center': (0, 0, 0)}
-    assert extract_kwargs(__circle, default_kwargs={'radius': 2}) == {'radius': 2, 'center': (0, 0, 0)}
+    def __circle(N, radius=1,
+                center=(0, 0, 0)):
+        pass
+    setattr(functions, "__circle", __circle)
+    check_circle()
 
 
 def extract_kwargs(function, default_kwargs=None):
@@ -128,7 +131,7 @@ def extract_kwargs(function, default_kwargs=None):
 
     import magnetovis as mvs
 
-    mvs.logger.info("Called with function = " + str(function))
+    mvs.logger.info("Called with function = {} and default kwargs of {}".format(function, default_kwargs))
 
     kwargs = {}
     if isinstance(function, str):
@@ -176,6 +179,8 @@ def extract_kwargs(function, default_kwargs=None):
             else:
                 kwargs[x] = p.default
 
+    mvs.logger.info("Returning kwargs of {}".format(kwargs))
+
     return kwargs
 
 
@@ -189,7 +194,6 @@ def extract_script(function, sourceArguments, xml_encode=False):
     mvs.logger.info("Called with function = {}".format(function))
 
     kwargs = extract_kwargs(function, default_kwargs=sourceArguments)
-    print(kwargs)
     
     head = ""
     for key in kwargs:
@@ -245,8 +249,3 @@ def extract_script(function, sourceArguments, xml_encode=False):
 if __name__ == "__main__":
     test_extract_kwargs()
 
-if False:
-    def myfun(a, b=1,
-        c=2):
-        abc = 1
-    print(extract_script(myfun,[]))

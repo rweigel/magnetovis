@@ -1,4 +1,69 @@
-def get_settings(vtkName, form='list'):
+def update_defaults(defaults, settings, form='list'):
+
+  import magnetovis as mvs
+
+  if isinstance(defaults, list) and isinstance(settings, list):
+
+    defaults_dict = {}
+    for default in defaults:
+      key = default.split(":")[0].strip()        
+      val = default.split(":")[1].lstrip().rstrip()
+      defaults_dict[key] = val
+
+    settings_dict = {}
+    for setting in settings:
+      key = setting.split(":")[0].strip()        
+      val = setting.split(":")[1].lstrip().rstrip()
+      settings_dict[key] = val
+
+    defaults_dict = {**defaults_dict, **settings_dict}
+
+    defaults_list = []
+    for key in defaults_dict:
+      defaults_list.append(key + ": " + defaults_dict[key])
+
+    return defaults_list
+
+  for setting in settings:
+
+    key = setting.split(":")[0].strip()        
+    val = setting.split(":")[1].lstrip().rstrip()
+
+    assert key in defaults, key + " is not a valid setting."
+    default = defaults[key]
+
+    val_is_bool = False
+    if val == 'True':
+      val = True
+      val_is_bool = True
+    if val == 'False':
+      val_is_bool = True
+      val = False
+
+    if isinstance(default, int) and val_is_bool == False:
+      val = int(val)
+    if isinstance(default, float):
+      val = float(val)
+    if isinstance(default, tuple):
+      val = val[1:-1].split(",")
+      if isinstance(default[0], float):
+        val = tuple([float(v) for v in val])
+      if isinstance(default[0], int):
+        val = tuple([int(v) for v in val])
+
+    mvs.logger.info("Setting {} = {}".format(key, val))
+    defaults[key] = val
+
+  if form == 'dict':
+    return defaults
+  else:
+    defaults_list = []
+    for key, default in defaults.items():
+      defaults_list.append("{}: {}".format(key, default))
+    return defaults_list
+
+
+def get_settings(vtkName, defaults=None, form='list'):
    """Get default values for VTK Set methods
 
     Example:
@@ -51,6 +116,13 @@ def get_settings(vtkName, form='list'):
 
             #mvs.logger.info(option + " = " + str(settings[option]))
 
+   if defaults is not None:
+      if isinstance(defaults, dict):
+         for default in defaults:
+            settings[default] = defaults[default]
+      else:
+         settings = update_defaults(settings, defaults, form='dict')
+
    if form == 'dict':
       return settings
 
@@ -69,4 +141,6 @@ def get_settings(vtkName, form='list'):
 if __name__ == "__main__":
    print(get_settings("vtkSphere"))
    print(get_settings("vtkTubeFilter"))
+   print(get_settings("vtkTubeFilter", defaults={"Radius": 100}))
+   print(get_settings("vtkTubeFilter", defaults=["Radius: 100"]))
 

@@ -2,7 +2,7 @@
 
 from magnetovis import util
 from magnetovis import vtk
-from magnetovis.logging import logger
+from magnetovis.log import logger
 
 from magnetovis.paraview import ProxyInfo
 from magnetovis.paraview.CreateProgrammableSource import CreateProgrammableSource

@@ -1,10 +1,10 @@
-def PrintSourceDefaults(mvsName, all=False):
+def PrintSourceDefaults(sourceName, all=False):
 
   import pprint
 
-  defaults = GetSourceDefaults(mvsName, all=all)
+  defaults = GetSourceDefaults(sourceName, all=all)
   pp = pprint.PrettyPrinter(indent=2, sort_dicts=False) 
-  #pp.pprint(defaults)
+  pp.pprint(defaults)
 
 
 def GetSourceDefaults(sourceName, all=False):
@@ -60,21 +60,21 @@ def GetSourceDefaults(sourceName, all=False):
       if vtkName != "":
         from magnetovis.vtk import get_settings
         if defaults[default] is None:
-          defaults[default] = get_settings(vtkName)
+          defaults[default] = get_settings(vtkName, form=dict)
         else:
           if all == True:
             defaults_vtk = get_settings(vtkName, form='dict')
-            from magnetovis.vtk.set_settings import update_defaults
-            print(defaults[default])
-            defaults[default] = update_defaults(defaults_vtk, defaults[default], form='list')
+            from magnetovis.vtk.get_settings import update_defaults
+            defaults[default] = update_defaults(defaults_vtk, defaults[default])
 
   return defaults
 
 
 if __name__ == "__main__":
-  PrintSourceDefaults("Sphere")
-  PrintSourceDefaults("Axis", all=False)
+  #PrintSourceDefaults("Sphere")
+  #PrintSourceDefaults("Axis", all=False)
   PrintSourceDefaults("Axis", all=True)
-  import pytest
-  with pytest.raises(ValueError):
-    PrintSourceDefaults("ShouldRaiseError")
+  if False:
+    import pytest
+    with pytest.raises(ValueError):
+      PrintSourceDefaults("ShouldRaiseError")
