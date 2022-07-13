@@ -54,14 +54,12 @@ def Script(time="2001-01-01",
 
       # Get default kwargs
       defaults = mvs.GetSourceDefaults('Axis')
-      print(defaults)
       from magnetovis.vtk.get_settings import update_defaults
       vtkTubeFilterSettings = update_defaults(defaults['vtkTubeFilterSettings'], vtkTubeFilterSettings)
 
       # Apply input settings
-
-      #print(tubeSettings)
       mvs.vtk.set_settings(vtkTubeFilter, vtkTubeFilterSettings)
+
       vtkTubeFilter.SetInputData(vtkLineSource.GetOutput())
       vtkTubeFilter.Update()
 

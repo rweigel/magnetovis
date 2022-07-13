@@ -17,6 +17,14 @@ mvs.CreateViewAndLayout()
 dipole = mvs.Dipole(OutputDataSetType="vtkRectilinearGrid", dimensions=[10, 10, 10])
 mvs.SetTitle("Dipole with Stream Trace and Slice")
 
+if False:
+	sourceData = pvs.servermanager.Fetch(dipole)
+	trace0 = sourceData.GetCell(0)
+	trace0Array = trace0.GetPoints().GetData()
+	from vtk.util import numpy_support
+	trace0 = numpy_support.vtk_to_numpy(trace0Array)
+	print(trace0)
+
 import paraview.simple as pvs
 pvs.Hide(dipole)
 
