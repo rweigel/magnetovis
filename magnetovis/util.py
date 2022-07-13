@@ -184,6 +184,10 @@ def compatability_check(use=''):
         # ["/Applications/ParaView-5.7.0.app", "/Applications/ParaView-5.8.0.app"].
         version_strs = []
         found = False
+        version_paths_releases = []
+        version_paths_masters = []
+        version_ints_releases = []
+        version_ints_masters = []
         for version_path in version_paths:
             mvs.logger.info("Found " + version_path)
             version_str = version_path \
@@ -191,17 +195,29 @@ def compatability_check(use=''):
                             .replace(".app", "")
             version_strs.append(version_str)
 
-            if use == '' and not 'master' in version_str:
-                version = version_path
             if use == version_str:
                 found = True
                 version = version_path
-            if use == 'latest-release' and not 'master' in version_str:
+                break
+
+            if 'master' in version_str:
+                version_paths_masters.append(version_path)
+                version_ints_masters.append([int(y) for y in version_str.replace("master-","").replace("-",'.').split(".")[0:-1]])
+            else:
+                version_paths_releases.append(version_path)
+                version_ints_releases.append([int(y) for y in version_str.replace("-",'.').split(".")])
+ 
+        if use == 'latest-release' or found == False:
+            if len(version_paths_releases) > 0:
+                # Semantic sort.
+                l = sorted((e,i) for i,e in enumerate(version_ints_releases))
+                version = version_paths_releases[l[-1][1]]
                 found = True
-                version = version_path
-            if use == 'latest-master' and 'master' in version_str:
+        if use == 'latest-master' or found == False:
+            if len(version_paths_masters) > 0:
+                l = sorted((e,i) for i,e in enumerate(version_ints_masters))
+                version = version_paths_masters[l[-1][1]]
                 found = True
-                version = version_path
 
         if not found:
             if use != '':
