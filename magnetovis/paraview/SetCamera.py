@@ -22,6 +22,26 @@ def SetCamera(view=None, source=None, viewType=None,
         Yaw = 0.0
         Zoom = 1.5
 
+    if viewType in ["+X", "-X", "+Y", "-Y", "+Z", "-Z"]:
+        Azimuth = 0
+        Elevation = 0
+        Dolly = 0.0
+        Roll = 0.0
+        Yaw = 0.0
+        Zoom = 1.5
+        if viewType == "+X":
+            Azimuth = 0
+        if viewType == "-X":
+            Azimuth = 180
+        if viewType == "+Y":
+            Azimuth = 90
+        if viewType == "-Y":
+            Azimuth = 270
+        if viewType == "+Z":
+            Elevation = 90
+        if viewType == "-Z":
+            Elevation = 270
+
     if source is None:
         sources = pvs.GetSources()
         # TODO: Ignore sources that are not visible. See
