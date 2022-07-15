@@ -141,8 +141,7 @@ if True:
     if stdlib not in my_env["PYTHONPATH"].split(":"):
         my_env["PYTHONPATH"] = stdlib + ":" + my_env["PYTHONPATH"]
 
-# This is done to resolve import error of _lzma for macos 11.4 (note: importing lzma works but inside of lzma.py there is a call to _lzma)
-if False and sys.platform == 'darwin':
+if sys.platform == 'darwin':
     lib_dynload = os.path.join(stdlib,'lib-dynload')
     if lib_dynload not in my_env["PYTHONPATH"]:
         my_env["PYTHONPATH"] = lib_dynload + ":" + my_env["PYTHONPATH"]
