@@ -335,3 +335,60 @@ def compatability_check(use=''):
 
     return PARAVIEW, PVPYTHON, PVBATCH
 
+
+def fileparts(file):
+    import os
+    (dirname, fname) = os.path.split(file)
+    (fname, fext) = os.path.splitext(fname)
+
+    if file.startswith("http"):
+        fname_split = file.split("/")
+        fname, fext = os.path.splitext(fname_split[-1])
+        dirname = "/".join(fname_split[0:-1])
+    else:
+        file_parts = fname
+
+    return dirname, fname, fext
+
+
+def dlfile(file, tmpdir=None):
+    import os
+    from urllib.request import urlretrieve
+
+    if tmpdir is None:
+        import tempfile
+        import platform
+        system = platform.system()
+        if system in ["Darwin", "Linux"]:
+            tmpdir = "/tmp"
+        else:
+            tmpdir = tempfile.gettempdir()
+
+    (dirname, fname, fext) = fileparts(file)
+    filename = fname + fext
+    subdir = dirname.replace("http://","").replace("https://","")
+    subdir = os.path.join(tmpdir, subdir)
+    if not os.path.exists(subdir):
+        print("Creating " + subdir)
+        os.makedirs(subdir)
+    tmppath = os.path.join(subdir, filename)
+
+    if os.path.exists(tmppath):
+        print("Found " + tmppath)
+    else:
+        print("Downloading " + file)
+        print("to")
+        partfile = tmppath + ".part"
+        print(partfile)
+        try:
+            urlretrieve(dirname + "/" + filename, partfile)
+            print("Renaming " + partfile + "\nto\n" + tmppath)
+            os.rename(partfile, tmppath)
+        except:
+            # Won't remove .part file if application crashes.
+            # Would need to register an atexit.
+            if os.path.exists(partfile):
+                print("Removing " + partfile)
+                os.remove(partfile)
+
+    return tmppath

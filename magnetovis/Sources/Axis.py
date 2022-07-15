@@ -17,12 +17,6 @@ def GetSourceDefaults(defaults, kwargs):
     defaults = mvs.vtk.update_if_needed(defaults, kwargs, 'vtkTubeFilter', key='Radius', val=Radius)
 
     Radius = 2.0*Radius
-    print('---888')
-    print(kwargs)
-    print('---888')
-    print('+++888')
-    print(defaults)
-    print('+++888')
     defaults = mvs.vtk.update_if_needed(defaults, kwargs, 'vtkConeSource', key='Radius', val=Radius)
     defaults = mvs.vtk.update_if_needed(defaults, kwargs, 'vtkConeSource', key='Height', val=Radius)
 

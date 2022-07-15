@@ -17,9 +17,6 @@ def CreateProgrammableSource(sourceName, **kwargs):
     pSource = pvs.ProgrammableSource()
 
     if hasattr(object, 'GetSourceDefaults'):
-        print("xxx")
-        print(kwargs)
-        print("xxx")
         kwargs = object.GetSourceDefaults(extract.extract_kwargs(object.Script), kwargs)
 
     mvs.logger.info("Extracting script and kwarg defaults after replacing defaults with passed kwargs.")
@@ -91,9 +88,9 @@ def CreateProgrammableSource(sourceName, **kwargs):
         if hasattr(object, 'DefaultRegistrationName'):
             registrationName = object.DefaultRegistrationName(**kwargs)
 
-        if registrationName + " #1" not in registrationNames:
-            registrationName = registrationName + " #1"
-        else:
+        #if registrationName + " #1" not in registrationNames:
+        #    registrationName = registrationName + " #1"
+        if registrationName in registrationNames:
             k = 2
             while registrationName + " #" + str(k) in registrationNames:
                 k = k + 1

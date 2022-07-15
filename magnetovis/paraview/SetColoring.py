@@ -48,6 +48,9 @@ def SetColoring(source=None, view=None, display=None, **kwargs):
 
     pvs.HideScalarBarIfNotNeeded(colorTF, view)
 
+    if view is None:
+        view = pvs.GetActiveViewOrCreate('RenderView')
+
     view.Update()
 
 def ColorByCellId(source=None, view=None, display=None, **displayArguments):

@@ -131,7 +131,6 @@ def CreatePlugin(name):
 
             return 1
 
-
         def RequestInformation(self, request, inInfoVec, outInfoVec):
             mvs.logger.info("Called.")
 

@@ -3,10 +3,7 @@ import time
 from datetime import timedelta
 
 import logging
-logging.basicConfig(
-    format='%(delta)s.%(msecs)03d:%(filename)s:%(funcName)s(): %(message)s',
-    level=logging.INFO,
-    datefmt='%S')
+logger = logging.getLogger("magnetovis")
 
 class CustomStreamHandler(logging.StreamHandler):
     # The primary motivation for this custom stream handler
@@ -42,10 +39,23 @@ class CustomStreamHandler(logging.StreamHandler):
         else:
             print(msg, flush=True)
 
+    import sys
+    handler = logging.StreamHandler(stream=sys.stdout)
+    formatter = logging.Formatter('%(asctime)s.%(msecs)03d:%(filename)s:%(funcName)s(): %(message)s', datefmt='%H:%M:%S')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
 ch = CustomStreamHandler()
-ch.setFormatter(logging.root.handlers[0].formatter)
-logger = logging.getLogger("magnetovis")
+formatter = logging.Formatter('%(delta)s.%(msecs)03d:%(filename)s:%(funcName)s(): %(message)s', '%S')
+ch.setFormatter(formatter)
+logger.setLevel(logging.INFO)
 logger.addHandler(ch)
 logger.propagate = False # Only call CustomStreamHandler()
 logger.info("Called.")
+
+if False:
+    logging.basicConfig(
+        format='%(delta)s.%(msecs)03d:%(filename)s:%(funcName)s(): %(message)s',
+        level=logging.INFO,
+        datefmt='%S')
+
