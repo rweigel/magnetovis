@@ -6,8 +6,6 @@ def OutputDataSetType():
 def Script(time="2001-01-01", coord_sys="GSM",
             Npts=6,
             closed=True,
-            tube=True,
-            vtkTubeFilterSettings=None,
             point_function="circle",
             point_array_functions=["xyz: position()"],
             cell_array_functions=["xyz: position()"]):
@@ -48,7 +46,6 @@ def Script(time="2001-01-01", coord_sys="GSM",
 
   mvs.ProxyInfo.SetInfo(output, locals())
 
-  mvs.ProxyInfo.SetInfo(output, locals())
 
 def GetDisplayDefaults():
 
@@ -73,7 +70,7 @@ def GetDisplayDefaults():
 
    return defaults
 
-def SetDisplayProperties(source, view=None, display=None, **kwargs):
+def SetDisplayProperties(source, view=None, **kwargs):
 
   import logging
   import paraview.simple as pvs
