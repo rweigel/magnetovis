@@ -26,7 +26,7 @@ def Script(file='http://mag.gmu.edu/git-data/swmfio/3d__var_2_e20190902-041000-0
   basename = os.path.join(dirname, fname)
   vtkfile = basename + '.vtk'
   if not os.path.exists(vtkfile):
-      import swmfio
+      import swmfio # ParaView crashes on OS-X 10.15 Intel, but not OS-X 12.4 M1
       print("Creating vtk file using " + basename + ".{tree,info,out}")
       swmfio.write_vtk(basename)
 

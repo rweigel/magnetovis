@@ -12,8 +12,9 @@ install_requires = [
     "numpy",
     "hapiclient",
     "geopack",
-    "hxform @ git+https://github.com/rweigel/hxform@main#egg=hxform"
+    "hxform @ git+https://github.com/rweigel/hxform@main#egg=hxform",
 ]
+#    "swmfio @ git+https://github.com/GaryQ-physics/swmfio@main#egg=hxform"
 
 
 debug = False
