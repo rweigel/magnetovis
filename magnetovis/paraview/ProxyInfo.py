@@ -88,7 +88,7 @@ def SetInfo(output, local_vars, include=None):
         if hasattr(val, '__vtkname__'):
             # Store keywords that start with the name of a vtk method and
             # end with "Settings" as a dict.
-            vtkname = val.__vtkname__ + "Settings"
+            vtkname = val.__vtkname__
             if vtkname in ScriptKwargs:
                 ScriptKwargs[vtkname] = magnetovis.vtk.get_settings(val, form='dict')
 

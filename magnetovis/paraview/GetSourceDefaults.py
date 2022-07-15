@@ -54,18 +54,16 @@ def GetSourceDefaults(sourceName, all=False):
 
     for default in defaults.keys():
       vtkName = ""
-      if default.endswith('SourceSettings') or default.endswith('FilterSettings'):
-        vtkName = default.replace('Settings','')
+      if default.startswith('vtk'):
+        vtkName = default
 
       if vtkName != "":
-        from magnetovis.vtk import get_settings
         if defaults[default] is None:
-          defaults[default] = get_settings(vtkName, form=dict)
+          defaults[default] = mvs.vtk.get_settings(vtkName, form=dict)
         else:
           if all == True:
-            defaults_vtk = get_settings(vtkName, form='dict')
-            from magnetovis.vtk.get_settings import update_defaults
-            defaults[default] = update_defaults(defaults_vtk, defaults[default])
+            defaults_vtk = mvs.vtk.get_settings(vtkName, form='dict')
+            defaults[default] = mvs.vtk.update_defaults(defaults_vtk, defaults[default])
 
   return defaults
 

@@ -16,7 +16,13 @@ def CreateProgrammableSource(sourceName, **kwargs):
 
     pSource = pvs.ProgrammableSource()
 
-    mvs.logger.info("Extracting script and kwarg defaults; replacing defaults with passed kwargs.")
+    if hasattr(object, 'GetSourceDefaults'):
+        print("xxx")
+        print(kwargs)
+        print("xxx")
+        kwargs = object.GetSourceDefaults(extract.extract_kwargs(object.Script), kwargs)
+
+    mvs.logger.info("Extracting script and kwarg defaults after replacing defaults with passed kwargs.")
     pSource.Script, kwargs = extract.extract_script(object.Script, kwargs)
 
     if hasattr(object, 'OutputDataSetType'):

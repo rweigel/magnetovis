@@ -124,8 +124,8 @@ def GetDisplayDefaults(sourceName, all=False):
         val = cproxy.GetPropertyValue(key)
         if keep_kv(key, val):
           defaults[name]['source'][key] = convert_val(val)
-          if all and key.startswith('vtk') and key.endswith('Settings'):
-            defaults[name]['source'][key] = mvs.vtk.get_settings(key.replace("Settings", ""))
+          if all and key.startswith('vtk'):
+            defaults[name]['source'][key] = mvs.vtk.get_settings(key)
 
       s = pvs.Show(proxy=cproxy, view=view)
       for key in dir(s):
