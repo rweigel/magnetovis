@@ -94,11 +94,8 @@ pvbatch = False
 if len(sys.argv) > 1:
     if sys.argv[1] == "pvpython":
         pvpython = True
-        sys.argv[1] = ''
-
     if sys.argv[1] == "pvbatch":
         pvbatch = True
-        sys.argv[1] = ''
 
 
 import magnetovis as mvs
