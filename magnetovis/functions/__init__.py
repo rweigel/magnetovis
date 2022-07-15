@@ -8,6 +8,7 @@ from .helix import helix
 from .dipole import dipole
 from .t95cs import t95cs
 from .t89c import t89c
+from .plasmasphere import plasmasphere
 
 # TODO: See ../vtk/__init__.py for automating import of
 #       all files in this directory.
