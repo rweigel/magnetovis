@@ -15,7 +15,7 @@ def set_points(output, points, dimensions=None):
         OutputDataSetType = output.GetClassName()
 
     if OutputDataSetType == "vtkImageData":
-
+        # TODO: Error if dimensions not given
         output.SetDimensions(*dimensions)
         Nx, Ny, _ = dimensions        
 
@@ -25,6 +25,7 @@ def set_points(output, points, dimensions=None):
         dz = points[Nx*Ny,2]-points[0,2]
         output.SetSpacing(dx, dy, dz)
     elif OutputDataSetType == "vtkRectilinearGrid":
+        # TODO: Error if dimensions not given
         # Takes the full set of points needed for a structured
         # grid and extracts only what is needed for a rectilinear
         # grid. In general, we will need the full set of points
@@ -44,6 +45,7 @@ def set_points(output, points, dimensions=None):
         vtkDataArray = dsa.numpyTovtkDataArray(points[0:Nx*Ny*Nz:Nx*Ny,2])
         output.SetZCoordinates(vtkDataArray)
     else:
+        # TODO: Warn if dimensions given
         vtkPoints = vtk.vtkPoints()
         vtkPoints.Allocate(points.shape[0])
         vtkDataArray = dsa.numpyTovtkDataArray(points)
