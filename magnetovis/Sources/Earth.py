@@ -68,6 +68,13 @@ def Script(output, time="2001-01-01", coord_sys="GSM", R=1, Nt=180, Np=180):
 
     mvs.ProxyInfo.SetInfo(output, locals())
 
+def DefaultRegistrationName(**kwargs):
+
+    import magnetovis as mvs
+
+    return "{}/{}/{}" \
+                .format("Earth", mvs.util.trim_iso(kwargs['time']), kwargs['coord_sys'])
+
 def SetDisplayProperties(source, view=None, **kwargs):
 
     import os
