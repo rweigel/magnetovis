@@ -1,22 +1,16 @@
 # Execute using
 #   magnetovis Earth_demo.py
 
-"""
-Demo #1
-"""
-
+# Demo 1
 import magnetovis as mvs
 mvs.Earth()
-mvs.SetTitle("Earth with Default Options")
+mvs.SetTitle("  Earth with Default Options")
 
-"""
-Demo #2
-"""
-
+# Demo 2
 import magnetovis as mvs
 mvs.CreateViewAndLayout()
 mvs.Earth()
-mvs.SetTitle("Earth with Axes")
+mvs.SetTitle("  Earth with Axes")
 
 xAxis = mvs.Axis(direction="X", extent=[-3, 3])
 mvs.SetDisplayProperties(source=xAxis, 
@@ -42,3 +36,4 @@ dkwargs = {
 		}
 zAxis2 = mvs.Axis(direction="Z", extent=[-3, 3], coord_sys="GEO")
 mvs.SetDisplayProperties(source=zAxis2, **dkwargs)
+

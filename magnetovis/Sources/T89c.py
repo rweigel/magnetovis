@@ -3,52 +3,57 @@ def OutputDataSetType():
     import magnetovis as mvs
     mvs.logger.info("Called.")
 
-    OutputDataSetType = mvs.extract.extract_kwargs("magnetovis.Sources.T89c.Script")['OutputDataSetType']
+    import importlib
+    OutputDataSetType = importlib.import_module('magnetovis.Sources.GridData').OutputDataSetType()
 
     return OutputDataSetType
 
 
 def ScriptRequestInformation(self, dimensions=None):
 
-    # Needed for UniformGrid, RectilinearGrid, and StructuredGrid. See
-    #   https://discourse.paraview.org/t/problem-displaying-structured-grid-when-loading-from-programmable-source/3051/2
-    # and comment above SetExtent call in the following function (Script).
-
     import magnetovis as mvs
 
     mvs.logger.info("Called.")
 
-    if dimensions is None:
-        import magnetovis
-        dimensions = magnetovis.extract.extract_kwargs("magnetovis.Sources.GridData.Script")['dimensions']
-
-    mvs.logger.info("dimensions = [{}, {}, {}]".format(dimensions[0], dimensions[1], dimensions[2]))
-    executive = self.GetExecutive()
-    outInfo = executive.GetOutputInformation(0)
-    outInfo.Set(executive.WHOLE_EXTENT(), 0, dimensions[0]-1, 0, dimensions[1]-1, 0, dimensions[2]-1)
+    import importlib
+    outInfo = importlib.import_module('magnetovis.Sources.GridData').ScriptRequestInformation(self, dimensions=dimensions)
 
 
-def Script(time="2001-01-01T00:00:00", coord_sys='GSM', dimensions=[20, 20, 20],
+def Script(time="2001-03-22T12:00:00", coord_sys='GSM', dimensions=[20, 20, 20],
+            iopt=1, ps=None,
             point_function="linspace(starts=(-20., -10., -10.), stops=(20., 10., 10.))",
-            point_array_functions=["B: t89c()"],
-            cell_array_functions=["xyz: position()"],
+            point_array_functions=["B: t89c(iopt=0, ps=0.0)", "xyz: position()"],
+            cell_array_functions=["B: t89c(iopt=0, ps=0.0)", "xyz: position()"],
             OutputDataSetType="vtkStructuredGrid"):
 
     import magnetovis as mvs
     mvs.logger.info("Called.")
+
+    # ut = Seconds since Unix time epoch start (1970-01-01)
+    # ut = 59 => # 1970-01-01T00:00:59 UT
+
+    import datetime
+    time_ints = mvs.util.iso2ints(time)
+    ut = (datetime.datetime(*time_ints[0:6])-datetime.datetime(1970,1,1)).total_seconds()    
 
     # This script builds a source by passing `output`, which is
     # in locals(), to GridData. GridData then modifies `output`.
     import importlib
     thisScript = importlib.import_module('magnetovis.Sources.T89c')
 
-    # Over-write keyword arguments in GridData with the passed kwargs
+    # Overwrite keyword arguments in GridData with the passed kwargs
     kwargs = mvs.extract.extract_kwargs(thisScript.Script, default_kwargs=locals())
 
+    # TODO: Additional {point, cell}_array_functions can be passed.
+    # Append and check that unique.
+    field_fn = f"B: t89c(ut={ut}, iopt={iopt}, ps={ps})"
+    kwargs['point_array_functions'] = [field_fn, "xyz: position()"]
+    kwargs['cell_array_functions'] = [field_fn, "xyz: position()"]
+    del kwargs['iopt']
+    del kwargs['ps']
     GridData = importlib.import_module('magnetovis.Sources.GridData')
     GridData.Script(**kwargs, xoutput=output)
 
-    mvs.ProxyInfo.SetInfo(output, locals())
 
 def GetDisplayDefaults():
 
@@ -59,7 +64,7 @@ def GetDisplayDefaults():
             'DiffuseColor': [0.5, 0.5, 0.5]
         },
         'coloring': {
-            'colorBy': ('POINTS', 'B'),
+            'colorBy': ('CELLS', 'B'),
             'scalarBar': {
                             'Title': r"$\|\mathbf{B}\|$ [nT]",
                             'ComponentTitle': '',

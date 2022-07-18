@@ -1,15 +1,11 @@
 # Execute using
 #   magnetovis --script=Satellite_demo.py
 
-"""
-Demo #1
-"""
+# Demo 1
 import magnetovis as mvs
 mvs.Satellite()
 
-"""
-Demo #2
-"""
+# Demo #2
 import magnetovis as mvs
 mvs.CreateViewAndLayout()
 skwargs = {

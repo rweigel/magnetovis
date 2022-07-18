@@ -1,18 +1,14 @@
 # Execute using
 #   magnetovis --script=Lines_demo.py
 
-'''
-Demo #1
-'''
+# Demo 1
 import magnetovis as mvs
 mvs.Lines()
 #mvs.PrintSourceDefaults('Lines')
 mvs.SetTitle("Line with default options")
 #mvs.PrintDisplayDefaults('Lines', all=True)
 
-'''
-Demo #2
-'''
+# Demo #2
 import magnetovis as mvs
 mvs.CreateViewAndLayout()
 

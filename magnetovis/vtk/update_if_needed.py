@@ -6,9 +6,6 @@ def update_if_needed(defaults, kwargs, vtkProxyName, key=None, val=None):
   defaults_dict = mvs.vtk.list2dict(defaults[vtkProxyName], mvs.vtk.get_settings(vtkProxyName, form='dict'))
   if vtkProxyName in kwargs:
       kwargs_dict = mvs.vtk.list2dict(kwargs[vtkProxyName], mvs.vtk.get_settings(vtkProxyName, form='dict'))
-      print("yyy")
-      print(kwargs_dict)
-      print("yyy")
       if not key in kwargs_dict:
           # Update
           defaults_dict[key] = val

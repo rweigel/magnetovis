@@ -1,38 +1,47 @@
-def SetColoring(source=None, view=None, display=None, **kwargs):
+def SetColoring(source=None, display=None, view=None, **kwargs):
 
     import magnetovis as mvs
     import paraview.simple as pvs
 
     import magnetovis as mvs
-    mvs.logger.info("Called.")
+    mvs.logger.info("Called with kwargs {}".format(kwargs))
+
+    if source is None:
+        source = pvs.GetActiveSource()
+    if view is None:
+        view = pvs.GetActiveViewOrCreate('RenderView')
+    if display is None:
+        display = pvs.GetDisplayProperties(proxy=source, view=view)
+
+    mvs.logger.info("source = {}".format(source))
+    mvs.logger.info("display = {}".format(display))
 
     if "colorBy" not in kwargs:
-        ColorByCellId(source=source, view=view, display=display, **kwargs)
+        ColorByCellId(source=source, display=display, view=view, **kwargs)
         return
     else:
+        colorBy = kwargs['colorBy']
         if kwargs['colorBy'] is None:
             mvs.logger.info('coloring = None. Not coloring by an array.')
             try:
                 # Will fail if colorBy was not previously set.
-                pvs.ColorBy(display, None)
+                pvs.ColorBy(display, None, separate=True)
             except:
                 pass
             return
 
     #print(kwargs['colorBy'])
+    mvs.logger.info("Calling pvs.ColorBy with display = {}".format(display))
     pvs.ColorBy(display, value=kwargs['colorBy'], separate=True)
 
     colorTFSettings = {}
     if 'colorTransferFunction' in kwargs:
-        colorTFSettings = kwargs['colorTransferFunction']
+        colorTFSettings = kwargs['colorTransferFunction'].copy()
     if not 'NumberOfTableValues' in colorTFSettings:
         # TODO: This should be stored externally
         colorTFSettings['NumberOfTableValues'] = 32
 
-    colorBy = kwargs["colorBy"]
-    colorTF = pvs.GetColorTransferFunction(colorBy[1], representation=display, **colorTFSettings, separate=True)
-    #logging.info("Color transfer function settings: {}".format(mvs.GetSettings(colorTF)))
-    #colorTF.RescaleTransferFunctionToDataRange()
+    colorTF = pvs.GetColorTransferFunction(colorBy[1], representation=display, separate=True, **colorTFSettings)
 
     scalarBar = pvs.GetScalarBar(colorTF, view)
 
@@ -42,14 +51,23 @@ def SetColoring(source=None, view=None, display=None, **kwargs):
     if not 'HorizontalTitle' in scalarBarSettings:
         # TODO: This setting should be stored externally
         scalarBarSettings['HorizontalTitle'] = 1
-    # GetScalarBar does not have option to pass settings, so must do it here.
-    pvs.SetProperties(proxy=scalarBar, **scalarBarSettings)
-    #logging.info("Scalar bar settings: {}".format(mvs.GetSettings(scalarBar)))
 
+    # GetScalarBar does not have option to pass settings,
+    # so must do it here.
+    pvs.SetProperties(proxy=scalarBar, **scalarBarSettings)
+    props = scalarBar.ListProperties()
+    settings = {}
+    for prop in props:
+        settings[prop] = scalarBar.GetPropertyValue(prop)
+
+    mvs.logger.info("Setting HideScalarBarIfNotNeeded")
     pvs.HideScalarBarIfNotNeeded(colorTF, view)
 
-    if view is None:
-        view = pvs.GetActiveViewOrCreate('RenderView')
+    # Hides unused scalar bars if HideScalarBarIfNotNeeded set.
+    pvs.UpdateScalarBars(view=view)
+
+    # This property is not available in display until after the call to pvs.ColorBy.
+    # display.RescaleTransferFunctionToDataRange()
 
     view.Update()
 

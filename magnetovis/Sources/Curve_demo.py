@@ -1,18 +1,14 @@
 # Execute using
 #   magnetovis Curve_demo.py
 
-'''
-Demo #1
-'''
+# Demo 1
 import magnetovis as mvs
 mvs.Curve()
 #mvs.PrintSourceDefaults('Curve')
 mvs.SetTitle("Curve with default options")
 #mvs.PrintDisplayDefaults('Curve', all=True)
 
-'''
-Demo #2
-'''
+# Demo 2
 import magnetovis as mvs
 mvs.CreateViewAndLayout()
 
@@ -41,9 +37,7 @@ curve = mvs.Curve(**skwargs)
 mvs.SetDisplayProperties(source=curve, **dkwargs)
 mvs.SetTitle("Curve using alt kwargs for point fn")
 
-'''
-Demo #3
-'''
+# Demo 3
 import magnetovis as mvs
 mvs.CreateViewAndLayout()
 
@@ -56,9 +50,7 @@ mvs.SetDisplayProperties(source=curve, **dkwargs)
 mvs.SetTitle("Curve using alt point fn")
 
 
-'''
-Demo #4
-'''
+# Demo 4
 import magnetovis as mvs
 mvs.CreateViewAndLayout()
 
@@ -96,10 +88,7 @@ curve = mvs.Curve(**skwargs)
 mvs.SetDisplayProperties(source=curve, **dkwargs)
 mvs.SetTitle("Points from user-defined function; no tube.")
 
-'''
-Demo #5
-'''
-
+# Demo #5
 import magnetovis as mvs
 mvs.CreateViewAndLayout()
 

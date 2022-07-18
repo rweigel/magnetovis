@@ -16,13 +16,15 @@ def GetSourceDefaults(defaults, kwargs):
     Radius = 0.01*(abs(defaults['extent'][1] - defaults['extent'][0]))
     defaults = mvs.vtk.update_if_needed(defaults, kwargs, 'vtkTubeFilter', key='Radius', val=Radius)
 
-    Radius = 2.0*Radius
+    defaults_dict = mvs.vtk.list2dict(defaults['vtkTubeFilter'], mvs.vtk.get_settings('vtkTubeFilter', form='dict'))
+
+    Radius = 2.0*defaults_dict['Radius']
     defaults = mvs.vtk.update_if_needed(defaults, kwargs, 'vtkConeSource', key='Radius', val=Radius)
     defaults = mvs.vtk.update_if_needed(defaults, kwargs, 'vtkConeSource', key='Height', val=Radius)
 
-    defaults_dict = mvs.vtk.list2dict(defaults['vtkTubeFilter'], mvs.vtk.get_settings('vtkTubeFilter', form='dict'))
     NumberOfSides = defaults_dict['NumberOfSides'] - 1    
     defaults = mvs.vtk.update_if_needed(defaults, kwargs, 'vtkConeSource', key='Resolution', val=NumberOfSides)
+
     return defaults
 
 

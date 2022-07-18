@@ -14,8 +14,8 @@ install_requires = [
     "geopack",
     "hxform @ git+https://github.com/rweigel/hxform@main#egg=hxform",
 ]
-#    "swmfio @ git+https://github.com/GaryQ-physics/swmfio@main#egg=hxform"
 
+# "swmfio @ git+https://github.com/GaryQ-physics/swmfio@main#egg=swmfio"
 
 debug = False
 if len(sys.argv) > 1 and sys.argv[1] == 'develop':

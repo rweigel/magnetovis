@@ -91,20 +91,6 @@ def time2datetime(t):
         return dt.datetime(*t)
 
 
-def prompt(question, default=''):
-    # Based on suggestions in https://gist.github.com/garrettdreyfus/8153571
-
-    import sys
-    if sys.version_info[0] > 2:
-        reply = str(input(question + ': ')).lower().strip()
-    else:
-        reply = str(raw_input(question + ': ')).lower().strip()
-
-    if len(reply) == 0:
-        return default
-    return reply[:1] 
-
-
 def install_paraview(paraview_version, install_path='/tmp/'):
 
 
@@ -352,8 +338,11 @@ def fileparts(file):
 
 
 def dlfile(file, tmpdir=None):
+
     import os
     from urllib.request import urlretrieve
+
+    import magnetovis as mvs
 
     if tmpdir is None:
         import tempfile
@@ -369,26 +358,27 @@ def dlfile(file, tmpdir=None):
     subdir = dirname.replace("http://","").replace("https://","")
     subdir = os.path.join(tmpdir, subdir)
     if not os.path.exists(subdir):
-        print("Creating " + subdir)
+        mvs.logger.info("Creating " + subdir)
         os.makedirs(subdir)
     tmppath = os.path.join(subdir, filename)
 
     if os.path.exists(tmppath):
-        print("Found " + tmppath)
+        mvs.logger.info("Found " + tmppath)
     else:
-        print("Downloading " + file)
-        print("to")
         partfile = tmppath + ".part"
-        print(partfile)
+        mvs.logger.info("Downloading " + file + " to " + partfile)
         try:
             urlretrieve(dirname + "/" + filename, partfile)
-            print("Renaming " + partfile + "\nto\n" + tmppath)
-            os.rename(partfile, tmppath)
-        except:
+        except Error as e:
+            mvs.logger.info("Download error")
             # Won't remove .part file if application crashes.
             # Would need to register an atexit.
             if os.path.exists(partfile):
-                print("Removing " + partfile)
+                mvs.logger.info("Removing " + partfile)
                 os.remove(partfile)
+            raise 
+
+        mvs.logger.info("Renaming " + partfile + "\nto\n" + tmppath)
+        os.rename(partfile, tmppath)
 
     return tmppath

@@ -1,18 +1,12 @@
 # Execute using
 #   magnetovis Plasmasphere_demo.py
 
-"""
-Demo #1
-"""
-
+# Demo 1
 import magnetovis as mvs
 mvs.Plasmasphere()
 mvs.SetTitle('GCC88 Plasmasphere')
 
-"""
-Demo #2
-"""
-
+# Demo #2
 import magnetovis as mvs
 mvs.CreateViewAndLayout()
 mvs.Earth(coord_sys='SM')

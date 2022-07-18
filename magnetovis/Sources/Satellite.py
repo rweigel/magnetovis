@@ -12,7 +12,7 @@ def Script(self,
         tube_radius=1.):
 
     import vtk
-    import magnetovis
+    import magnetovis as mvs
 
     import numpy as np
     from itertools import groupby
@@ -47,9 +47,15 @@ def Script(self,
     parameters = "X_{},Y_{},Z_{},Spacecraft_Region" \
                     .format(coord_sys, coord_sys, coord_sys)
 
-    magnetovis.logger.info("Getting data.")
-    data, meta = hapi(server, id, parameters, start, stop, **opts)
-    magnetovis.logger.info("Got data.")
+    # TODO: This script is evaluated by exec in ParaView and
+    # if there is an error
+    mvs.logger.info("Getting data.")
+    try:
+        data, meta = hapi(server, id, parameters, start, stop, **opts)
+    except:
+        print("Error when attempting to get ephemeris")
+        raise        
+    mvs.logger.info("Got data.")
 
     points = np.column_stack([data['X_'+coord_sys], data['Y_'+coord_sys], data['Z_'+coord_sys]])
     pvtk = dsa.numpyTovtkDataArray(points)
@@ -67,7 +73,7 @@ def Script(self,
     point_id = 0
     for region, group in groupby(data['Spacecraft_Region']):
         try:
-            # Types changed at some point hapiclient.
+            # Types changed at some point in hapiclient.
             region_decoded = region.decode('UTF-8')
         except:
             region_decoded = region
@@ -156,13 +162,17 @@ def SetDisplayProperties(source, view=None, **kwargs):
                         "Interplanetary\nMedium"
                     ]
 
-    import magnetovis
-    info = magnetovis.ProxyInfo.GetInfo(source)
-    magnetovis.logger.info("Source info: {}".format(info))
-    magnetovis.logger.info("kwargs: {}".format(kwargs))
+    import magnetovis as mvs
+    info = mvs.ProxyInfo.GetInfo(source)
+    mvs.logger.info("Source info: {}".format(info))
+    mvs.logger.info("kwargs: {}".format(kwargs))
 
     sourceData = paraview.servermanager.Fetch(source)
     region_ids = sourceData.GetCellData().GetArray('region_id')
+    if region_ids is None:
+        mvs.logger.error("Script execution failed. Cannot proceed.")
+        mvs.SetTitle("\nScript execution failed. See console for error message.")
+        return
     region_ids = numpy_support.vtk_to_numpy(region_ids)
     region_ids = np.unique(region_ids)
 

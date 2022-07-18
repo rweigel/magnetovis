@@ -39,12 +39,6 @@ class CustomStreamHandler(logging.StreamHandler):
         else:
             print(msg, flush=True)
 
-    import sys
-    handler = logging.StreamHandler(stream=sys.stdout)
-    formatter = logging.Formatter('%(asctime)s.%(msecs)03d:%(filename)s:%(funcName)s(): %(message)s', datefmt='%H:%M:%S')
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-
 ch = CustomStreamHandler()
 formatter = logging.Formatter('%(delta)s.%(msecs)03d:%(filename)s:%(funcName)s(): %(message)s', '%S')
 ch.setFormatter(formatter)

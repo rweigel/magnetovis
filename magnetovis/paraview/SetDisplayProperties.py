@@ -63,12 +63,6 @@ def SetDisplayProperties(source=None, view=None, **kwargs):
 
     mvs.SetColoring(source=source, view=view, display=display, **coloringSettings)
 
-    # Hides unused scalar bars
-    pvs.UpdateScalarBars(view=view)
-
-    # This property is not available in display until after the call to pvs.ColorBy.
-    display.RescaleTransferFunctionToDataRange = 0
-
     children = None
     if hasattr(mvsObj, 'SetDisplayProperties'):
 
