@@ -70,24 +70,35 @@ Source file: [BATSRUS.py](https://github.com/rweigel/magnetovis/tree/main/magnet
 ### Demo 1
 
 ```python
-url = 'http://mag.gmu.edu/git-data/swmfio/3d__var_2_e20190902-041000-000'
-vtkfile = '/tmp/mag.gmu.edu/git-data/swmfio/3d__var_2_e20190902-041000-000.vtk'
+from urllib.request import urlretrieve
+url = 'http://mag.gmu.edu/git-data/swmfio/3d__var_2_e20190902-041000-000.vtk'
+vtkfile = "/tmp/" + url.split("/")[-1]
+
 import os
 if not os.path.exists(vtkfile):
-  try:
-    import swmfio
-  except:
-    print('\n\nInstall swmfio using')
-    print('pip install "swmfio@git+https://github.com/GaryQ-physics/swmfio@main#egg=swmfio"\n')
-    raise ModuleNotFoundError("Package swmfio must be installed.")
-
-  import logging
-  swmfio.logger.setLevel(logging.INFO)
-  vtkfile = swmfio.write_vtk(url)
+  print("Downloading " + url)
+  urlretrieve(url, vtkfile)
 
 import magnetovis as mvs
 batsrus = mvs.BATSRUS(file=vtkfile)
 mvs.SetTitle("Default")
+
+if False:
+    # If a VTK file does not exit, can create it using the following.
+    url = 'http://mag.gmu.edu/git-data/swmfio/3d__var_2_e20190902-041000-000'
+    vtkfile = '/tmp/mag.gmu.edu/git-data/swmfio/3d__var_2_e20190902-041000-000.vtk'
+    import os
+    if not os.path.exists(vtkfile):
+      try:
+        import swmfio
+      except:
+        print('\n\nInstall swmfio using')
+        print('pip install "swmfio@git+https://github.com/GaryQ-physics/swmfio@main#egg=swmfio"\n')
+        raise ModuleNotFoundError("Package swmfio must be installed.")
+
+      import logging
+      swmfio.logger.setLevel(logging.INFO)
+      vtkfile = swmfio.write_vtk(url)
 ```
 
 ![BATSRUS_demo.py](magnetovis/Test/Figures/BATSRUS_demo-1.png)
@@ -104,6 +115,7 @@ mvs.SetTitle("Run files: http://mag.gmu.edu/git-data/swmfio/3d__var_2_e20190902-
 import paraview.simple as pvs
 pvs.Hide(batsrus)
 
+import paraview.simple as pvs
 view = pvs.GetActiveViewOrCreate('RenderView')
 
 sliceY = pvs.Slice(registrationName=' y=0 slice', Input=batsrus)
@@ -811,6 +823,9 @@ Source file: [MySource.py](https://github.com/rweigel/magnetovis/tree/main/magne
 ```python
 exec(open("MySource.py").read())
 MySource()
+
+import magnetovis as mvs
+mvs.PrintDisplayDefaults(MySource, all=True)
 ```
 
 ![MySource_demo.py](magnetovis/Test/Figures/MySource_demo-1.png)

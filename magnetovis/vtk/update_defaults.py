@@ -26,7 +26,7 @@ def update_defaults(defaults, settings, form='list'):
 
     return defaults_list
 
-  defaults = {**defaults, **list2dict(settings, defaults)}
+  defaults = {**defaults, **mvs.vtk.list2dict(settings, defaults)}
 
   if form == 'dict':
     return defaults

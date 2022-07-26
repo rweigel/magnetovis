@@ -32,7 +32,8 @@ def get_settings(vtkName, defaults=None, form='list'):
              'SetExecutive', 'SetGlobalWarningDisplay', 'SetInformation', 
              'SetInputConnection', 'SetInputDataObject', 'SetMemkindDirectory',
              'SetProgressObserver', 'SetProgressShiftScale', 'SetProgressText',
-             'SetReferenceCount', 'SetInputArrayToProcess', 'SetInputData', 'SetOutput','SetProgress'
+             'SetReferenceCount', 'SetInputArrayToProcess', 'SetInputData',
+             'SetOutput','SetProgress', 'ListProperties', 'SMProxy', 'add_attribute'
           ]
 
   settings = {}
@@ -75,9 +76,9 @@ def get_settings(vtkName, defaults=None, form='list'):
 if __name__ == "__main__":
   import magnetovis as mvs
   #print(get_settings("vtkAxis", form='dict'))
-  print(mvs.vtk.list2dict(get_settings("vtkAxis"), get_settings("vtkAxis", form='dict')))
+  print(get_settings("vtkSphere"))
+  #print(mvs.vtk.list2dict(get_settings("vtkAxis"), get_settings("vtkAxis", form='dict')))
   if False:
-    print(get_settings("vtkSphere"))
     print(get_settings("vtkTubeFilter"))
     print(get_settings("vtkTubeFilter", defaults={"Radius": 100}))
     print(get_settings("vtkTubeFilter", defaults=["Radius: 100"]))

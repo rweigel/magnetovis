@@ -34,17 +34,12 @@ def GetDisplayDefaults(sourceName, all=False):
     keep = key != 'Input' and key.startswith('_') == False
     keep = keep and key.startswith('Get') == False
     keep = keep and not hasattr(val,'ListProperties')
-    if False and keep:
-      print(key)
-      print(val)
-      print(type(val))
-      print(dir(val))
+    keep = keep and key != 'add_attribute'
     return keep    
 
   is_magnetovis = False
 
   import types
-
   if isinstance(sourceName, types.FunctionType):
     # To support dynamically created sources not part of magnetovis.
     # See MySource.py.

@@ -21,11 +21,16 @@ def CreateProgrammableSource(sourceFile, **kwargs):
     module = create_module(sourceFile)
     sourceName = module.__name__
 
+
     # If registrationName is not a keyword for source, it will be removed
-    # by the call to extract_script. So we need to get it here.
+    # by the call to extract_script. So we need to get it here. Same for
+    # setDisplayProperties.
     registrationName = None
     if 'registrationName' in kwargs:
         registrationName = kwargs['registrationName']
+    setDisplayProperties = True
+    if 'setDisplayProperties' in kwargs:
+        setDisplayProperties = kwargs['setDisplayProperties']
 
     pSource = pvs.ProgrammableSource()
 
@@ -52,7 +57,8 @@ def CreateProgrammableSource(sourceFile, **kwargs):
     # Add kwargs as properties to make pSource have options
     # that can be obtained with GetProperty() in the same way that a
     # plugin's menu options can be obtained with GetProperty().
-    Properties = pSource.ListProperties()
+    #Properties = pSource.ListProperties()
+    Properties = []
     def ListProperties():
         for key in dict(kwargs):
             Properties.append(key)
@@ -114,8 +120,8 @@ def CreateProgrammableSource(sourceFile, **kwargs):
 
     pvs.RenameSource(registrationName, pSource)
     
-    import magnetovis as mvs
-    children = mvs.SetDisplayProperties(pSource)
+    if setDisplayProperties == True:
+        children = mvs.SetDisplayProperties(pSource)
 
     mvs.logger.info("Finished.\n")
 
