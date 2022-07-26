@@ -51,6 +51,10 @@ Start ParaView with Magnetovis extensions
 
         magnetovis pvbatch --pvbatch-options="--help"
         magnetovis pvpython --pvpython-options="--help"
+
+    To execute all tests, use
+
+        magnetovis test
 """
 
 parser = optparse.OptionParser(add_help_option=False, usage="")
