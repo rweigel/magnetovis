@@ -20,8 +20,6 @@ def GetDisplayDefaults(sourceName, all=False):
      to get defaults.
   """
 
-  import importlib
-
   import paraview.simple as pvs
   import magnetovis as mvs
 
@@ -44,13 +42,24 @@ def GetDisplayDefaults(sourceName, all=False):
     return keep    
 
   is_magnetovis = False
-  try:
-    object = importlib.import_module('magnetovis.Sources.' + sourceName)
+
+  import types
+
+  if isinstance(sourceName, types.FunctionType):
+    # To support dynamically created sources not part of magnetovis.
+    # See MySource.py.
     is_magnetovis = True
-    proxy = getattr(mvs, sourceName)()
-  except:
-    if hasattr(pvs, sourceName) == False:
-      raise ValueError(sourceName + " is not a magnetovis or ParaView source.")
+    object = sourceName
+    proxy = sourceName()
+  else:
+    try:
+      import importlib
+      object = importlib.import_module('magnetovis.Sources.' + sourceName)
+      is_magnetovis = True
+      proxy = getattr(mvs, sourceName)()
+    except:
+      if hasattr(pvs, sourceName) == False:
+        raise ValueError(sourceName + " is not a magnetovis or ParaView source.")
 
   if is_magnetovis == False:
 
@@ -113,13 +122,22 @@ def GetDisplayDefaults(sourceName, all=False):
   children = proxy.GetProperty('__magnetovis_children__')
   if children is not None:
     for child in children:
+
       name = list(child.keys())[0]
       mvs.logger.info("Getting properties for {}".format(name))
       cproxy = child[name]
       props = proxy.ListProperties()
       mvs.logger.info("Properties = {}".format(props))
+
+      if not name in defaults:
+        defaults[name] = {}
+
       if not 'source' in defaults[name]:
         defaults[name]['source'] = {}
+
+      if not 'display' in defaults[name]:
+        defaults[name]['display'] = {}
+
       for key in props:
         val = cproxy.GetPropertyValue(key)
         if keep_kv(key, val):
@@ -128,6 +146,7 @@ def GetDisplayDefaults(sourceName, all=False):
             defaults[name]['source'][key] = mvs.vtk.get_settings(key)
 
       s = pvs.Show(proxy=cproxy, view=view)
+
       for key in dir(s):
         val = s.GetPropertyValue(key)
         if keep_kv(key, val) and not key in defaults[name]['display']:
@@ -144,7 +163,6 @@ def GetDisplayDefaults(sourceName, all=False):
   pvs.SetActiveView(lastView)
 
   return defaults
-
 
 if __name__ == "__main__":
   #PrintDisplayDefaults("Text")

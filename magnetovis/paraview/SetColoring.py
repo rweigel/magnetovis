@@ -38,10 +38,21 @@ def SetColoring(source=None, display=None, view=None, **kwargs):
     if 'colorTransferFunction' in kwargs:
         colorTFSettings = kwargs['colorTransferFunction'].copy()
     if not 'NumberOfTableValues' in colorTFSettings:
-        # TODO: This should be stored externally
+        # TODO: This should be stored externally        
         colorTFSettings['NumberOfTableValues'] = 32
 
     colorTF = pvs.GetColorTransferFunction(colorBy[1], representation=display, separate=True, **colorTFSettings)
+
+    # Properties modified on separate_clip1Display_LUT
+    #colorTF.EnableOpacityMapping = 1
+    #colorTF.IndexedColors = [1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.63, 0.63, 1.0]
+    #colorTF.IndexedOpacities = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+
+    # get separate opacity transfer function/opacity map for ''
+    #separate_clip1Display_PWF = pvs.GetOpacityTransferFunction('', display, separate=True)
+
+    #opacityTF = pvs.GetOpacityTransferFunction(colorBy[1], representation=display, separate=True)
+    #separate_clip1Display_PWF = pvs.GetOpacityTransferFunction('', representation=display, separate=True)
 
     scalarBar = pvs.GetScalarBar(colorTF, view)
 

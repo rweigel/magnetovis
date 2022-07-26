@@ -3,9 +3,11 @@ def CreateViewAndLayout(name=None):
     import paraview.simple as pvs
 
     name = __GetUniqueLayoutName(name)
+    # If following line happens after two lines after it,
+    # get problems with colorbars on previous layouts.
+    layout = pvs.CreateLayout(name=name)
     pvs.SetActiveView(None)
     view = pvs.CreateView('RenderView')
-    layout = pvs.CreateLayout(name=name)
     pvs.AssignViewToLayout(view=view, layout=layout)
 
     return view, layout

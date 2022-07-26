@@ -55,7 +55,6 @@ def plasmasphere(N=2, coord_sys='SM', time='2001-01-01'):
     import numpy as np
 
     from copy import deepcopy
-    from hxform import hxform as hx
 
     def logDen(r, theta, phi):
         a1 = 1.4

@@ -6,12 +6,13 @@ import logging
 logger = logging.getLogger("magnetovis")
 
 class CustomStreamHandler(logging.StreamHandler):
+
     # The primary motivation for this custom stream handler
     # is that logging.info() text appears in the Paraview output messages
     # tab in red, which makes it seem that the message is an error.
-    # In addition, the default background is dark brown and so it is difficult
-    # to read the messages when the font is red.
-    # However, when print() is used, the color appears as green.
+    # In addition, the default console background can be set to dark
+    # brown in which case it is difficult to read the messages when
+    # the font is red.
 
     def format(self, record):
 
@@ -39,17 +40,10 @@ class CustomStreamHandler(logging.StreamHandler):
         else:
             print(msg, flush=True)
 
+
 ch = CustomStreamHandler()
-formatter = logging.Formatter('%(delta)s.%(msecs)03d:%(filename)s:%(funcName)s(): %(message)s', '%S')
+formatter = logging.Formatter('%(delta)s.%(msecs)03d:magnetovis:%(filename)s:%(funcName)s(): %(message)s', '%S')
 ch.setFormatter(formatter)
 logger.setLevel(logging.INFO)
 logger.addHandler(ch)
 logger.propagate = False # Only call CustomStreamHandler()
-logger.info("Called.")
-
-if False:
-    logging.basicConfig(
-        format='%(delta)s.%(msecs)03d:%(filename)s:%(funcName)s(): %(message)s',
-        level=logging.INFO,
-        datefmt='%S')
-

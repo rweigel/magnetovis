@@ -1,7 +1,6 @@
-#from magnetovis.objects import *
-
 from magnetovis import util
 from magnetovis import vtk
+from magnetovis import functions
 from magnetovis.log import logger
 
 from magnetovis.paraview import ProxyInfo
@@ -26,6 +25,7 @@ from magnetovis.paraview.SetTitle import SetTitle
 # every file in Sources. So for Sources/StructuredGrid.py, we would otherwise write
 # def StructuredGrid(**kwargs):
 #    return CreateProgrammableSource("StructuredGrid", **kwargs)
+
 import os
 import glob
 root = os.path.dirname(os.path.abspath(__file__))
@@ -33,8 +33,11 @@ sources = glob.glob(os.path.join(root, os.path.join("Sources", "*.py")))
 logger.info(f"Creating programmable sources using files in {root}")
 for source in sources:
     file = os.path.basename(os.path.splitext(source)[0])
-    if not file.endswith("_demo") and not file.startswith("__"):
-        exec('def ' + file + "(**kwargs): return CreateProgrammableSource('" + file + "', **kwargs)")
+    exclude = file.endswith("_demo")
+    exclude = exclude and file.startswith("__")
+    exclude = exclude and file.startswith("MySource")
+    if not exclude:
+      exec('def ' + file + "(**kwargs): return CreateProgrammableSource('" + source + "', **kwargs)")
 
 del os
 del glob

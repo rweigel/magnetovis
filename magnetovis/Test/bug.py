@@ -33,4 +33,5 @@ display = pvs.GetDisplayProperties(sphere, view=view)
 pvs.ColorBy(display, ('POINTS', 'Normals', 'Magnitude'))
 display.SetScalarBarVisibility(view, True)
 
+view.ViewSize = ImageResolution
 pvs.SaveScreenshot(fname, view, FontScaling=FontScaling, ImageResolution=ImageResolution)

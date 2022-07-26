@@ -39,8 +39,7 @@ def SetDisplayProperties(source=None, view=None, **kwargs):
     if view is None:
         view = pvs.GetActiveViewOrCreate('RenderView')
     
-    import importlib
-    mvsObj = importlib.import_module('magnetovis.Sources.' + name)
+    mvsObj = source.GetProperty("__magnetovis_module__")
     
     defaults = None
     displaySettings = {'Representation': 'Surface'}

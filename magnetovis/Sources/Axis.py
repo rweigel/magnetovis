@@ -222,7 +222,6 @@ def SetDisplayProperties(source, view=None, **kwargs):
     if 'label' in kwargs and 'display' in kwargs['label']:
         labelDisplay = {**labelDisplay, **kwargs['label']['display']}
     
-    print(labelDisplay)
     pvs.Show(labelSource, view, TextPropMode='Billboard 3D Text', **labelDisplay)
 
     return [{'label': labelSource}]

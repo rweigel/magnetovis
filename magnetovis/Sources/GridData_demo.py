@@ -63,7 +63,7 @@ dkwargs = {
                             'TitleJustification': 'Left',
                             'Visibility': 1,
                             'DrawNanAnnotation': 1,
-                            'ScalarBarLength': 0.9
+                            'ScalarBarLength': 0.8
                         },
             'colorTransferFunction': {
                                         'UseLogScale': 1,

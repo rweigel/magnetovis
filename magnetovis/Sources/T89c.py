@@ -29,6 +29,15 @@ def Script(time="2001-03-22T12:00:00", coord_sys='GSM', dimensions=[20, 20, 20],
     import magnetovis as mvs
     mvs.logger.info("Called.")
 
+    # TODO: The function used to generate the field is from
+    # https://github.com/tsssss/geopack
+    # This uses a native Python re-write of the Fortran code and
+    # is much slower than native Fortran. A start of code that
+    # wraps the native Fortran and does the looping in Fortran
+    # is at https://github.com/rweigel/fastfield.
+    # (SpacePy wraps the native Fortran, but the looping is done in Python,
+    # which makes it significantly slower than doing the loop in Fortran.)
+
     # ut = Seconds since Unix time epoch start (1970-01-01)
     # ut = 59 => # 1970-01-01T00:00:59 UT
 
@@ -72,7 +81,7 @@ def GetDisplayDefaults():
                             'TitleJustification': 'Left',
                             'Visibility': 1,
                             'DrawNanAnnotation': 1,
-                            'ScalarBarLength': 0.9
+                            'ScalarBarLength': 0.8
                         },
             'colorTransferFunction': {
                                         'UseLogScale': 1,

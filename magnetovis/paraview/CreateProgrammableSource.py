@@ -1,12 +1,25 @@
-def CreateProgrammableSource(sourceName, **kwargs):
+def CreateProgrammableSource(sourceFile, **kwargs):
 
     import importlib
     import paraview.simple as pvs
-    from magnetovis import extract
 
     import magnetovis as mvs
-    mvs.logger.info("Called. sourceName = " + sourceName)
-    object = importlib.import_module('magnetovis.Sources.' + sourceName)
+    from magnetovis import extract
+
+    def create_module(file_path):
+        import os
+        import types
+        import importlib.machinery
+
+        file_name = os.path.basename(os.path.splitext(file_path)[0])
+
+        loader = importlib.machinery.SourceFileLoader(file_name, file_path)
+        module = types.ModuleType(loader.name)
+        loader.exec_module(module)
+        return module
+
+    module = create_module(sourceFile)
+    sourceName = module.__name__
 
     # If registrationName is not a keyword for source, it will be removed
     # by the call to extract_script. So we need to get it here.
@@ -16,15 +29,15 @@ def CreateProgrammableSource(sourceName, **kwargs):
 
     pSource = pvs.ProgrammableSource()
 
-    if hasattr(object, 'GetSourceDefaults'):
-        kwargs = object.GetSourceDefaults(extract.extract_kwargs(object.Script), kwargs)
+    if hasattr(module, 'GetSourceDefaults'):
+        kwargs = module.GetSourceDefaults(extract.extract_kwargs(module.Script), kwargs)
 
     mvs.logger.info("Extracting script and kwarg defaults after replacing defaults with passed kwargs.")
-    pSource.Script, kwargs = extract.extract_script(object.Script, kwargs)
+    pSource.Script, kwargs = extract.extract_script(module.Script, kwargs)
 
-    if hasattr(object, 'OutputDataSetType'):
+    if hasattr(module, 'OutputDataSetType'):
         mvs.logger.info("Getting OutputDataSetType default.")
-        default = object.OutputDataSetType()
+        default = module.OutputDataSetType()
         mvs.logger.info("Setting OutputDataSetType to " + default)
         pSource.OutputDataSetType = default
     else:
@@ -32,9 +45,9 @@ def CreateProgrammableSource(sourceName, **kwargs):
             mvs.logger.info("Setting OutputDataSetType passed as kwarg.")
             pSource.OutputDataSetType = kwargs['OutputDataSetType']
 
-    if hasattr(object, 'ScriptRequestInformation'):
+    if hasattr(module, 'ScriptRequestInformation'):
         mvs.logger.info("Extracting ScriptRequestInformation script.")
-        pSource.ScriptRequestInformation, _ = extract.extract_script(object.ScriptRequestInformation, kwargs)
+        pSource.ScriptRequestInformation, _ = extract.extract_script(module.ScriptRequestInformation, kwargs)
 
     # Add kwargs as properties to make pSource have options
     # that can be obtained with GetProperty() in the same way that a
@@ -45,6 +58,7 @@ def CreateProgrammableSource(sourceName, **kwargs):
             Properties.append(key)
         Properties.append("__magnetovis_name__")
         Properties.append("__magnetovis_children__")
+        Properties.append("__magnetovis_module__")
         return Properties
 
     children = None
@@ -54,6 +68,8 @@ def CreateProgrammableSource(sourceName, **kwargs):
             return sourceName
         if property == "__magnetovis_children__":
             return children
+        if property == "__magnetovis_module__":
+            return module
         if property in kwargs:
             return kwargs[property]
         else:
@@ -67,10 +83,10 @@ def CreateProgrammableSource(sourceName, **kwargs):
     # If registrationName
     #      Use it. If used, ValueError.
     #    else
-    #      if object.DefaultRegistrationName() found
+    #      if module.DefaultRegistrationName() found
     #         Use that name + " #1"
     #      else
-    #         Use object name + " #1"
+    #         Use module name + " #1"
     #      
     #      If name + " #1" already used, increment number until
     #      name + " #n" is unique.
@@ -85,8 +101,8 @@ def CreateProgrammableSource(sourceName, **kwargs):
             raise ValueError("registration name '" + registrationName + "' is used.")
     else:
         registrationName = sourceName
-        if hasattr(object, 'DefaultRegistrationName'):
-            registrationName = object.DefaultRegistrationName(**kwargs)
+        if hasattr(module, 'DefaultRegistrationName'):
+            registrationName = module.DefaultRegistrationName(**kwargs)
 
         #if registrationName + " #1" not in registrationNames:
         #    registrationName = registrationName + " #1"

@@ -60,6 +60,11 @@ parser.add_option('-h', '--help',
                   action='store_true',
                   help='Show this help message and exit')
 
+parser.add_option('--loglevel',
+            type='str',
+            help="Magnetovis logging level. One of {info, debug, warning, error}", 
+            default='error')
+
 parser.add_option('--paraview-version',
             type='str',
             help="ParaView version; 'latest-release', 'latest-master', or a specific version string", 
@@ -89,6 +94,18 @@ if options.help:
     print("Version: 0.1.0")
     sys.exit(0)
 
+import magnetovis as mvs
+
+# The following only applies to logging in this file.
+# To set log level globally, will need to save log level passed on
+# command line to a file and then have logger read file. Will not be
+# thread safe. For now, users will need to set it each time magnetovis
+# is imported. 
+mvs.logger.setLevel(options.loglevel.upper())
+
+setup_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+PARAVIEW, PVPYTHON, PVBATCH = mvs.util.compatability_check(use=options.paraview_version)
+
 pvpython = False
 pvbatch = False
 if len(sys.argv) > 1:
@@ -96,24 +113,21 @@ if len(sys.argv) > 1:
         pvpython = True
     if sys.argv[1] == "pvbatch":
         pvbatch = True
+    if sys.argv[1] == "test":
+        args[0] = os.path.join(setup_path, 'magnetovis', 'Test', 'Test.py')
 
-
-import magnetovis as mvs
-
-setup_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-PARAVIEW, PVPYTHON, PVBATCH = mvs.util.compatability_check(use=options.paraview_version)
 
 # Path of Python used to execute this program
 PYTHONPATH = ":".join(site.getsitepackages())
 
 if pvpython:
     syscom = PVPYTHON + " " + options.paraview_options
-    if len(args) > 0:
-        syscom = PVPYTHON + " " + args[0] + " " + options.pvpython_options
+    if len(args) > 1:
+        syscom = PVPYTHON + " " + args[1] + " " + options.pvpython_options
 elif pvbatch:
     syscom = PVBATCH + " " + options.pvbatch_options
-    if len(args) > 0:
-        syscom = PVBATCH + " " + args[0] + " " + options.pvbatch_options
+    if len(args) > 1:
+        syscom = PVBATCH + " " + args[1] + " " + options.pvbatch_options
 else:
     syscom = PARAVIEW + " " + options.pvpython_options
     if len(args) > 0:

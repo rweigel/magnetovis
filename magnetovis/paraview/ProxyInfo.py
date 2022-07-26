@@ -68,8 +68,9 @@ def SetInfo(output, local_vars, include=None):
     if source_name is None:
         return
 
-    import importlib
-    Script = importlib.import_module('magnetovis.Sources.' + source_name).Script
+    #import importlib
+    #Script = importlib.import_module('magnetovis.Sources.' + source_name).Script
+    Script = proxy.GetProperty('__magnetovis_module__').Script
 
     # Get default keyword arguments
     ScriptKwargs = magnetovis.extract.extract_kwargs(Script)

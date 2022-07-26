@@ -2,12 +2,13 @@
 #   magnetovis --script=T89c_demo.py
 
 # Demo 1
-#import magnetovis as mvs
-#t89c = mvs.T89c(dimensions=[20, 20, 20])
+import magnetovis as mvs
+t89c = mvs.T89c(dimensions=[20, 20, 20])
+mvs.SetTitle("Default")
 
 # Demo 2
 import magnetovis as mvs
-#mvs.CreateViewAndLayout()
+mvs.CreateViewAndLayout()
 t89c = mvs.T89c(dimensions=[20, 20, 20])
 
 import paraview.simple as pvs

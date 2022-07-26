@@ -1,6 +1,7 @@
 # Execute using
 #   magnetovis BATSRUS_demo.py
 
+# Demo 1
 url = 'http://mag.gmu.edu/git-data/swmfio/3d__var_2_e20190902-041000-000'
 vtkfile = '/tmp/mag.gmu.edu/git-data/swmfio/3d__var_2_e20190902-041000-000.vtk'
 import os
@@ -9,19 +10,65 @@ if not os.path.exists(vtkfile):
     import swmfio
   except:
     print('\n\nInstall swmfio using')
-    print('git clone https://github.com/GaryQ-physics/swmfio')
-    print('cd swmfio; pip install .\n\n')
-    raise Error("Package swmfio must be installed.")
+    print('pip install "swmfio@git+https://github.com/GaryQ-physics/swmfio@main#egg=swmfio"\n')
+    raise ModuleNotFoundError("Package swmfio must be installed.")
+
+  import logging
+  swmfio.logger.setLevel(logging.INFO)
   vtkfile = swmfio.write_vtk(url)
 
-'''
-# Demo #1
-'''
 import magnetovis as mvs
 batsrus = mvs.BATSRUS(file=vtkfile)
-mvs.SetTitle("Run file: http://mag.gmu.edu/git-data/swmfio/3d__var_2_e20190902-041000-000.*")
+mvs.SetTitle("Default")
 
-# Demo #2
+# Demo 2
+import magnetovis as mvs
+mvs.CreateViewAndLayout()
+batsrus = mvs.BATSRUS(file=vtkfile)
+mvs.SetTitle("Run files: http://mag.gmu.edu/git-data/swmfio/3d__var_2_e20190902-041000-000.*")
+
+# Add slice
+import paraview.simple as pvs
+pvs.Hide(batsrus)
+
+view = pvs.GetActiveViewOrCreate('RenderView')
+
+sliceY = pvs.Slice(registrationName=' y=0 slice', Input=batsrus)
+sliceY.SliceType = 'Plane'
+sliceY.SliceType.Normal = [0.0, 1.0, 0.0]
+
+sliceZ = pvs.Slice(registrationName=' z=0 slice', Input=batsrus)
+sliceZ.SliceType = 'Plane'
+sliceZ.SliceType.Normal = [0.0, 0.0, 1.0]
+
+sliceYDisplay = pvs.Show(sliceY, view, 'GeometryRepresentation')
+sliceZDisplay = pvs.Show(sliceZ, view, 'GeometryRepresentation')
+
+
+pvs.Hide3DWidgets(proxy=sliceY.SliceType)
+pvs.Hide3DWidgets(proxy=sliceZ.SliceType)
+
+ckwargs =  {
+    'colorBy': ('CELLS', 'rho'),
+    'scalarBar': {
+                    'Title': r"ρ [m$_p$/cm$^3$]",
+                    'ComponentTitle': '',
+                    'HorizontalTitle': 1,
+                    'TitleJustification': 'Left',
+                    'Visibility': 1,
+                    'ScalarBarLength': 0.8
+                },
+    'colorTransferFunction': {
+                                "UseLogScale": 1 
+                            }
+}
+
+mvs.SetColoring(source=sliceYDisplay, display=sliceYDisplay, **ckwargs)
+
+sliceZDisplay.SetScalarBarVisibility(view, False)
+
+
+# Demo 3
 import magnetovis as mvs
 mvs.CreateViewAndLayout()
 batsrus = mvs.BATSRUS(file=vtkfile)
@@ -36,7 +83,7 @@ pvs.UpdateScalarBars(view=view)
 view.Update()
 
 
-# Demo #3
+# Demo 4
 import magnetovis as mvs
 import paraview.simple as pvs
 mvs.CreateViewAndLayout()
@@ -45,11 +92,13 @@ pvs.Hide(batsrus)
 
 akwargs = {"label": {"display": {"Color": [0, 0, 0]}}}
 xAxis = mvs.Axis(direction="X", extent=[0, 70], vtkTubeFilter=['Radius: 2'])
-yAxis = mvs.Axis(direction="Y", extent=[0, 70], vtkTubeFilter=['Radius: 2'])
-zAxis = mvs.Axis(direction="Z", extent=[0, 140], vtkTubeFilter=['Radius: 2'])
 mvs.SetDisplayProperties(xAxis, **akwargs)
+yAxis = mvs.Axis(direction="Y", extent=[0, 70], vtkTubeFilter=['Radius: 2'])
 mvs.SetDisplayProperties(yAxis, **akwargs)
+zAxis = mvs.Axis(direction="Z", extent=[0, 140], vtkTubeFilter=['Radius: 2'])
 mvs.SetDisplayProperties(zAxis, **akwargs)
+
+mvs.SetTitle('Simulation Grid Cube Side Length')
 
 # Compute Cell volumes
 cellSize1 = pvs.CellSize(registrationName='CellSize', Input=batsrus)
@@ -62,16 +111,20 @@ cellSize1.ComputeVolume = 1
 calculator1 = pvs.Calculator(registrationName='Calculator1', Input=cellSize1)
 calculator1.AttributeType = 'Cell Data'
 calculator1.ResultArrayName = 'Δ'
-calculator1.Function = 'Volume^(1/3)'
+calculator1.Function = 'round(10000*Volume^(1/3))/10000'
+
+# The use of Volume^(1/3) calculation leads to values such as 
+# 06250000000000001. The use of round(...) above addresses this.
 
 clip1 = pvs.Clip(registrationName='Clip1', Input=calculator1)
 clip1.ClipType = 'Plane'
 clip1.HyperTreeGridClipper = 'Plane'
 clip1.Scalars = ['CELLS', 'Δ']
 clip1.Value = 0.0
-clip1.ClipType.Origin = [00, 0.0, 0.0]
+clip1.ClipType.Origin = [0.0, 0.0, 0.0]
 clip1.ClipType.Origin = [0.0, 0.0, 0.0]
 clip1.ClipType.Normal = [0.0, 1.0, 0.0]
+
 
 ckwargs =  {
     'colorBy': ('CELLS', 'Δ'),
@@ -85,171 +138,100 @@ ckwargs =  {
                 },
     'colorTransferFunction': {
                                 'InterpretValuesAsCategories': 1,
-                                'Annotations': ['0.06250000000000001', '1/16', '0.12500000000000003', '1/8', '0.25', '1/4', '0.5', '1/2', '1', '1', '2', '2', '3.9999999999999996', '4', '7.999999999999999', '8']
+                                'Annotations': ['0.0625', '1/16', '0.125', '1/8', '0.25', '1/4', '0.5', '1/2', '1', '1', '2', '2', '4.0', '4', '8.0', '8']
                             }
 }
 
-mvs.SetColoring(**ckwargs)
+from paraview.simple import *
+
+# get active view
+renderView2 = GetActiveViewOrCreate('RenderView')
+
+# get display properties
+clip1Display = GetDisplayProperties(clip1, view=renderView2)
+
+# get active source.
+clip1 = GetActiveSource()
+
 
 pvs.ResetCamera()
 pvs.Hide3DWidgets(proxy=clip1.ClipType)
 
-# Demo 4
+mvs.SetColoring(source=clip1, view=renderView2, display=clip1Display, **ckwargs)
+
+# Demo 5
+# This demo shows an issue with the VTK StreamTracer when tracing line
+# in the native BATSRUS grid. Some of the stream lines stop and the
+# reason for stopping does not seem to be correct. In Demo 5, the
+# data are interpolated to a uniform grid and then the stream tracing
+# works as expected.
 import magnetovis as mvs
+import paraview.simple as pvs
+from paraview.simple import *
+
 mvs.CreateViewAndLayout()
 batsrus = mvs.BATSRUS(file=vtkfile)
 
-if True:
-    # http://davis.lbl.gov/Manuals/VTK-4.5/classvtkStreamTracer.html
-    # OUT_OF_DOMAIN = 1
-    # NOT_INITIALIZED = 2
-    # UNEXPECTED_VALUE = 3
-    # OUT_OF_TIME = 4
-    # OUT_OF_STEPS = 5
-    # STAGNATION =6
+# http://davis.lbl.gov/Manuals/VTK-4.5/classvtkStreamTracer.html
+# OUT_OF_DOMAIN = 1
+# NOT_INITIALIZED = 2
+# UNEXPECTED_VALUE = 3
+# OUT_OF_TIME = 4
+# OUT_OF_STEPS = 5
+# STAGNATION =6
 
-    from paraview.simple import *
-    # find source
-    bATSRUS3d__var_2_e20190902041000000GSM = FindSource('BATSRUS/3d__var_2_e20190902-041000-000/GSM')
+pvs.Hide(batsrus)
 
-    # create a new 'Stream Tracer'
-    streamTracer1 = StreamTracer(registrationName='StreamTracer1', Input=bATSRUS3d__var_2_e20190902041000000GSM,
-        SeedType='Line')
-    streamTracer1.Vectors = ['CELLS', 'b']
-    streamTracer1.MaximumStreamlineLength = 256.0
+# create a new 'Stream Tracer'
+streamTracer1 = StreamTracer(registrationName='StreamTracer1', Input=batsrus, SeedType='Line')
+streamTracer1.Vectors = ['CELLS', 'b']
+streamTracer1.MaximumStreamlineLength = 256.0
 
-    # Bug to report: When these are changed in the GUI, the
-    # changed values don't show in Python trace
-    # init the 'Line' selected for 'SeedType'
-    streamTracer1.SeedType.Point1 = [-3, 0, 0]
-    streamTracer1.SeedType.Point2 = [-10, 0, 0]
-    streamTracer1.SeedType.Resolution = 10
+# Bug to report: When these are changed in the GUI, the
+# changed values don't show in Python trace
+# init the 'Line' selected for 'SeedType'
+streamTracer1.SeedType.Point1 = [-3, 0, 0]
+streamTracer1.SeedType.Point2 = [-10, 0, 0]
+streamTracer1.SeedType.Resolution = 10
 
-    # toggle 3D widget visibility (only when running from the GUI)
-    Hide3DWidgets(proxy=streamTracer1.SeedType)
+# toggle 3D widget visibility (only when running from the GUI)
+Hide3DWidgets(proxy=streamTracer1.SeedType)
 
-    # Properties modified on bATSRUS3d__var_2_e20190902041000000GSM
-    bATSRUS3d__var_2_e20190902041000000GSM.ScriptRequestInformation = ''
-    bATSRUS3d__var_2_e20190902041000000GSM.PythonPath = ''
+view = GetActiveViewOrCreate('RenderView')
 
-    # get active view
-    renderView2 = GetActiveViewOrCreate('RenderView')
+# show data in view
+streamTracer1Display = Show(streamTracer1, view, 'GeometryRepresentation')
 
-    # show data in view
-    streamTracer1Display = Show(streamTracer1, renderView2, 'GeometryRepresentation')
+# set active source
+SetActiveSource(streamTracer1)
 
-    # trace defaults for the display properties.
-    streamTracer1Display.Representation = 'Surface'
-    streamTracer1Display.ColorArrayName = [None, '']
-    streamTracer1Display.SelectTCoordArray = 'None'
-    streamTracer1Display.SelectNormalArray = 'None'
-    streamTracer1Display.SelectTangentArray = 'None'
-    streamTracer1Display.OSPRayScaleArray = 'AngularVelocity'
-    streamTracer1Display.OSPRayScaleFunction = 'PiecewiseFunction'
-    streamTracer1Display.SelectOrientationVectors = 'Normals'
-    streamTracer1Display.ScaleFactor = 5.130233970252448
-    streamTracer1Display.SelectScaleArray = 'AngularVelocity'
-    streamTracer1Display.GlyphType = 'Arrow'
-    streamTracer1Display.GlyphTableIndexArray = 'AngularVelocity'
-    streamTracer1Display.GaussianRadius = 0.2565116985126224
-    streamTracer1Display.SetScaleArray = ['POINTS', 'AngularVelocity']
-    streamTracer1Display.ScaleTransferFunction = 'PiecewiseFunction'
-    streamTracer1Display.OpacityArray = ['POINTS', 'AngularVelocity']
-    streamTracer1Display.OpacityTransferFunction = 'PiecewiseFunction'
-    streamTracer1Display.DataAxesGrid = 'GridAxesRepresentation'
-    streamTracer1Display.PolarAxes = 'PolarAxesRepresentation'
 
-    # init the 'PiecewiseFunction' selected for 'ScaleTransferFunction'
-    streamTracer1Display.ScaleTransferFunction.Points = [0.0, 0.0, 0.5, 0.0, 1.1757813367477812e-38, 1.0, 0.5, 0.0]
+# set scalar coloring
+ColorBy(streamTracer1Display, ('CELLS', 'ReasonForTermination'), separate=True)
 
-    # init the 'PiecewiseFunction' selected for 'OpacityTransferFunction'
-    streamTracer1Display.OpacityTransferFunction.Points = [0.0, 0.0, 0.5, 0.0, 1.1757813367477812e-38, 1.0, 0.5, 0.0]
+# rescale color and/or opacity maps used to include current data range
+streamTracer1Display.RescaleTransferFunctionToDataRange(True, False)
 
-    # hide data in view
-    Hide(bATSRUS3d__var_2_e20190902041000000GSM, renderView2)
+# show color bar/color legend
+streamTracer1Display.SetScalarBarVisibility(view, True)
 
-    # update the view to ensure updated data information
-    renderView2.Update()
+# get color transfer function/color map for 'ReasonForTermination'
+reasonForTerminationLUT = GetColorTransferFunction('ReasonForTermination', streamTracer1Display, separate=True)
+reasonForTerminationLUT.RGBPoints = [1.0, 0.231373, 0.298039, 0.752941, 3.0, 0.865003, 0.865003, 0.865003, 5.0, 0.705882, 0.0156863, 0.14902]
+reasonForTerminationLUT.ScalarRangeInitialized = 1.0
 
-    # set active source
-    SetActiveSource(bATSRUS3d__var_2_e20190902041000000GSM)
+# get opacity transfer function/opacity map for 'ReasonForTermination'
+reasonForTerminationPWF = GetOpacityTransferFunction('ReasonForTermination', streamTracer1Display, separate=True)
+reasonForTerminationPWF.Points = [1.0, 0.0, 0.5, 0.0, 5.0, 1.0, 0.5, 0.0]
+reasonForTerminationPWF.ScalarRangeInitialized = 1
 
-    # show data in view
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay = Show(bATSRUS3d__var_2_e20190902041000000GSM, renderView2, 'UnstructuredGridRepresentation')
+# Properties modified on reasonForTerminationLUT
+reasonForTerminationLUT.InterpretValuesAsCategories = 1
+reasonForTerminationLUT.AnnotationsInitialized = 1
 
-    # get separate color transfer function/color map for 'b'
-    separate_bATSRUS3d__var_2_e20190902041000000GSMDisplay_bLUT = GetColorTransferFunction('b', bATSRUS3d__var_2_e20190902041000000GSMDisplay, separate=True)
-    separate_bATSRUS3d__var_2_e20190902041000000GSMDisplay_bLUT.RGBPoints = [0.0984629991587708, 0.231373, 0.298039, 0.752941, 156029167.90937236, 0.865003, 0.865003, 0.865003, 312058335.7202817, 0.705882, 0.0156863, 0.14902]
-    separate_bATSRUS3d__var_2_e20190902041000000GSMDisplay_bLUT.NumberOfTableValues = 32
-    separate_bATSRUS3d__var_2_e20190902041000000GSMDisplay_bLUT.ScalarRangeInitialized = 1.0
+# Properties modified on reasonForTerminationLUT
+reasonForTerminationLUT.Annotations = ['1', '1', '5', '5']
+reasonForTerminationLUT.IndexedColors = [1.0, 1.0, 1.0, 1.0, 0.0, 0.0]
+reasonForTerminationLUT.IndexedOpacities = [1.0, 1.0]
 
-    # get separate opacity transfer function/opacity map for 'b'
-    separate_bATSRUS3d__var_2_e20190902041000000GSMDisplay_bPWF = GetOpacityTransferFunction('b', bATSRUS3d__var_2_e20190902041000000GSMDisplay, separate=True)
-    separate_bATSRUS3d__var_2_e20190902041000000GSMDisplay_bPWF.Points = [0.0984629991587708, 0.0, 0.5, 0.0, 312058335.7202817, 1.0, 0.5, 0.0]
-    separate_bATSRUS3d__var_2_e20190902041000000GSMDisplay_bPWF.ScalarRangeInitialized = 1
-
-    # trace defaults for the display properties.
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.Representation = 'Surface'
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.AmbientColor = [0.5, 0.5, 0.5]
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.ColorArrayName = ['CELLS', 'b']
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.DiffuseColor = [0.5, 0.5, 0.5]
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.LookupTable = separate_bATSRUS3d__var_2_e20190902041000000GSMDisplay_bLUT
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.SelectTCoordArray = 'None'
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.SelectNormalArray = 'None'
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.SelectTangentArray = 'None'
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.OSPRayScaleFunction = 'PiecewiseFunction'
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.SelectOrientationVectors = 'b'
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.ScaleFactor = 25.6
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.SelectScaleArray = 'rho'
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.GlyphType = 'Arrow'
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.GlyphTableIndexArray = 'rho'
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.GaussianRadius = 1.28
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.SetScaleArray = [None, '']
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.ScaleTransferFunction = 'PiecewiseFunction'
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.OpacityArray = [None, '']
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.OpacityTransferFunction = 'PiecewiseFunction'
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.DataAxesGrid = 'GridAxesRepresentation'
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.PolarAxes = 'PolarAxesRepresentation'
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.ScalarOpacityFunction = separate_bATSRUS3d__var_2_e20190902041000000GSMDisplay_bPWF
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.ScalarOpacityUnitDistance = 2.4543889495772016
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.OpacityArrayName = ['CELLS', 'rho']
-
-    # show color bar/color legend
-    bATSRUS3d__var_2_e20190902041000000GSMDisplay.SetScalarBarVisibility(renderView2, True)
-
-    # hide data in view
-    Hide(bATSRUS3d__var_2_e20190902041000000GSM, renderView2)
-
-    # reset view to fit data
-    renderView2.ResetCamera(False)
-
-    # set active source
-    SetActiveSource(streamTracer1)
-
-    # set scalar coloring
-    ColorBy(streamTracer1Display, ('CELLS', 'ReasonForTermination'))
-
-    # rescale color and/or opacity maps used to include current data range
-    streamTracer1Display.RescaleTransferFunctionToDataRange(True, False)
-
-    # show color bar/color legend
-    streamTracer1Display.SetScalarBarVisibility(renderView2, True)
-
-    # get color transfer function/color map for 'ReasonForTermination'
-    reasonForTerminationLUT = GetColorTransferFunction('ReasonForTermination')
-    reasonForTerminationLUT.RGBPoints = [1.0, 0.231373, 0.298039, 0.752941, 3.0, 0.865003, 0.865003, 0.865003, 5.0, 0.705882, 0.0156863, 0.14902]
-    reasonForTerminationLUT.ScalarRangeInitialized = 1.0
-
-    # get opacity transfer function/opacity map for 'ReasonForTermination'
-    reasonForTerminationPWF = GetOpacityTransferFunction('ReasonForTermination')
-    reasonForTerminationPWF.Points = [1.0, 0.0, 0.5, 0.0, 5.0, 1.0, 0.5, 0.0]
-    reasonForTerminationPWF.ScalarRangeInitialized = 1
-
-    # Properties modified on reasonForTerminationLUT
-    reasonForTerminationLUT.InterpretValuesAsCategories = 1
-    reasonForTerminationLUT.AnnotationsInitialized = 1
-
-    # Properties modified on reasonForTerminationLUT
-    reasonForTerminationLUT.Annotations = ['1', '1', '5', '5']
-    reasonForTerminationLUT.IndexedColors = [1.0, 1.0, 1.0, 1.0, 0.0, 0.0]
-    reasonForTerminationLUT.IndexedOpacities = [1.0, 1.0]
+pvs.ResetCamera()
