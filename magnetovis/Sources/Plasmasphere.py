@@ -3,7 +3,7 @@ def OutputDataSetType():
     return "vtkUnstructuredGrid"
 
 
-def Script(time="2001-01-01", coord_sys='GSM', N=50):
+def Script(time="2001-01-01", coord_sys='SM', N=50):
 
     import vtk
 
@@ -13,10 +13,10 @@ def Script(time="2001-01-01", coord_sys='GSM', N=50):
 
     mvs.vtk.set_points(output, points)
 
-    if coord_sys != 'GSM':
+    if coord_sys != 'SM':
         from hxform import hxform as hx
-        assert time != None, 'If coord_sys in not GSM, time cannot be None'
-        points = hx.transform(points, mvs.util.iso2ints(time), 'GSM', coord_sys, 'car', 'car')
+        assert time != None, 'If coord_sys in not SM, time cannot be None'
+        points = hx.transform(points, mvs.util.iso2ints(time), 'SM', coord_sys, 'car', 'car')
 
     mvs.vtk.set_arrays(output, point_data={'H+ log density (cm^-3)': logDensity})
 

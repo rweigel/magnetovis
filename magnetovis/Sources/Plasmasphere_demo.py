@@ -4,14 +4,14 @@
 # Demo 1
 import magnetovis as mvs
 mvs.Plasmasphere()
-mvs.SetTitle('GCC88 Plasmasphere')
+mvs.SetTitle()
 
 # Demo #2
 import magnetovis as mvs
 mvs.CreateViewAndLayout()
 mvs.Earth(coord_sys='SM')
-
 plasmasphere = mvs.Plasmasphere()
+mvs.SetTitle()
 
 # Add slice
 import paraview.simple as pvs

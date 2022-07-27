@@ -4,12 +4,13 @@
 # Demo 1
 import magnetovis as mvs
 t89c = mvs.T89c(dimensions=[20, 20, 20])
-mvs.SetTitle("Default")
+mvs.SetTitle()
 
 # Demo 2
 import magnetovis as mvs
 mvs.CreateViewAndLayout()
 t89c = mvs.T89c(dimensions=[20, 20, 20])
+mvs.SetTitle()
 
 import paraview.simple as pvs
 pvs.Hide(t89c)
