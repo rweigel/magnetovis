@@ -1,0 +1,1 @@
+`screg.for` is the source code that was sent to Angel by Bobby Candey of SPDF. It is the code used by SSCWeb to compute satellite regions.

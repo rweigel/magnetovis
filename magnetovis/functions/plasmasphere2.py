@@ -1,10 +1,13 @@
 def plasmasphere(N=2, coord_sys='SM', time='2001-01-01'):
     """
 
+    Implementation by Angel Gutarra-Leon and Gary Quaresima
+
     Plasmasphere model of D. Gallagher, P. Craven, R. H. Comfort, 1988
     (https://doi.org/10.1016/0273-1177%2888%2990258-X)
 
-    Implementation by Angel Gutarra-Leon and Gary Quaresima
+    https://sscweb.gsfc.nasa.gov/users_guide/ssc_reg_doc.html defines plasmapause
+    as where log(n) = 1.5.
 
     Coordinate system is SM
 
@@ -39,12 +42,8 @@ def plasmasphere(N=2, coord_sys='SM', time='2001-01-01'):
         a8 = 0.7 * cos(2 * pi * ((MLT - 21) / 24)) + 4.4
         a9 = 15.3 * cos(2 * pi * MLT / 24) + 19.7
 
-    MLT = (PHI*RAD/15.) - 12.
-    x = MLT
-    MLT is the magnetic local time measured in HH MLT=0=24 is midnight
-    and MLT=12 is noon.
     MLT domain is [0, 24)
-    x domain is [-12, 12]
+    x = MLT - 12 
 
     PHI is the longitude
     THETA is the latitude
@@ -54,9 +53,8 @@ def plasmasphere(N=2, coord_sys='SM', time='2001-01-01'):
     import vtk
     import numpy as np
 
-    from copy import deepcopy
-
     def logDen(r, theta, phi):
+
         a1 = 1.4
         a2 = 1.53
         a3 = -0.036
@@ -64,15 +62,11 @@ def plasmasphere(N=2, coord_sys='SM', time='2001-01-01'):
         a5 = 159.9
         a7 = 6.27
 
-        MLT = (phi*180/np.pi/15.) - 12.
-        x = deepcopy(MLT)
-        if MLT >= 24: MLT = MLT - 24
-        if MLT <   0: MLT = MLT + 24
-        if x >  12: x = x - 24
-        if x < -12: x = x + 24
+        MLT = (phi*180/np.pi/15.)
+        x = MLT - 12
 
         a6 = -0.87 + 0.12 * np.exp(-x*x/9.)
-        a8 = 0.7 * np.cos(2*np.pi* (MLT-21.)/24.) + 4.4
+        a8 = 0.7 * np.cos(2*np.pi*(MLT-21.)/24.) + 4.4
         a9 = 15.3 * np.cos(2*np.pi*MLT/24.) + 19.7
 
         F = a2 - np.exp(a3 * (1.-a4 * np.exp(6371.2*(1.-r)/a5)))
@@ -85,7 +79,8 @@ def plasmasphere(N=2, coord_sys='SM', time='2001-01-01'):
         return n_log
 
     rmin = 1.05
-    r_ax = np.arange(rmin,6,(6-rmin)/N) # make radius out to 6.
+    # Outer radius of 6 based on Plate 1. Figure 3 goes to 7, however.
+    r_ax = np.arange(rmin, 6, (6-rmin)/N) 
 
     theta_i = 28*np.pi/180
     theta_f = 152*np.pi/180

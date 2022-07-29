@@ -4,6 +4,7 @@ def SetCamera(view=None, source=None, viewType=None,
     import paraview.simple as pvs
 
     import magnetovis as mvs
+
     mvs.logger.info("Called.")
 
     if view is None:
@@ -22,6 +23,7 @@ def SetCamera(view=None, source=None, viewType=None,
         Yaw = 0.0
         Zoom = 1.5
 
+    # These choices match those on the "set view direction" buttons in the ParaView GUI
     if viewType in ["+X", "-X", "+Y", "-Y", "+Z", "-Z"]:
         Azimuth = 0
         Elevation = 0
@@ -30,17 +32,17 @@ def SetCamera(view=None, source=None, viewType=None,
         Yaw = 0.0
         Zoom = 1.5
         if viewType == "+X":
-            Azimuth = 0
-        if viewType == "-X":
             Azimuth = 180
+        if viewType == "-X":
+            Azimuth = 0
         if viewType == "+Y":
-            Azimuth = 90
-        if viewType == "-Y":
             Azimuth = 270
+        if viewType == "-Y":
+            Azimuth = 90
         if viewType == "+Z":
-            Elevation = 90
-        if viewType == "-Z":
             Elevation = 270
+        if viewType == "-Z":
+            Elevation = 90
 
     if source is None:
         sources = pvs.GetSources()
@@ -71,9 +73,17 @@ def SetCamera(view=None, source=None, viewType=None,
     yb = bounds[3]-bounds[2]
     zb = bounds[5]-bounds[4]
 
-    camera.SetFocalPoint([0, 0, 0])
-    camera.SetPosition([max(xb,yb,zb)*5, 0.5, 0.5])
-    camera.SetViewUp([0, 0, 1])
+    FocalPoint = [0, 0, 0]
+    mvs.logger.info(f"Setting FocalPoint to {FocalPoint}")
+    camera.SetFocalPoint(FocalPoint)
+
+    Position = [max(xb,yb,zb)*5, 0.5, 0.5]
+    mvs.logger.info(f"Setting Position to {Position}")
+    camera.SetPosition(Position)
+
+    ViewUp = [0, 0, 1]
+    mvs.logger.info(f"Setting ViewUp to {ViewUp}")
+    camera.SetViewUp(ViewUp)
 
     camera.Azimuth(Azimuth)
     camera.Dolly(Dolly)
@@ -82,8 +92,7 @@ def SetCamera(view=None, source=None, viewType=None,
     camera.Yaw(Yaw)
     camera.Zoom(Zoom)
 
-    # Reset camera settings to include entire scene while
-    # preserving orientation 
+    # Reset camera settings to include entire scene while preserving orientation 
     view.ResetCamera()
 
     # TODO: Only set if origin is in volume.

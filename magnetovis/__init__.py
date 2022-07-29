@@ -1,7 +1,8 @@
-from magnetovis import util
 from magnetovis import vtk
+from magnetovis import util
 from magnetovis import functions
 from magnetovis.log import logger
+from magnetovis.demo import demo
 
 from magnetovis.paraview import ProxyInfo
 from magnetovis.paraview.CreateProgrammableSource import CreateProgrammableSource
@@ -16,6 +17,7 @@ from magnetovis.paraview.GetRegistrationName import GetRegistrationName
 from magnetovis.paraview.SetDisplayProperties import SetDisplayProperties
 from magnetovis.paraview.SetCamera import SetCamera
 from magnetovis.paraview.SetColoring import SetColoring
+from magnetovis.paraview.ClearPipeline import ClearPipeline
 from magnetovis.paraview.SetTitle import SetTitle
 
 # Generate Programmable Sources from files in ./Sources.

@@ -218,7 +218,6 @@ streamTracer1Display = Show(streamTracer1, view, 'GeometryRepresentation')
 # set active source
 SetActiveSource(streamTracer1)
 
-
 # set scalar coloring
 ColorBy(streamTracer1Display, ('CELLS', 'ReasonForTermination'), separate=True)
 

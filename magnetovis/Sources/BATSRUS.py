@@ -24,7 +24,11 @@ def Script(file=None, time=None, coord_sys='GSM', tmpdir=None):
   reader.ReadAllFieldsOn()
   reader.Update()
   mvs.logger.info("Read " + file)
+
   output.ShallowCopy(reader.GetOutput())
+
+  # Add cell centers and cell volumes
+  mvs.vtk.set_arrays(output, include=["CellCenter", "CellVolume"])
 
 
 def DefaultRegistrationName(**kwargs):
