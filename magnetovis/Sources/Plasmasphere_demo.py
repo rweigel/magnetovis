@@ -8,6 +8,7 @@ import magnetovis as mvs
 plasmasphere = mvs.Plasmasphere()
 mvs.SetTitle(source=plasmasphere)
 
+
 # Demo #2
 import magnetovis as mvs
 mvs.CreateViewAndLayout()
@@ -39,6 +40,7 @@ contour1.PointMergeMethod = 'Uniform Binning'
 pvs.Show(contour1)
 
 mvs.SetCamera(viewType="+Y")
+
 
 # Demo #3
 import magnetovis as mvs
