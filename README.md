@@ -57,7 +57,7 @@ The objects were developed using the ParaView GUI and the [Programmable Source e
 ParaView has a script and macro editor. However, the editor is basic and limited. To test scripts created using a different editor, enter the following on the Python Shell command line.
 
 ```python
-[pvs.Delete(s) for s in pvs.GetSources().values()] # Removes everything in Pipeline
+import magnetovis; magnetovis.ClearPipeline() # Optional
 exec(open("/absolute/path/to/script.py").read())
 ```
 

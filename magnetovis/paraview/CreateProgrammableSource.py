@@ -33,6 +33,12 @@ def CreateProgrammableSource(sourceFile, **kwargs):
 
     pSource = pvs.ProgrammableSource()
 
+    if False:
+        def AnySourceEvent(a,b):
+            mvs.logger.info("Event " + b + " on source.")
+            pSource.SMProxy.RemoveObserver(cb_id_ase)
+        cb_id_ase = pSource.SMProxy.AddObserver('AnyEvent', AnySourceEvent)
+
     if hasattr(module, 'GetSourceDefaults'):
         kwargs = module.GetSourceDefaults(extract.extract_kwargs(module.Script), kwargs)
 

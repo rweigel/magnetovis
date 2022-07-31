@@ -91,6 +91,27 @@ def time2datetime(t):
         return dt.datetime(*t)
 
 
+def run_demo(name):
+
+    import os
+    import magnetovis as mvs
+
+    mvs.ClearPipeline()
+    base = os.path.dirname(os.path.abspath(mvs.__file__))
+    file = os.path.join(base, "Sources", name + "_demo.py")
+    exec(open(file, encoding="utf-8").read())
+
+
+def run(file, clear=True):
+
+    import magnetovis as mvs
+
+    if clear:
+        mvs.ClearPipeline()
+
+    exec(open(file, encoding="utf-8").read())
+
+
 def install_paraview(paraview_version, install_path='/tmp/'):
 
 
