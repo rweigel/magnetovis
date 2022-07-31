@@ -1,8 +1,17 @@
-def CreateViewAndLayout(name=None):
+def CreateViewAndLayout(name=None, viewType=None):
     
+    # The types of ParaView views are Render View, Spreadsheet View, etc.
+    # A layout is a tab in the ParaView GUI.
+    # It seems possible to switch between view type in a given layout.
+    # However, there does not seem to be a way to switch a view in a given
+    # layout from that GUI. In addition, to have a new view, it seems
+    # easy enough to just create a new layout with that view.
     import paraview.simple as pvs
 
-    name = __GetUniqueLayoutName(name)
+    if viewType is None:
+        viewType = 'RenderView'
+
+    name = mvs.UniqueName(name=name, viewType="layout")
     # If following line happens after two lines after it,
     # get problems with colorbars on previous layouts.
     layout = pvs.CreateLayout(name=name)
@@ -12,28 +21,3 @@ def CreateViewAndLayout(name=None):
 
     return view, layout
 
-def __GetUniqueLayoutName(name):
-
-    import paraview.simple as pvs
-
-    layouts = list(pvs.GetLayouts().keys())
-    usedNames = []
-    for layout in layouts:
-        usedNames.append(layout[0])
-
-    if name is not None:
-        if name in usedNames:
-            raise ValueError("layout name '" + name + "' is used.")
-        else:
-            return name
-
-    name = "Layout"
-    if name + " #1" not in usedNames:
-        name = name + " #1"
-    else:
-        k = 2
-        while name + " #" + str(k) in usedNames:
-            k = k + 1
-        name = name + " #" + str(k)
-
-    return name

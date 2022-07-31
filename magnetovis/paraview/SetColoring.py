@@ -12,6 +12,8 @@ def SetColoring(source=None, display=None, view=None, **kwargs):
         view = pvs.GetActiveViewOrCreate('RenderView')
     if display is None:
         display = pvs.GetDisplayProperties(proxy=source, view=view)
+        # TODO: This will make object visible. If possible, reset to
+        #       original visibility after call.
 
     mvs.logger.info("source = {}".format(source))
     mvs.logger.info("display = {}".format(display))
@@ -71,7 +73,7 @@ def SetColoring(source=None, display=None, view=None, **kwargs):
     for prop in props:
         settings[prop] = scalarBar.GetPropertyValue(prop)
 
-    mvs.logger.info("Setting HideScalarBarIfNotNeeded")
+    mvs.logger.info("Calling pvs.HideScalarBarIfNotNeeded()")
     pvs.HideScalarBarIfNotNeeded(colorTF, view)
 
     # Hides unused scalar bars if HideScalarBarIfNotNeeded set.
@@ -81,6 +83,7 @@ def SetColoring(source=None, display=None, view=None, **kwargs):
     # display.RescaleTransferFunctionToDataRange()
 
     view.Update()
+
 
 def ColorByCellId(source=None, view=None, display=None, **displayArguments):
 

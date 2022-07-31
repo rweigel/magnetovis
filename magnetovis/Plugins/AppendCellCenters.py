@@ -12,10 +12,10 @@ import vtk
 from vtk.util import numpy_support as nps
 from vtk.numpy_interface import dataset_adapter as dsa
 
-MENU_CAT = 'Custom Filters'
+MENU_CAT = 'PVGeo'
 
 # Extract Cell Centers
-@smproxy.filter(name='AppendCellCenters', label='Append Cell Centers')
+@smproxy.filter(name='pvgAppendCellCenters', label='Append Cell Centers')
 @smhint.xml('''<ShowInMenu category="%s"/>
     <RepresentationType view="RenderView" type="Surface" />''' % MENU_CAT)
 @smproperty.input(name="Input", port_index=0)

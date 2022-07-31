@@ -47,30 +47,30 @@ def CreatePlugin(name):
                     nOutputPorts=1,
                     outputType=OutputDataSetType)
 
-            #################################################
             # The following hack is used to automatically set
-            # the default display properties after the source
-            # is shown.
             def UpdateDisplayOptions(caller, event):
                 import paraview.simple as pvs
                 import magnetovis as mvs
-                #print("Caller")
-                #print(caller)
-                #print("Event: " + str(event))
+                mvs.logger.info("Called")
+                mvs.logger.info(f"Caller: {caller}")
+                mvs.logger.info(f"Event: {event}")
+                print(pvs.GetActiveSource())
                 sources = pvs.GetSources()
                 for key in sources.keys():
-                    if not hasattr(sources[key],'_default_display_properies_set'):
+                    if not hasattr(sources[key], '_default_display_properies_set'):
                         sources[key].add_attribute('_default_display_properies_set', True)
-                        #print("Removing " + str(cb_id))
+                        mvs.logger.info(f"Removing callback with id = {cb_id}")
                         self.RemoveObserver(cb_id)
                         mvs.SetDisplayProperties(source=sources[key])
                 else:
-                    #print("Already set.")
-                    pass
+                    mvs.logger.info("SetDisplayProperties was already called. Not re-calling")
 
             cb_id = self.AddObserver('EndEvent', UpdateDisplayOptions)
-            #print("cb_id = " + str(cb_id))
-            #################################################
+            mvs.logger.info(f"Added Observer UpdateDisplayOptions for EndEvent; Callback id = {cb_id}")
+            import paraview.simple as pvs
+            sources = pvs.GetSources()
+            print(sources)
+            print(self)
 
  
             self._logger = mvs.logger

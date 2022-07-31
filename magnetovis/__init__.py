@@ -19,6 +19,7 @@ from magnetovis.paraview.SetCamera import SetCamera
 from magnetovis.paraview.SetColoring import SetColoring
 from magnetovis.paraview.ClearPipeline import ClearPipeline
 from magnetovis.paraview.SetTitle import SetTitle
+from magnetovis.paraview.UniqueName import UniqueName
 
 # Generate Programmable Sources from files in ./Sources.
 # Technique based on

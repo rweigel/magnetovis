@@ -118,6 +118,11 @@ def CreateProgrammableSource(sourceFile, **kwargs):
                 k = k + 1
             registrationName = registrationName + " #" + str(k)
 
+    defaultRegistrationName = None
+    if hasattr(module, 'DefaultRegistrationName'):
+        defaultRegistrationName = module.DefaultRegistrationName(**kwargs)
+
+    registrationName = mvs.UniqueName(name=registrationName, proxyType="source", default=defaultRegistrationName)
     pvs.RenameSource(registrationName, pSource)
     
     if setDisplayProperties == True:
