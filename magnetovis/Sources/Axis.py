@@ -41,6 +41,8 @@ def Script(time="2001-01-01",
     import numpy as np
     import magnetovis as mvs
 
+    mvs.logger.info("Called.")
+
     assert isinstance(extent, list or tuple or np.ndarray), \
         'magnetovis.Axis(): Extent must be a list, tuple, or numpy.ndarray'
 

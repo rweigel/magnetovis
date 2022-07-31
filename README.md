@@ -203,7 +203,7 @@ batsrus = mvs.BATSRUS(file=vtkfile)
 mvs.SetTitle("Default")
 
 if False:
-    # If a VTK file does not exit, can create it using the following.
+    # If a VTK file does not exist, can create it using the following.
     url = 'http://mag.gmu.edu/git-data/swmfio/3d__var_2_e20190902-041000-000'
     vtkfile = '/tmp/mag.gmu.edu/git-data/swmfio/3d__var_2_e20190902-041000-000.vtk'
     import os
@@ -421,7 +421,6 @@ streamTracer1Display = Show(streamTracer1, view, 'GeometryRepresentation')
 
 # set active source
 SetActiveSource(streamTracer1)
-
 
 # set scalar coloring
 ColorBy(streamTracer1Display, ('CELLS', 'ReasonForTermination'), separate=True)
@@ -882,7 +881,7 @@ dkwargs = {
                             'TitleJustification': 'Left',
                             'Visibility': 1,
                             'DrawNanAnnotation': 1,
-                            'ScalarBarLength': 0.8
+                            'ScalarBarLength': 0.8,
                         },
             'colorTransferFunction': {
                                         'UseLogScale': 1,
@@ -956,8 +955,8 @@ Source file: [Plasmasphere.py](https://github.com/rweigel/magnetovis/tree/main/m
 
 ```python
 import magnetovis as mvs
-mvs.Plasmasphere()
-mvs.SetTitle('GCC88 Plasmasphere')
+plasmasphere = mvs.Plasmasphere()
+mvs.SetTitle(source=plasmasphere)
 ```
 
 ![Plasmasphere_demo.py](magnetovis/Test/Figures/Plasmasphere_demo-1.png)
@@ -967,14 +966,13 @@ mvs.SetTitle('GCC88 Plasmasphere')
 ```python
 import magnetovis as mvs
 mvs.CreateViewAndLayout()
-mvs.Earth(coord_sys='SM')
-
 plasmasphere = mvs.Plasmasphere()
+mvs.Earth(coord_sys='SM')
+mvs.SetTitle(source=plasmasphere)
 
 # Add slice
 import paraview.simple as pvs
 pvs.Hide(plasmasphere)
-
 slice1 = pvs.Slice(registrationName=' y=0 slice', Input=plasmasphere)
 slice1.SliceType = 'Plane'
 slice1.HyperTreeGridSlicer = 'Plane'
@@ -989,9 +987,9 @@ slice1Display.SetScalarBarVisibility(renderView1, True)
 pvs.Hide3DWidgets(proxy=slice1.SliceType)
 
 # Add countour
-contour1 = pvs.Contour(registrationName=' 3.0 Contour', Input=slice1)
+contour1 = pvs.Contour(registrationName='1.5 Contour', Input=slice1)
 contour1.ContourBy = ['POINTS', 'H+ log density (cm^-3)']
-contour1.Isosurfaces = [3.0]
+contour1.Isosurfaces = [1.5]
 contour1.PointMergeMethod = 'Uniform Binning'
 pvs.Show(contour1)
 
@@ -999,6 +997,39 @@ mvs.SetCamera(viewType="+Y")
 ```
 
 ![Plasmasphere_demo.py](magnetovis/Test/Figures/Plasmasphere_demo-2.png)
+
+### Demo #3
+
+```python
+import magnetovis as mvs
+import paraview.simple as pvs
+mvs.CreateViewAndLayout()
+plasmasphere = mvs.Plasmasphere()
+pvs.Hide(plasmasphere)
+mvs.SetTitle("log$(n)=1.5$", source=plasmasphere)
+mvs.Earth(coord_sys='SM')
+
+# Add slice
+import paraview.simple as pvs
+
+# Add countour
+contour1 = pvs.Contour(registrationName='1.5 Contour', Input=plasmasphere)
+contour1.ContourBy = ['POINTS', 'H+ log density (cm^-3)']
+contour1.Isosurfaces = [1.5]
+contour1.PointMergeMethod = 'Uniform Binning'
+pvs.Hide3DWidgets(proxy=slice1.SliceType)
+
+clip1 = pvs.Clip(registrationName='y=0 slice', Input=contour1)
+clip1.ClipType = 'Plane'
+clip1.Value = [0.0]
+clip1.ClipType.Origin = [0.0, 1.0, 0.0]
+clip1.ClipType.Normal = [0.0, 1.0, 0.0]
+pvs.Hide3DWidgets(proxy=clip1.ClipType)
+pvs.Show(clip1)
+mvs.SetCamera(viewType="isometric")
+```
+
+![Plasmasphere_demo.py](magnetovis/Test/Figures/Plasmasphere_demo-3.png)
 
 ## Satellite.py
 Source file: [Satellite.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Satellite.py) | Demo file: [Satellite_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Satellite_demo.py)
@@ -1061,7 +1092,7 @@ Source file: [T89c.py](https://github.com/rweigel/magnetovis/tree/main/magnetovi
 ```python
 import magnetovis as mvs
 t89c = mvs.T89c(dimensions=[20, 20, 20])
-mvs.SetTitle("Default")
+mvs.SetTitle()
 ```
 
 ![T89c_demo.py](magnetovis/Test/Figures/T89c_demo-1.png)
@@ -1072,6 +1103,7 @@ mvs.SetTitle("Default")
 import magnetovis as mvs
 mvs.CreateViewAndLayout()
 t89c = mvs.T89c(dimensions=[20, 20, 20])
+mvs.SetTitle()
 
 import paraview.simple as pvs
 pvs.Hide(t89c)

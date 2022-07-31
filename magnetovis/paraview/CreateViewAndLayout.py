@@ -7,11 +7,12 @@ def CreateViewAndLayout(name=None, viewType=None):
     # layout from that GUI. In addition, to have a new view, it seems
     # easy enough to just create a new layout with that view.
     import paraview.simple as pvs
+    import magnetovis as mvs
 
     if viewType is None:
         viewType = 'RenderView'
 
-    name = mvs.UniqueName(name=name, viewType="layout")
+    name = mvs.UniqueName(name=name, proxyType="layout")
     # If following line happens after two lines after it,
     # get problems with colorbars on previous layouts.
     layout = pvs.CreateLayout(name=name)
