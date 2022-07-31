@@ -21,7 +21,6 @@ def CreateProgrammableSource(sourceFile, **kwargs):
     module = create_module(sourceFile)
     sourceName = module.__name__
 
-
     # If registrationName is not a keyword for source, it will be removed
     # by the call to extract_script. So we need to get it here. Same for
     # setDisplayProperties.
@@ -73,7 +72,10 @@ def CreateProgrammableSource(sourceFile, **kwargs):
         if property == "__magnetovis_name__":
             return sourceName
         if property == "__magnetovis_children__":
-            return children
+            if hasattr(pSource, '__magnetovis_children__'):
+                return pSource.__magnetovis_children__
+            else:
+                return None
         if property == "__magnetovis_module__":
             return module
         if property in kwargs:
@@ -84,40 +86,6 @@ def CreateProgrammableSource(sourceFile, **kwargs):
     pSource.ListProperties = ListProperties
     pSource.GetProperty = GetProperty
 
-    # TODO: Similar code exists in CreateViewAndLayout(). Combine.
-    # Set a registration name using the following logic.
-    # If registrationName
-    #      Use it. If used, ValueError.
-    #    else
-    #      if module.DefaultRegistrationName() found
-    #         Use that name + " #1"
-    #      else
-    #         Use module name + " #1"
-    #      
-    #      If name + " #1" already used, increment number until
-    #      name + " #n" is unique.
-    sources = list(pvs.GetSources().keys())
-    registrationNames = []
-    for source in sources:
-        registrationNames.append(source[0])
-
-    if registrationName is not None:
-        # Requested registrationName
-        if registrationName in registrationNames:
-            raise ValueError("registration name '" + registrationName + "' is used.")
-    else:
-        registrationName = sourceName
-        if hasattr(module, 'DefaultRegistrationName'):
-            registrationName = module.DefaultRegistrationName(**kwargs)
-
-        #if registrationName + " #1" not in registrationNames:
-        #    registrationName = registrationName + " #1"
-        if registrationName in registrationNames:
-            k = 2
-            while registrationName + " #" + str(k) in registrationNames:
-                k = k + 1
-            registrationName = registrationName + " #" + str(k)
-
     defaultRegistrationName = None
     if hasattr(module, 'DefaultRegistrationName'):
         defaultRegistrationName = module.DefaultRegistrationName(**kwargs)
@@ -126,7 +94,14 @@ def CreateProgrammableSource(sourceFile, **kwargs):
     pvs.RenameSource(registrationName, pSource)
     
     if setDisplayProperties == True:
-        children = mvs.SetDisplayProperties(pSource)
+        mvs.SetDisplayProperties(source=pSource)
+    else:
+        view = pvs.GetActiveViewOrCreate('RenderView')
+        def AnyEvent(a,b):
+            view.SMProxy.RemoveObserver(cb_id_ae)
+            mvs.logger.info("Event " + b + " on view for " + registrationName)
+            mvs.SetDisplayProperties(source=pSource)
+        cb_id_ae = view.SMProxy.AddObserver('AnyEvent', AnyEvent)
 
     mvs.logger.info("Finished.\n")
 

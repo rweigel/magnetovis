@@ -16,7 +16,7 @@ batsrus = mvs.BATSRUS(file=vtkfile)
 mvs.SetTitle("Default")
 
 if False:
-    # If a VTK file does not exit, can create it using the following.
+    # If a VTK file does not exist, can create it using the following.
     url = 'http://mag.gmu.edu/git-data/swmfio/3d__var_2_e20190902-041000-000'
     vtkfile = '/tmp/mag.gmu.edu/git-data/swmfio/3d__var_2_e20190902-041000-000.vtk'
     import os

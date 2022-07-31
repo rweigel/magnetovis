@@ -66,18 +66,18 @@ def SetDisplayProperties(source=None, view=None, **kwargs):
     if hasattr(mvsObj, 'SetDisplayProperties'):
 
         # Call the function magnetovis/Sources/{name}.py
-        children = mvsObj \
-                    .SetDisplayProperties( \
-                        source, view=view, **kwargs)
+        children = mvsObj.SetDisplayProperties(source, view=view, **kwargs)
 
         if children is not None:
             if not isinstance(children, list):
                 children = [children]
 
-        # Active source will be the last child. Set it back
-        # to the main source.
+        # Active source will be the last child. Set it back to the main source.
         pvs.SetActiveSource(source)
-    
+
+    if children is not None:
+        source.add_attribute('__magnetovis_children__', children)
+
     if sourceVisibility == False:
         pvs.Hide(source, view)
 
