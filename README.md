@@ -49,9 +49,6 @@ The objects were developed using the ParaView GUI and the [Programmable Source e
 
 # Development Tips
 
-## Command Line
-
-
 ## Testing and Developing Scripts
 
 ParaView has a script and macro editor. However, the editor is basic and limited. To test scripts created using a different editor, enter the following on the Python Shell command line.

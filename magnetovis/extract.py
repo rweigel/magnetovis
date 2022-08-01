@@ -219,7 +219,7 @@ def extract_script(function, sourceArguments, xml_encode=False):
             found_def_start = True
             if debug: print("Found def start: " + line)
 
-         if found_def_start is True and line.endswith(":"):
+         if found_def_start is True and found_def_end == False and line.endswith(":"):
             found_def_end = True
             if debug: print("Found def end: " + line)
             continue

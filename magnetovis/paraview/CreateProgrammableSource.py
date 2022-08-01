@@ -1,10 +1,12 @@
-def CreateProgrammableSource(sourceFile, **kwargs):
+def CreateProgrammableSource(sourceFile, ptype, **kwargs):
 
     import importlib
     import paraview.simple as pvs
 
     import magnetovis as mvs
     from magnetovis import extract
+
+    mvs.logger.info("Called.")
 
     def create_module(file_path):
         import os
@@ -27,11 +29,14 @@ def CreateProgrammableSource(sourceFile, **kwargs):
     registrationName = None
     if 'registrationName' in kwargs:
         registrationName = kwargs['registrationName']
-    setDisplayProperties = True
-    if 'setDisplayProperties' in kwargs:
-        setDisplayProperties = kwargs['setDisplayProperties']
 
-    pSource = pvs.ProgrammableSource()
+    if ptype == "source":
+        setDisplayProperties = True
+        if 'setDisplayProperties' in kwargs:
+            setDisplayProperties = kwargs['setDisplayProperties']
+        pSource = pvs.ProgrammableSource()
+    else:
+        pSource = pvs.ProgrammableFilter()
 
     if False:
         def AnySourceEvent(a,b):
@@ -39,7 +44,9 @@ def CreateProgrammableSource(sourceFile, **kwargs):
             pSource.SMProxy.RemoveObserver(cb_id_ase)
         cb_id_ase = pSource.SMProxy.AddObserver('AnyEvent', AnySourceEvent)
 
-    if hasattr(module, 'GetSourceDefaults'):
+    if ptype == "source" and hasattr(module, 'GetSourceDefaults'):
+        kwargs = module.GetSourceDefaults(extract.extract_kwargs(module.Script), kwargs)
+    if ptype == "filter" and hasattr(module, 'GetFilterDefaults'):
         kwargs = module.GetSourceDefaults(extract.extract_kwargs(module.Script), kwargs)
 
     mvs.logger.info("Extracting script and kwarg defaults after replacing defaults with passed kwargs.")
@@ -99,15 +106,16 @@ def CreateProgrammableSource(sourceFile, **kwargs):
     registrationName = mvs.UniqueName(name=registrationName, proxyType="source", default=defaultRegistrationName)
     pvs.RenameSource(registrationName, pSource)
     
-    if setDisplayProperties == True:
-        mvs.SetDisplayProperties(source=pSource)
-    else:
-        view = pvs.GetActiveViewOrCreate('RenderView')
-        def AnyEvent(a,b):
-            view.SMProxy.RemoveObserver(cb_id_ae)
-            mvs.logger.info("Event " + b + " on view for " + registrationName)
+    if ptype == "source":
+        if setDisplayProperties == True:
             mvs.SetDisplayProperties(source=pSource)
-        cb_id_ae = view.SMProxy.AddObserver('AnyEvent', AnyEvent)
+        else:
+            view = pvs.GetActiveViewOrCreate('RenderView')
+            def AnyEvent(a,b):
+                view.SMProxy.RemoveObserver(cb_id_ae)
+                mvs.logger.info("Event " + b + " on view for " + registrationName)
+                mvs.SetDisplayProperties(source=pSource)
+            cb_id_ae = view.SMProxy.AddObserver('AnyEvent', AnyEvent)
 
     mvs.logger.info("Finished.\n")
 
