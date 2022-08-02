@@ -50,7 +50,7 @@ def programmable_defs(ptype):
     file = os.path.basename(os.path.splitext(source)[0])
     exclude = file.endswith("_demo")
     exclude = exclude and file.startswith("__")
-    exclude = exclude and file.startswith(ignore)
+    #exclude = exclude and file.startswith(ignore)
     if not exclude:
       def_strs.append('def ' + file + "(**kwargs): return CreateProgrammableSource('" + source + "', '" + ptype + "', **kwargs)")
 

@@ -765,6 +765,17 @@ mvs.SetTitle("  Earth with Default Options")
 ```python
 import magnetovis as mvs
 mvs.CreateViewAndLayout()
+mvs.Earth(style="daynight")
+mvs.SetTitle('  Earth with style="daynight"')
+```
+
+![Earth_demo.py](magnetovis/Test/Figures/Earth_demo-2.png)
+
+### Demo 3
+
+```python
+import magnetovis as mvs
+mvs.CreateViewAndLayout()
 mvs.Earth()
 mvs.SetTitle("  Earth with Axes")
 
@@ -794,7 +805,7 @@ zAxis2 = mvs.Axis(direction="Z", extent=[-3, 3], coord_sys="GEO")
 mvs.SetDisplayProperties(source=zAxis2, **dkwargs)
 ```
 
-![Earth_demo.py](magnetovis/Test/Figures/Earth_demo-2.png)
+![Earth_demo.py](magnetovis/Test/Figures/Earth_demo-3.png)
 
 ## GridData.py
 Source file: [GridData.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/GridData.py) | Demo file: [GridData_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/GridData_demo.py)
@@ -896,6 +907,20 @@ mvs.SetTitle(r"$\alpha$/β", title=registrationName)
 
 ![GridData_demo.py](magnetovis/Test/Figures/GridData_demo-4.png)
 
+## LatLong.py
+Source file: [LatLong.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/LatLong.py) | Demo file: [LatLong_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/LatLong_demo.py)
+
+### Demo 1
+
+```python
+import magnetovis as mvs
+mvs.Earth(coord_sys="GEO")
+mvs.LatLong()
+mvs.SetTitle()
+```
+
+![LatLong_demo.py](magnetovis/Test/Figures/LatLong_demo-1.png)
+
 ## Lines.py
 Source file: [Lines.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Lines.py) | Demo file: [Lines_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Lines_demo.py)
 
@@ -929,21 +954,6 @@ mvs.Lines(**kwargs)
 ```
 
 ![Lines_demo.py](magnetovis/Test/Figures/Lines_demo-2.png)
-
-## MySource.py
-Source file: [MySource.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/MySource.py) | Demo file: [MySource_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/MySource_demo.py)
-
-### Demo 1
-
-```python
-exec(open("MySource.py").read())
-MySource()
-
-import magnetovis as mvs
-mvs.PrintDisplayDefaults(MySource, all=True)
-```
-
-![MySource_demo.py](magnetovis/Test/Figures/MySource_demo-1.png)
 
 ## Plasmasphere.py
 Source file: [Plasmasphere.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Plasmasphere.py) | Demo file: [Plasmasphere_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Plasmasphere_demo.py)

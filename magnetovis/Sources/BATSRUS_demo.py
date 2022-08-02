@@ -30,7 +30,8 @@ if False:
 
       import logging
       swmfio.logger.setLevel(logging.INFO)
-      vtkfile = swmfio.write_vtk(url)
+      filebase = swmfio.dlfile(url, progress=True)
+      vtkfile = swmfio.write_vtk(filebase)
 
 
 # Demo 2
@@ -56,7 +57,6 @@ sliceZ.SliceType.Normal = [0.0, 0.0, 1.0]
 
 sliceYDisplay = pvs.Show(sliceY, view, 'GeometryRepresentation')
 sliceZDisplay = pvs.Show(sliceZ, view, 'GeometryRepresentation')
-
 
 pvs.Hide3DWidgets(proxy=sliceY.SliceType)
 pvs.Hide3DWidgets(proxy=sliceZ.SliceType)

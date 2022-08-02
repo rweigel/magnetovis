@@ -7,7 +7,7 @@ import magnetovis as mvs
 #dirs = ["Demos", "Sources"]
 dirs = ["Sources"]
 testonly = []
-#testonly = ["MySource_demo.py"]
+excludes = ["BATSRUS_dB_demo.py", "MySource_demo.py", "MyFilter_demo.py"]
 #testonly = ["Axis_demo.py"]
 #testonly = ["GridData_demo.py"]
 #testonly = ["Lines_demo.py","StructuredGrid_demo.py"]
@@ -25,7 +25,7 @@ for dir in dirs:
     ls = os.listdir(base)
     files_py = []
     for entry in ls:
-        if entry.endswith("_demo.py"):
+        if entry.endswith("_demo.py") and entry not in excludes:
             if len(testonly) == 0:
                 files_py.append(entry)
             else:

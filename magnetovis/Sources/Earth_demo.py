@@ -9,6 +9,12 @@ mvs.SetTitle("  Earth with Default Options")
 # Demo 2
 import magnetovis as mvs
 mvs.CreateViewAndLayout()
+mvs.Earth(style="daynight")
+mvs.SetTitle('  Earth with style="daynight"')
+
+# Demo 3
+import magnetovis as mvs
+mvs.CreateViewAndLayout()
 mvs.Earth()
 mvs.SetTitle("  Earth with Axes")
 

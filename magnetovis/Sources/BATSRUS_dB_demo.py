@@ -1,8 +1,8 @@
-
 # import magnetovis; exec(magnetovis.demo("Plasmasphere"))
 
 # import magnetovis as mvs; mvs.ClearPipeline(); exec(open("/Users/weigel/git/magnetovis/untitled.py", encoding="utf-8").read())
 
+# Demo 1
 from urllib.request import urlretrieve
 url = 'http://mag.gmu.edu/git-data/swmfio/3d__var_2_e20190902-041000-000.vtk'
 vtkfile = "/tmp/" + url.split("/")[-1]
@@ -11,11 +11,6 @@ import os
 if not os.path.exists(vtkfile):
   print("Downloading " + url)
   urlretrieve(url, vtkfile)
-
-import magnetovis as mvs
-
-import importlib
-importlib.reload(mvs)
 
 batsrus = mvs.BATSRUS(file=vtkfile, setDisplayProperties=False)
 mvs.SetTitle()
