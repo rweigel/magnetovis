@@ -23,7 +23,7 @@ def Script(time="2001-01-01", coord_sys='SM', N=30, version=1):
 
     mvs.vtk.set_arrays(output, point_data={'H+ log density (cm^-3)': logDensity})
 
-    output.Allocate(cells.shape[0],1)
+    output.Allocate(cells.shape[0], 1)
     for row in range(cells.shape[0]):
         aHexahedron = vtk.vtkHexahedron()
         for col in range(cells.shape[1]):

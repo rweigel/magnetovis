@@ -115,7 +115,7 @@ def CreateProgrammableSource(sourceFile, ptype, **kwargs):
                 view.SMProxy.RemoveObserver(cb_id_ae)
                 mvs.logger.info("Event " + b + " on view for " + registrationName)
                 mvs.SetDisplayProperties(source=pSource)
-            cb_id_ae = view.SMProxy.AddObserver('AnyEvent', AnyEvent)
+            cb_id_ae = view.SMProxy.AddObserver('ModifiedEvent', AnyEvent)
 
     mvs.logger.info("Finished.\n")
 

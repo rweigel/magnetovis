@@ -7,8 +7,7 @@ def Script(time="2001-01-01", coord_sys="GSM",
             Npts=6,
             closed=True,
             point_function="circle",
-            point_array_functions=["xyz: position()"],
-            cell_array_functions=["xyz: position()"]):
+            point_array_functions=["xyz: position()"]):
 
   assert isinstance(point_array_functions, list), "point_array_functions must be a list"
   assert isinstance(point_function, str), "point_function must be a str"
@@ -37,7 +36,7 @@ def Script(time="2001-01-01", coord_sys="GSM",
   if closed == True:
     vtkPolyLine.GetPointIds().SetId(i+1, 0)
 
-  output.Allocate(1, 1)
+  output.Allocate(1)
   output.InsertNextCell(vtkPolyLine.GetCellType(), vtkPolyLine.GetPointIds())
 
   point_arrays = mvs.vtk.get_arrays(point_array_functions, points)
