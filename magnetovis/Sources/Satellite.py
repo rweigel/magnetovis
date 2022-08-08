@@ -113,7 +113,7 @@ def DefaultRegistrationName(**kwargs):
                 kwargs['coord_sys'])
 
 
-def SetDisplayProperties(source, view=None, **kwargs):
+def SetPresentationProperties(source, view=None, **kwargs):
 
     # Base this on code that is displayed by trace in ParaView GUI
 
@@ -177,7 +177,7 @@ def SetDisplayProperties(source, view=None, **kwargs):
     region_ids = np.unique(region_ids)
 
     # Create look-up table
-    LUT = pvs.GetColorTransferFunction(info['id'] + '_region')
+    LUT = pvs.GetColorTransferFunction(info['id'] + '_region', separate=True)
     LUT.InterpretValuesAsCategories = 1
     LUT.AnnotationsInitialized = 1
 
@@ -197,7 +197,7 @@ def SetDisplayProperties(source, view=None, **kwargs):
     index_colored_list = np.array(index_colored_list).flatten()
     LUT.IndexedColors = index_colored_list
 
-    display = pvs.Show(source, view)
+    display = pvs.Show(proxy=source, view=view)
 
     display.LookupTable = LUT
     display.OpacityArray = ['CELLS', 'region_id']

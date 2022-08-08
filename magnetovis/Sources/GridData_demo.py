@@ -69,11 +69,11 @@ dkwargs = {
                                         'UseLogScale': 1,
                                         'AutomaticRescaleRangeMode': 1,
                                         'AutomaticRescaleRangeMode': "Grow and update on 'Apply'",
-                                        'NumberOfTableValues': 4
+                                        'NumberOfTableValues': 16
                                     }
         }
 }
 
-mvs.SetDisplayProperties(**dkwargs)
+mvs.SetPresentationProperties(**dkwargs)
 mvs.SetCamera(Azimuth=225.0)
 mvs.SetTitle(r"$\alpha$/β", title=registrationName)

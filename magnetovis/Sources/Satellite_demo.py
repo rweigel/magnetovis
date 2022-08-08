@@ -1,5 +1,5 @@
 # Execute using
-#   magnetovis --script=Satellite_demo.py
+#   magnetovis Satellite_demo.py
 
 # Demo 1
 import magnetovis as mvs
@@ -29,11 +29,11 @@ dkwargs = {
 
 dkwargs['label']['source']['Text'] = 'THEMIS A'
 dkwargs['label']['display']['Color'] = [0, 0, 1]
-mvs.SetDisplayProperties(source=themisa, **dkwargs)
+mvs.SetPresentationProperties(source=themisa, **dkwargs)
 
 dkwargs['label']['source']['Text'] = 'THEMIS B'
 dkwargs['label']['display']['Color'] = [1, 0, 0]
-mvs.SetDisplayProperties(source=themisb, **dkwargs)
+mvs.SetPresentationProperties(source=themisb, **dkwargs)
 
 mvs.SetCamera(Azimuth=45, Elevation=45)
 

@@ -1,94 +1,159 @@
 import os
 import sys
 
+def trim_nums(vals, n, style='number'):
+  """ Round floats with precision larger than n
+
+  For n = 2,
+
+  r = trim_nums(val, n)
+  
+  val      r
+  1     -> 1
+  1.0   -> 1.0
+  1.00  -> 1.00
+  1.005 -> 1.01
+
+  r = trim_nums(val, n, style='string')
+  
+  val      r
+  1     -> '1'
+  1.0   -> '1.0'
+  1.00  -> '1.00'
+  1.005 -> '1.01…' (Unicode ellipsis)
+
+  val can be a list, e.g.,
+  
+  trim_nums([1, 1.005], 2) = [1, 1.01]
+  trim_nums([1, 1.005], 2, style='string') = '[1, 1.01…]'
+
+  """
+
+  if isinstance(vals, list):
+    for i, v in enumerate(vals):
+      if v != round(v, n):
+        vals[i] = round(v, n)
+        if style == 'string':
+          vals[i] = "{0:.4f}…".format(vals[i])
+      else:
+        if style == 'string':
+          vals[i] = "{}".format(vals[i])
+  else:
+    if vals != round(vals, n):
+      vals = round(vals, n)
+      if style == 'string':
+        vals = "{0:.4f}…".format(vals)
+
+  if style == 'number':
+    return vals
+  else:
+    if isinstance(vals, list):
+      return "[" + "{}".format(", ".join(vals)) + "]"
+    else:
+      return "{}".format(vals)
+
+def trim_nums_test():
+
+  assert trim_nums(1, 4) == 1
+  assert trim_nums(1.00001, 4) == 1.0000
+  assert trim_nums(1.00005, 4) == 1.0001
+  assert trim_nums([1], 4)[0] == 1
+  assert trim_nums(1, 4, style='string') == "1"
+  assert trim_nums(1.00001, 4, style='string') == "1.0000…"
+  assert trim_nums([1.00001], 4, style='string') == "[1.0000…]"
+  assert trim_nums([1.00001, 1.0], 4, style='string') == "[1.0000…, 1.0]"
+
 
 def trim_iso(isostr):
 
-    if isostr.endswith('Z'):
-        isostr = isostr[0:-1]
-    if isostr.endswith(':00'):
-        isostr = isostr[0:-3]
-    if isostr.endswith(':00'):
-        isostr = isostr[0:-3]
-    if isostr.endswith('T00'):
-        isostr = isostr[0:-3]
+  if isostr.endswith('Z'):
+      isostr = isostr[0:-1]
+  if isostr.endswith(':00'):
+      isostr = isostr[0:-3]
+  if isostr.endswith(':00'):
+      isostr = isostr[0:-3]
+  if isostr.endswith('T00'):
+      isostr = isostr[0:-3]
 
-    if False:
-        assert trim_iso('2000-01-01T00:00:00') == "2000-01-01", ""
-        assert trim_iso('2000-01-01T00:00') == "2000-01-01", ""
-        assert trim_iso('2000-01-01T00') == "2000-01-01", ""
+  return isostr
 
-        assert trim_iso('2000-01-01T00:00:00Z') == "2000-01-01", ""
-        assert trim_iso('2000-01-01T00:00Z') == "2000-01-01", ""
-        assert trim_iso('2000-01-01T00Z') == "2000-01-01", ""
+def trim_iso_test():
 
-        assert trim_iso('2000-01-01T01:00:00') == "2000-01-01T01", ""
-        assert trim_iso('2000-01-01T01:00') == "2000-01-01T01", ""
-        assert trim_iso('2000-01-01T01') == "2000-01-01T01", ""
+  assert trim_iso('2000-01-01T00:00:00') == "2000-01-01", ""
+  assert trim_iso('2000-01-01T00:00') == "2000-01-01", ""
+  assert trim_iso('2000-01-01T00') == "2000-01-01", ""
 
-        assert trim_iso('2000-01-01T01:00:00Z') == "2000-01-01T01", ""
-        assert trim_iso('2000-01-01T01:00Z') == "2000-01-01T01", ""
-        assert trim_iso('2000-01-01T01Z') == "2000-01-01T01", ""
+  assert trim_iso('2000-01-01T00:00:00Z') == "2000-01-01", ""
+  assert trim_iso('2000-01-01T00:00Z') == "2000-01-01", ""
+  assert trim_iso('2000-01-01T00Z') == "2000-01-01", ""
 
-    return isostr
+  assert trim_iso('2000-01-01T01:00:00') == "2000-01-01T01", ""
+  assert trim_iso('2000-01-01T01:00') == "2000-01-01T01", ""
+  assert trim_iso('2000-01-01T01') == "2000-01-01T01", ""
+
+  assert trim_iso('2000-01-01T01:00:00Z') == "2000-01-01T01", ""
+  assert trim_iso('2000-01-01T01:00Z') == "2000-01-01T01", ""
+  assert trim_iso('2000-01-01T01Z') == "2000-01-01T01", ""
 
 
 def iso2ints(isostr):
-    import re
-    tmp = re.split("-|:|T|Z", isostr)
-    if len(tmp) > 6:
-        tmp = tmp[0:5]
 
-    int_list = []
-    for str_int in tmp:
-        if str_int != "Z" and str_int != '':
-            int_list.append(int(str_int))
+  import re
+  tmp = re.split("-|:|T|Z", isostr)
+  if len(tmp) > 6:
+    tmp = tmp[0:5]
 
-    return int_list
+  int_list = []
+  for str_int in tmp:
+    if str_int != "Z" and str_int != '':
+      int_list.append(int(str_int))
+
+  return int_list
 
 
 def tstr(time, length=7):
-    """Create ISO8601 date/time string from integers
-    
-    tstr((2000, 1, 1, 2)) # 2000-01-01T02:00:00
-    tstr((2000, 1, 1, 2, 3)) # 2000-01-01T02:03:00
-    tstr((2000, 1, 1, 2, 3, 4)) # 2000-01-01T02:03:04
-    tstr((2000, 1, 1, 2, 3, 4, 567)) # 2000-01-01T02:03:04.000567
-    """
-    import datetime
-    assert(len(time) > 2)
+  """Create ISO8601 date/time string from integers
+  
+  tstr((2000, 1, 1, 2)) # 2000-01-01T02:00:00
+  tstr((2000, 1, 1, 2, 3)) # 2000-01-01T02:03:00
+  tstr((2000, 1, 1, 2, 3, 4)) # 2000-01-01T02:03:04
+  tstr((2000, 1, 1, 2, 3, 4, 567)) # 2000-01-01T02:03:04.000567
+  """
+  import datetime
+  assert(len(time) > 2)
 
-    time = datetime.datetime(*time)
-    time_str = time.isoformat()
+  time = datetime.datetime(*time)
+  time_str = time.isoformat()
 
-    if length == 7:
-        l = len("2000-01-01T02:03:04.000567")
-    elif length == 6:
-        l = len("2000-01-01T02:03:04")
-    elif length == 5:
-        l = len("2000-01-01T02:03")
-    elif length == 4:
-        l = len("2000-01-01T02")
-    elif length == 3:
-        l = len("2000-01-01")
-    
-    return time_str[0:l]
+  if length == 7:
+    l = len("2000-01-01T02:03:04.000567")
+  elif length == 6:
+    l = len("2000-01-01T02:03:04")
+  elif length == 5:
+    l = len("2000-01-01T02:03")
+  elif length == 4:
+    l = len("2000-01-01T02")
+  elif length == 3:
+    l = len("2000-01-01")
+  
+  return time_str[0:l]
 
 
 def time2datetime(t):
-    import datetime as dt
 
-    t = list(t)
-    for i in range(len(t)):
-        if int(t[i]) != t[i]:
-            raise ValueError("int(t[{0:d}] != t[{0:d}] = {1:f}".format(i, t[i]))\
-        
-        t[i] = int(t[i])
+  import datetime as dt
 
-    if len(t) < 3:
-        raise ValueError('Time list/tuple must have 3 or more elements')
-    else:
-        return dt.datetime(*t)
+  t = list(t)
+  for i in range(len(t)):
+    if int(t[i]) != t[i]:
+      raise ValueError("int(t[{0:d}] != t[{0:d}] = {1:f}".format(i, t[i]))\
+    
+    t[i] = int(t[i])
+
+  if len(t) < 3:
+    raise ValueError('Time list/tuple must have 3 or more elements')
+  else:
+    return dt.datetime(*t)
 
 
 def install_paraview(paraview_version, install_path='/tmp/'):

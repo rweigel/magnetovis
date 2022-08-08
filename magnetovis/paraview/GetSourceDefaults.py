@@ -18,7 +18,7 @@ def GetSourceDefaults(proxy, all=False):
 
   is_magnetovis = False
   try:
-    proxy = proxy(setDisplayProperties=False)
+    proxy = proxy(setPresentationProperties=False)
     is_magnetovis = True
   except:
     proxy = proxy()

@@ -60,7 +60,7 @@ def Script(time="2001-01-01",
     if coord_sys != 'GSM':
       from hxform import hxform as hx
       assert time != None, 'magnetovis.Axis(): If coord_sys in not GSM, time cannot be None'
-      points = hx.transform(points, time, 'GSM', coord_sys, 'car', 'car')
+      points = hx.transform(points, time, coord_sys, 'GSM', 'car', 'car', lib='cxform')
 
     vtkLineSource = vtk.vtkLineSource()
     vtkLineSource.SetPoint1(*points[0])
@@ -83,7 +83,6 @@ def Script(time="2001-01-01",
 
       if tube == True and tubeAndCone == False:
           output.ShallowCopy(vtkTubeFilterProxy.GetOutputDataObject(0))
-          import paraview.simple as pvs
           mvs.ProxyInfo.SetInfo(pvs.GetActiveSource(), locals())
           return
 
@@ -131,7 +130,7 @@ def DefaultRegistrationName(**kwargs):
     return registrationName
 
 
-def GetDisplayDefaults():
+def GetPresentationDefaults():
 
     defaults = {
         'display': {
@@ -150,7 +149,7 @@ def GetDisplayDefaults():
     return defaults
 
 
-def SetDisplayProperties(source, view=None, **kwargs):
+def SetPresentationProperties(source, view=None, **kwargs):
 
     import paraview.simple as pvs
     import magnetovis as mvs
@@ -162,7 +161,7 @@ def SetDisplayProperties(source, view=None, **kwargs):
     direction = source.GetProperty('direction')
 
     # Default keyword arguments
-    dkwargs = GetDisplayDefaults()
+    dkwargs = GetPresentationDefaults()
 
     # Display defaults that depend on parent source
     if direction == "X":
@@ -218,7 +217,7 @@ def SetDisplayProperties(source, view=None, **kwargs):
 
     if info['coord_sys'] != 'GSM':
       from hxform import hxform as hx
-      labelDisplay['BillboardPosition'] = hx.transform(labelDisplay['BillboardPosition'], info['time'], 'GSM', info['coord_sys'], 'car', 'car')
+      labelDisplay['BillboardPosition'] = hx.transform(labelDisplay['BillboardPosition'], info['time'], info['coord_sys'], 'GSM', 'car', 'car')
 
     # Update defaults 
     if 'label' in kwargs and 'display' in kwargs['label']:

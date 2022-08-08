@@ -29,7 +29,7 @@ def ScriptRequestInformation(self, dimensions=None):
 
     return outInfo
 
-def Script(time="2001-01-01T00:00:00", coord_sys="GSM", dimensions=[4, 4, 3],
+def Script(time="2001-01-01T00:00:00", coord_sys="GSM", dimensions=[4, 4, 4],
             point_function="linspace(starts=(0., 0., 0.), stops=(1., 1., 1.))",
             point_array_functions=["xyz: position()"],
             cell_array_functions=["xyz: position()"],

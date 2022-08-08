@@ -5,15 +5,15 @@ def OutputDataSetType():
   return "vtkPolyData"
 
 
-def Script(coord_sys="GEO",
-           φ=[0, 45, 90, 135],
-           θ=[-75, -60, -45, -30, -15, 0, 15, 30, 45, 60, 75]):
+def Script(time="2000-01-01", coord_sys="GSM", coord_sys_view=None,
+           phis=[0, 45, 90, 135],
+           thetas=[-75, -60, -45, -30, -15, 0, 15, 30, 45, 60, 75]):
 
   import math
   import vtk
 
   combinedSources = vtk.vtkAppendPolyData()
-  for t in θ:
+  for t in thetas:
     polygonSource = vtk.vtkRegularPolygonSource()
     polygonSource.GeneratePolygonOff()
     polygonSource.SetNumberOfSides(90)
@@ -22,7 +22,7 @@ def Script(coord_sys="GEO",
     polygonSource.Update()
     combinedSources.AddInputData(polygonSource.GetOutput())
 
-  for p in φ:
+  for p in phis:
     polygonSource = vtk.vtkRegularPolygonSource()
     polygonSource.GeneratePolygonOff()
     polygonSource.SetNumberOfSides(90)
@@ -42,25 +42,19 @@ def Script(coord_sys="GEO",
 
   combinedSources.Update()
 
-  if False:
-    import vtk
-    transform = vtk.vtkTransform()
-    transform.RotateWXYZ(angle, *axis)
-    transformFilter = vtk.vtkTransformFilter()
-    transformFilter.SetTransform(transform)
-    transformFilter.SetInputDataObject(inputs[0].VTKObject)
-    transformFilter.Update()
+  import magnetovis as mvs
 
   output.ShallowCopy(combinedSources.GetOutputDataObject(0))
+  #mvs.vtk.set_arrays(output, include=["CellId"])
 
-  import magnetovis as mvs
+  mvs._TransformByNames(in_name=coord_sys_view, out_name=coord_sys, time=time, _output=output, _inputs=[output])
 
   # Store kwargs
   mvs.ProxyInfo.SetInfo(output, locals())
 
 
 # Everything that follows is optional
-def GetDisplayDefaults():
+def GetPresentationDefaults():
 
     defaults = {
         'display': {
@@ -70,7 +64,7 @@ def GetDisplayDefaults():
         },
         'tube': {
             'source': {
-              'Radius': 0.001
+              'Radius': 0.005
             },
             "display": {
               "AmbientColor": [1, 0, 0],
@@ -95,7 +89,7 @@ def DefaultRegistrationName(**kwargs):
                     .format("Lat & Long lines", mvs.util.trim_iso(kwargs['time']), kwargs['coord_sys'])
 
 
-def SetDisplayProperties(source, view=None, **kwargs):
+def SetPresentationProperties(source, view=None, **kwargs):
 
   import logging
   import paraview.simple as pvs
@@ -105,7 +99,7 @@ def SetDisplayProperties(source, view=None, **kwargs):
   info = magnetovis.ProxyInfo.GetInfo(source)
 
   # Default keyword arguments
-  dkwargs = GetDisplayDefaults()
+  dkwargs = GetPresentationDefaults()
 
   # Update defaults 
   displayProperties = dkwargs['display']
@@ -115,7 +109,7 @@ def SetDisplayProperties(source, view=None, **kwargs):
   if 'source' in kwargs:
       sourceProperties = {**sourceProperties, **kwargs['tube']['source']}
 
-  registrationName = "  Tube for " + info['registrationName']
+  registrationName = "Tube for " + info['registrationName']
   tube = pvs.Tube(registrationName=registrationName, Input=source, **sourceProperties)
   pvs.Show(tube, view, 'GeometryRepresentation', **displayProperties)
 

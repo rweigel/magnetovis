@@ -17,14 +17,15 @@ def ScriptRequestInformation(self, dimensions=None):
     return mvs.Sources.GridData.ScriptRequestInformation(self, dimensions=dimensions)
 
 
-def Script(output, time="2001-01-01", coord_sys="GSM", style="map", Radius=1.0, ThetaResolution=180, PhiResolution=180):
+def Script(output, time="2001-01-01", coord_sys="GSM", coord_sys_view=None,
+            style="map", Radius=1.0, ThetaResolution=180, PhiResolution=180):
 
     import vtk
     import magnetovis as mvs
 
     # TODO: 1. This implementation seems overly complex. Can a 
     #          programmable calculator be used?
-    #       2. Assert Resolutions > 3
+    #       2. Assert {Theta, Phi}Resolution > 3
     # See also
     # https://pvgeo.org/_modules/PVGeo/model_build/earth.html
 
@@ -33,8 +34,8 @@ def Script(output, time="2001-01-01", coord_sys="GSM", style="map", Radius=1.0, 
     from magnetovis.util import time2datetime
     from datetime import timedelta
 
-    import paraview.simple as pvs
     import numpy as np
+    import paraview.simple as pvs
     from vtk.numpy_interface import dataset_adapter as dsa
 
     # Needed for UniformGrid, RectilinearGrid, and StructuredGrid.
@@ -54,18 +55,23 @@ def Script(output, time="2001-01-01", coord_sys="GSM", style="map", Radius=1.0, 
     z = Radius*np.cos(B2)
     points = np.column_stack((x,y,z))
 
-    if coord_sys != 'GEO':
+    if coord_sys != 'coord_sys_view':
         from hxform import hxform as hx
-        points = hx.transform(points, mvs.util.iso2ints(time), 'GEO', 'GSM', lib='cxform')
-        points = hx.transform(points, mvs.util.iso2ints(time), 'GSM', coord_sys, lib='cxform')
+        points_gsm = hx.transform(points, mvs.util.iso2ints(time), 'GEO', 'GSM', lib='cxform')
+        # req = requested coordinate system
+        points_req = hx.transform(points_gsm, mvs.util.iso2ints(time), 'GSM', coord_sys, lib='cxform')
+        points_hee = hx.transform(points_gsm, mvs.util.iso2ints(time), 'GEO', "HEE", lib='cxform')
+    else:
+        points_req = points
+        points_hee = points
 
-    pvtk = dsa.numpyTovtkDataArray(points)
-    pts = vtk.vtkPoints()
-    pts.Allocate(points.shape[0])
-    pts.SetData(pvtk)
-    output.SetPoints(pts)
+    vtkDataArray = dsa.numpyTovtkDataArray(points_req)
+    vtkPoints = vtk.vtkPoints()
+    vtkPoints.Allocate(points_req.shape[0])
+    vtkPoints.SetData(vtkDataArray)
+    output.SetPoints(vtkPoints)
 
-    normals = dsa.numpyTovtkDataArray(points/Radius)
+    normals = dsa.numpyTovtkDataArray(points_hee/Radius)
     normals.SetName('Normals')
     output.GetPointData().AddArray(normals)
 
@@ -74,7 +80,7 @@ def Script(output, time="2001-01-01", coord_sys="GSM", style="map", Radius=1.0, 
     u, v = np.meshgrid(normPhi, normTheta)
     u = u.flatten(order='C')
     v = v.flatten(order='C')
-    UV = np.column_stack((u,v))
+    UV = np.column_stack((u, v))
 
     fvtk = dsa.numpyTovtkDataArray(UV)
     fvtk.SetName('TCoordArray')
@@ -91,7 +97,7 @@ def DefaultRegistrationName(**kwargs):
                 .format("Earth", mvs.util.trim_iso(kwargs['time']), kwargs['coord_sys'])
 
 
-def SetDisplayProperties(source, view=None, **kwargs):
+def SetPresentationProperties(source, view=None, **kwargs):
 
     import paraview.simple as pvs
 
@@ -125,8 +131,14 @@ def SetDisplayProperties(source, view=None, **kwargs):
 
     try:
         png_file = mvs.util.dlfile(png_url)
-        display = pvs.GetDisplayProperties(proxy=source, view=view)
-        display.SelectTCoordArray = 'TCoordArray'
-        display.Texture = pvs.CreateTexture(png_file)
     except:
         mvs.SetTitle("\n\n" + "Could not download\n" + png_url, display={"FontSize": 12, "Justification": "Left"})
+
+    display = pvs.GetDisplayProperties(proxy=source, view=view)
+    display.SelectTCoordArray = 'TCoordArray'
+    display.Texture = pvs.CreateTexture(png_file)
+
+    import magnetovis as mvs
+    # Set Sphere color; if not set, image is dimmed. Not sure why
+    # given that texture is applied over sphere.
+    mvs.SetColor('white', proxy=source, view=view)

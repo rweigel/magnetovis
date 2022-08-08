@@ -45,6 +45,10 @@ def set_arrays(output, point_data=None, cell_data=None, field_data=None,
             if array is True:
                 array = "True"
 
+            if isinstance(array, tuple) or isinstance(array, list):
+                if len(array) == 0:
+                    array = "None"
+
             if isinstance(array, str):
                 vtkArray = vtk.vtkStringArray()
                 vtkArray.SetNumberOfTuples(1)
@@ -57,7 +61,6 @@ def set_arrays(output, point_data=None, cell_data=None, field_data=None,
                 vtkArray = vtk.vtkFloatArray()
                 vtkArray.SetNumberOfTuples(1)
                 vtkArray.SetValue(0, array)
-
 
             if isinstance(array, tuple) or isinstance(array, list):
                 if isinstance(array[0], str):
@@ -97,9 +100,11 @@ def set_arrays(output, point_data=None, cell_data=None, field_data=None,
             vtkIdFilter = vtk.vtkIdFilter()
             if all or "PointId" in include:
                 vtkIdFilter.SetPointIds(True)
+                vtkIdFilter.SetCellIds(False)
                 vtkIdFilter.SetPointIdsArrayName("PointId")
             if all or "CellId" in include:
                 vtkIdFilter.SetCellIds(True)
+                vtkIdFilter.SetPointIds(False)
                 vtkIdFilter.SetCellIdsArrayName("CellId")
             if hasattr(output, "VTKObject"):
                 vtkIdFilter.SetInputDataObject(output.VTKObject)

@@ -7,7 +7,7 @@ import magnetovis as mvs
 mvs.Axis()
 #mvs.PrintSourceDefaults('Axis')
 mvs.SetTitle("Axis with default options")
-#mvs.PrintDisplayDefaults('Axis', all=True)
+#mvs.PrintPresentationDefaults('Axis', all=True)
 
 # Demo 2
 import magnetovis as mvs
@@ -48,7 +48,7 @@ xAxis = mvs.Axis()
 skwargs['direction'] = "Y"
 skwargs['extent'] = [-40, 40]
 yAxis = mvs.Axis(registrationName="s^2/β Axis", **skwargs)
-mvs.SetDisplayProperties(source=yAxis, **dkwargs)
+mvs.SetPresentationProperties(source=yAxis, **dkwargs)
 mvs.SetTitle("Three Axes")
 
 skwargs['direction'] = "Z"

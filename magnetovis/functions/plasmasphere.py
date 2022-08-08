@@ -1,4 +1,4 @@
-def plasmasphere(N=2, coord_sys='SM', time='2001-01-01'):
+def plasmasphere(N=10):
     """
 
     Plasmasphere model of D. Gallagher, P. Craven, R. H. Comfort, 1988

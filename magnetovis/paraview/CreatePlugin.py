@@ -61,9 +61,9 @@ def CreatePlugin(name):
                         sources[key].add_attribute('_default_display_properies_set', True)
                         mvs.logger.info(f"Removing callback with id = {cb_id}")
                         self.RemoveObserver(cb_id)
-                        mvs.SetDisplayProperties(source=sources[key])
+                        mvs.SetPresentationProperties(source=sources[key])
                 else:
-                    mvs.logger.info("SetDisplayProperties was already called. Not re-calling")
+                    mvs.logger.info("SetPresentationProperties was already called. Not re-calling")
 
             cb_id = self.AddObserver('EndEvent', UpdateDisplayOptions)
             mvs.logger.info(f"Added Observer UpdateDisplayOptions for EndEvent; Callback id = {cb_id}")

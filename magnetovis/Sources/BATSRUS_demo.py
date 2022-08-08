@@ -8,7 +8,7 @@ vtkfile = "/tmp/" + url.split("/")[-1]
 
 import os
 if not os.path.exists(vtkfile):
-  print("Downloading " + url)
+  print("Downloading " + url, flush=True)
   urlretrieve(url, vtkfile)
 
 import magnetovis as mvs
@@ -18,7 +18,7 @@ mvs.SetTitle("Default")
 if False:
     # If a VTK file does not exist, can create it using the following.
     url = 'http://mag.gmu.edu/git-data/swmfio/3d__var_2_e20190902-041000-000'
-    vtkfile = '/tmp/mag.gmu.edu/git-data/swmfio/3d__var_2_e20190902-041000-000.vtk'
+    vtkfile = "/tmp/" + url.split("/")[-1]
     import os
     if not os.path.exists(vtkfile):
       try:
@@ -105,11 +105,11 @@ pvs.Hide(batsrus)
 
 akwargs = {"label": {"display": {"Color": [0, 0, 0]}}}
 xAxis = mvs.Axis(direction="X", extent=[0, 70], vtkTubeFilter=['Radius: 2'])
-mvs.SetDisplayProperties(xAxis, **akwargs)
+mvs.SetPresentationProperties(xAxis, **akwargs)
 yAxis = mvs.Axis(direction="Y", extent=[0, 70], vtkTubeFilter=['Radius: 2'])
-mvs.SetDisplayProperties(yAxis, **akwargs)
+mvs.SetPresentationProperties(yAxis, **akwargs)
 zAxis = mvs.Axis(direction="Z", extent=[0, 140], vtkTubeFilter=['Radius: 2'])
-mvs.SetDisplayProperties(zAxis, **akwargs)
+mvs.SetPresentationProperties(zAxis, **akwargs)
 
 mvs.SetTitle('Simulation Grid Cube Side Length')
 

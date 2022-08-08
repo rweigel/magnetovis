@@ -29,7 +29,7 @@ pvs.Show(text)
 sphere = pvs.Sphere()
 pvs.Show(sphere)
 
-display = pvs.GetDisplayProperties(sphere, view=view)
+display = pvs.GetPresentationProperties(sphere, view=view)
 pvs.ColorBy(display, ('POINTS', 'Normals', 'Magnitude'))
 display.SetScalarBarVisibility(view, True)
 

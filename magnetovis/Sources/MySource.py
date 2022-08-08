@@ -31,7 +31,7 @@ def Script(point1=(0.0, 0.0, 0.0), point2=(1.0, 0.0, 0.0), resolution=10):
 
 
 # Everything that follows is optional
-def GetDisplayDefaults():
+def GetPresentationDefaults():
 
     defaults = {
         'display': {
@@ -51,7 +51,7 @@ def GetDisplayDefaults():
     return defaults
 
 
-def SetDisplayProperties(source, view=None, **kwargs):
+def SetPresentationProperties(source, view=None, **kwargs):
 
   import logging
   import paraview.simple as pvs
@@ -61,7 +61,7 @@ def SetDisplayProperties(source, view=None, **kwargs):
   info = magnetovis.ProxyInfo.GetInfo(source)
 
   # Default keyword arguments
-  dkwargs = GetDisplayDefaults()
+  dkwargs = GetPresentationDefaults()
 
   # Update defaults 
   displayProperties = {}

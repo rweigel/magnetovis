@@ -93,8 +93,17 @@ def SetInfo(output, local_vars, include=None):
             if vtkname in ScriptKwargs:
                 ScriptKwargs[vtkname] = magnetovis.vtk.get_settings(val, form='dict')
 
+    # TODO: Explain this.
     registrationName = list(pvs.GetSources().keys())[list(pvs.GetSources().values()).index(pvs.GetActiveSource())][0]
     ScriptKwargs['registrationName'] = registrationName
+
+    if 'inputs' in local_vars and len(local_vars['inputs']) > 0:
+        #filter.Input.Proxy.SMProxy.GetGlobalID()
+        ScriptKwargs['inputRegistrationNames'] = []
+        for i in range(len(local_vars['inputs'])):
+            ScriptKwargs['inputRegistrationNames'].append(
+                local_vars['inputs'][i].GetFieldData().GetArray('registrationName').GetValue(0)
+            )
 
     # Set field data
     magnetovis.vtk.set_arrays(output, field_data=ScriptKwargs)

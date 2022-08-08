@@ -66,7 +66,7 @@ def DefaultRegistrationName(**kwargs):
     return "T95 Neutral Sheet/{}/{}".format(arg, kwargs['coord_sys'])
 
 
-def GetDisplayDefaults():
+def GetPresentationDefaults():
 
     defaults = {
         'coloring': {

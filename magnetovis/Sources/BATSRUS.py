@@ -40,7 +40,7 @@ def DefaultRegistrationName(**kwargs):
   return "{}/{}/{}" \
               .format("BATSRUS", fname, kwargs['coord_sys'])
 
-def GetDisplayDefaults():
+def GetPresentationDefaults():
 
   defaults = {
       'display': {

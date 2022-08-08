@@ -6,7 +6,7 @@ import magnetovis as mvs
 mvs.Lines()
 #mvs.PrintSourceDefaults('Lines')
 mvs.SetTitle("Line with default options")
-#mvs.PrintDisplayDefaults('Lines', all=True)
+#mvs.PrintPresentationDefaults('Lines', all=True)
 
 # Demo #2
 import magnetovis as mvs
@@ -17,7 +17,7 @@ kwargs = {
             "coord_sys": "GSM",
             "Nlines": 3,
             "closed": True,
-            "point_function": "circle(radius=1.0, origin=(0.0, 0.0, 0.0), orientation=(0, 0, 1))"
+            "point_function": "circle(radius=1.0, center=(0.0, 0.0, 0.0))"
         }
 
 mvs.Lines(**kwargs)

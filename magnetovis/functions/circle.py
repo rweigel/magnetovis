@@ -1,16 +1,12 @@
-def circle(Npts, radius=1.0, origin=(0.0, 0.0, 0.0), orientation=(0.0, 0.0, 1.0)):
+def circle(resolution, radius=1.0, center=(0.0, 0.0, 0.0)):
 
     import numpy as np
 
-    idx = np.arange(Npts)
+    idx = np.arange(resolution)
 
-    points = np.zeros((Npts, 3))
-    points[:,0] = origin[0] + radius*np.cos(idx*2*np.pi/Npts)
-    points[:,1] = origin[1] + radius*np.sin(idx*2*np.pi/Npts)
-
-    if not np.all(np.array(orientation) == np.array((0, 0, 1))):
-        pass # TODO: Rotate
-
-    points[:,2] = origin[2]
+    points = np.zeros((resolution, 3))
+    points[:,0] = center[0] + radius*np.cos(idx*2*np.pi/resolution)
+    points[:,1] = center[1] + radius*np.sin(idx*2*np.pi/resolution)
+    points[:,2] = center[2]
 
     return points

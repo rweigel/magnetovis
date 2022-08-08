@@ -45,7 +45,7 @@ trace0 = sourceData.GetCell(0)
 trace0Array = trace0.GetPoints().GetData()
 from vtk.util import numpy_support
 trace0 = numpy_support.vtk_to_numpy(trace0Array)
-print("x, y, z for first trace:")
-print(trace0)
+print("First 3 x, y, z values for first trace:")
+print(trace0[0:3,:])
 
 pvs.Hide3DWidgets(proxy=slice1.SliceType)

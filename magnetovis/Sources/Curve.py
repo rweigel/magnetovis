@@ -3,37 +3,36 @@ def OutputDataSetType():
   return "vtkPolyData"
 
 
-def Script(time="2001-01-01", coord_sys="GSM",
-            Npts=6,
-            closed=True,
+def Script(time="2001-01-01", coord_sys="GSM", coord_sys_view=None,
+            Resolution=6,
+            Closed=False,
             point_function="circle",
-            point_array_functions=["xyz: position()"]):
+            point_array_functions=["xyz: position()"],
+            _output=None):
 
   assert isinstance(point_array_functions, list), "point_array_functions must be a list"
   assert isinstance(point_function, str), "point_function must be a str"
+
+  if _output is not None:
+    output = _output
 
   import vtk
   import numpy as np
 
   import magnetovis as mvs
 
-  points = mvs.vtk.get_arrays(point_function, Npts)
-
-  if coord_sys != 'GSM':
-    from hxform import hxform as hx
-    assert time != None, 'magnetovis.Curve(): If coord_sys in not GSM, time cannot be None'
-    points = hx.transform(points, time, 'GSM', coord_sys, 'car', 'car')
+  points = mvs.vtk.get_arrays(point_function, Resolution)
 
   vtkPolyLine = vtk.vtkPolyLine()
-  if closed == True:
-    vtkPolyLine.GetPointIds().SetNumberOfIds(Npts+1)
+  if Closed == True:
+    vtkPolyLine.GetPointIds().SetNumberOfIds(Resolution+1)
   else:
-    vtkPolyLine.GetPointIds().SetNumberOfIds(Npts)
+    vtkPolyLine.GetPointIds().SetNumberOfIds(Resolution)
 
-  for i in range(Npts):
+  for i in range(Resolution):
     vtkPolyLine.GetPointIds().SetId(i, i) 
 
-  if closed == True:
+  if Closed == True:
     vtkPolyLine.GetPointIds().SetId(i+1, 0)
 
   output.Allocate(1)
@@ -43,10 +42,13 @@ def Script(time="2001-01-01", coord_sys="GSM",
   mvs.vtk.set_points(output, points)
   mvs.vtk.set_arrays(output, point_data=point_arrays)
 
-  mvs.ProxyInfo.SetInfo(output, locals())
+  mvs._TransformByNames(in_name=coord_sys_view, out_name=coord_sys, time=time, _output=output, _inputs=[output])
+
+  if _output is None:
+    mvs.ProxyInfo.SetInfo(output, locals())
 
 
-def GetDisplayDefaults():
+def GetPresentationDefaults():
 
    defaults = {
      'display': {
@@ -69,7 +71,7 @@ def GetDisplayDefaults():
 
    return defaults
 
-def SetDisplayProperties(source, view=None, **kwargs):
+def SetPresentationProperties(source, view=None, **kwargs):
 
   import logging
   import paraview.simple as pvs
@@ -80,7 +82,7 @@ def SetDisplayProperties(source, view=None, **kwargs):
   magnetovis.logger.info("kwargs: {}".format(kwargs))
 
   # Default keyword arguments
-  dkwargs = GetDisplayDefaults()
+  dkwargs = GetPresentationDefaults()
 
   # Source defaults
   tubeSettings = dkwargs['tube']['source']

@@ -25,40 +25,6 @@ def extract_function_call(function, xml_encode=False):
     return call_str
 
 
-def test_extract_kwargs():
-
-    assert extract_kwargs("abc") == {}
-    assert extract_kwargs("abc()") == {}
-    assert extract_kwargs("abc(a, b=1)") == {'b': 1}
-    assert extract_kwargs("abc(a, b=1)", default_kwargs={'b': 2}) == {'b': 2}
-    assert extract_kwargs("abc(a, b=1)", default_kwargs={'b': 2, 'c': 2}) == {'b': 2}
-    assert extract_kwargs("abc(a, b=1, c=2)") == {'b': 1, 'c': 2}
-    assert extract_kwargs("abc(a, b=1, c=2)", default_kwargs={'b': 2, 'c': 3}) == {'b': 2, 'c': 3}
-
-    def check_circle():
-        assert extract_kwargs("magnetovis.extract.__circle()") == {}
-        assert extract_kwargs("magnetovis.extract.__circle") == {'radius': 1, 'center': (0, 0, 0)}
-        assert extract_kwargs("magnetovis.extract.__circle", default_kwargs={'radius': 2}) == {'radius': 2, 'center': (0, 0, 0)}
-        assert extract_kwargs("magnetovis.extract.__circle(N, radius=3)") == {'radius': 3}
-
-    from magnetovis import extract
-    def __circle(N, radius=1, center=(0, 0, 0)): pass
-    # The following is equivalent to putting the above def outside of this function.
-    setattr(extract, "__circle", __circle)
-    check_circle()
-
-    from magnetovis import functions
-    # The following is equivalent to putting the above def in functions.py
-    setattr(functions, "__circle", __circle)
-    check_circle()
-
-    def __circle(N, radius=1,
-                center=(0, 0, 0)):
-        pass
-    setattr(functions, "__circle", __circle)
-    check_circle()
-
-
 def extract_kwargs(function, default_kwargs=None):
     """Extract keyword arguments given string or function reference
 
@@ -182,6 +148,40 @@ def extract_kwargs(function, default_kwargs=None):
     mvs.logger.info("Returning kwargs of {}".format(kwargs))
 
     return kwargs
+
+
+def test_extract_kwargs():
+
+    assert extract_kwargs("abc") == {}
+    assert extract_kwargs("abc()") == {}
+    assert extract_kwargs("abc(a, b=1)") == {'b': 1}
+    assert extract_kwargs("abc(a, b=1)", default_kwargs={'b': 2}) == {'b': 2}
+    assert extract_kwargs("abc(a, b=1)", default_kwargs={'b': 2, 'c': 2}) == {'b': 2}
+    assert extract_kwargs("abc(a, b=1, c=2)") == {'b': 1, 'c': 2}
+    assert extract_kwargs("abc(a, b=1, c=2)", default_kwargs={'b': 2, 'c': 3}) == {'b': 2, 'c': 3}
+
+    def check_circle():
+        assert extract_kwargs("magnetovis.extract.__circle()") == {}
+        assert extract_kwargs("magnetovis.extract.__circle") == {'radius': 1, 'center': (0, 0, 0)}
+        assert extract_kwargs("magnetovis.extract.__circle", default_kwargs={'radius': 2}) == {'radius': 2, 'center': (0, 0, 0)}
+        assert extract_kwargs("magnetovis.extract.__circle(N, radius=3)") == {'radius': 3}
+
+    from magnetovis import extract
+    def __circle(N, radius=1, center=(0, 0, 0)): pass
+    # The following is equivalent to putting the above def outside of this function.
+    setattr(extract, "__circle", __circle)
+    check_circle()
+
+    from magnetovis import functions
+    # The following is equivalent to putting the above def in functions.py
+    setattr(functions, "__circle", __circle)
+    check_circle()
+
+    def __circle(N, radius=1,
+                center=(0, 0, 0)):
+        pass
+    setattr(functions, "__circle", __circle)
+    check_circle()
 
 
 def extract_script(function, sourceArguments, xml_encode=False):

@@ -12,7 +12,7 @@ kwargs = {
 kwargs["registrationName"] = "Structured Grid/{}/{}".format(mvs.util.trim_iso(kwargs['time']), kwargs['coord_sys'])
 
 MagnetovisStructuredGrid1 = pvs.MagnetovisStructuredGrid(**kwargs)
-displayProperties = mvs.SetDefaultDisplayProperties(MagnetovisStructuredGrid1)
+displayProperties = mvs.SetDefaultPresentationProperties(MagnetovisStructuredGrid1)
 
 
 
@@ -23,6 +23,6 @@ def UpdateDisplayOptions(caller, event):
     # TODO: Figure out how to get source out of caller object (which is a SMSourceProxy).
     #source = pvs.GetActiveSource()
     #source.RemoveObserver('UpdateInformationEvent')
-    #mvs.SetDefaultDisplayProperties(pvs.GetActiveSource())
+    #mvs.SetDefaultPresentationProperties(pvs.GetActiveSource())
 
 #MagnetovisStructuredGrid1.AddObserver('UpdateInformationEvent', UpdateDisplayOptions)

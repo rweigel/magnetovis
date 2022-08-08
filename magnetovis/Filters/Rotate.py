@@ -1,63 +1,38 @@
-def Script(time, angle=0, axis=[0, 0, 1], xinputs=None, xoutput=None):
+def Script(angle=0, axis=[0, 0, 1], _output=None):
 
-    if isinstance(axis, str):
-        assert axis in ["X", "Y", "Z"], "angle must be one of 'X', 'Y', or 'Z'"
-        if axis == "X":
-            axis = [1, 0, 0]
-        if axis == "Y":
-            axis = [0, 1, 0]
-        if axis == "Z":
-            axis = [1, 0, 0]
+  if _output is not None:
+    output = _output
+    inputs = [_output]
 
-    import vtk
-    transform = vtk.vtkTransform()
-    transform.RotateWXYZ(angle, *axis)
-    transformFilter = vtk.vtkTransformFilter()
-    transformFilter.SetTransform(transform)
-    transformFilter.SetInputDataObject(inputs[0].VTKObject)
-    transformFilter.Update()
-    output.ShallowCopy(transformFilter.GetOutputDataObject(0))
+  if isinstance(axis, str):
+    assert axis in ["X", "Y", "Z"], "angle must be one of 'X', 'Y', or 'Z'"
+    if axis == "X":
+        axis = [1, 0, 0]
+    if axis == "Y":
+        axis = [0, 1, 0]
+    if axis == "Z":
+        axis = [1, 0, 0]
 
+  import vtk
+  transform = vtk.vtkTransform()
+  transform.RotateWXYZ(angle, *axis)
+  transformFilter = vtk.vtkTransformFilter()
+  transformFilter.SetTransform(transform)
+  transformFilter.SetInputDataObject(inputs[0].VTKObject)
+  transformFilter.Update()
+  output.ShallowCopy(transformFilter.GetOutputDataObject(0))
 
-if False:
-    #print(transform.GetMatrix())
-    matrix = [1, 0, 0, 0,
-              0, 1, 0, 0,
-              0, 0, 1, 0,
-              0, 0, 0, 1]
-    #transform.SetMatrix(matrix)
-    #print(transform.GetMatrix())
-    # http://www.euclideanspace.com/maths/geometry/affine/matrix4x4/    
-    import vtk
-    transform = vtk.vtkTransform()
-    transform.RotateWXYZ(90, 1, 0, 0)
-    print(transform.GetMatrix())
-    #transform.RotateWXYZ(90, 0, 1, 0)
-    matrix = [1, 0, 0, 0,
-              0, 1, 0, 0,
-              0, 0, 1, 0,
-              0, 0, 0, 1]
-    transform.SetMatrix(matrix)
-    print(transform.GetMatrix())
-    transformFilter = vtk.vtkTransform()
-    transformFilter.SetTransform(transform)
-    transformFilter.SetInputDataObject(output.VTKObject)
-    transformFilter.Update()
-    output.ShallowCopy(transformFilter.GetOutputDataObject(0))
+  if _output is None:
+    mvs.ProxyInfo.SetInfo(output, locals())
 
-    if False:
-        import vtk
-        transform = vtk.vtkTransform()
-        transform.RotateWXYZ(90, 0, 1, 0)
-        transform.RotateWXYZ(90, 0, 1, 0)
-        matrix = [1, 0, 0, 0,
-                  0, 1, 0, 0,
-                  0, 0, 1, 0,
-                  0, 0, 0, 1]
-        #transform.SetMatrix(matrix)
-        transformFilter = vtk.vtkTransform()
-        #transformFilter = vtk.vtkTransformPolyDataFilter()
-        transformFilter.SetTransform(transform)
-        transformFilter.SetInputDataObject(input[0].VTKObject)
-        transformFilter.Update()
-        output.ShallowCopy(transformFilter.GetOutputDataObject(0))
+def DefaultRegistrationName(**kwargs):
+
+  import magnetovis as mvs
+
+  angle = mvs.util.trim_nums(kwargs['angle'], 3, style='string')
+
+  axis = kwargs['axis']
+  if not isinstance(kwargs['axis'], str):
+    axis = mvs.util.trim_nums(kwargs['axis'], 3, style='string')
+
+  return "{}/angle={}/axis={}".format("Rotate", angle, axis)

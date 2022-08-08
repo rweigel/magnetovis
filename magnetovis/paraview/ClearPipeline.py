@@ -13,7 +13,9 @@ def ClearPipeline():
   sources = pvs.GetSources().values()
   mvs.logger.info(f"Pipeline elements: {sources}")
   for s in sources:
-    pvs.Delete(pvs.GetRepresentation(s))
+    view = pvs.GetActiveView()
+    if view is not None:
+      pvs.Delete(pvs.GetRepresentation(s))
     pvs.Delete(s)
 
   v = None
@@ -28,3 +30,5 @@ def ClearPipeline():
   del sources
   del v
   del views
+
+  #mvs.CreateViewAndLayout()

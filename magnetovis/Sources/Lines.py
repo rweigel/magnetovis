@@ -1,7 +1,7 @@
 def OutputDataSetType():
 
-    # What is set in the drop-down menu for Output Data Set Type for a Programmable Source
-    return "vtkPolyData"
+  # What is set in the drop-down menu for Output Data Set Type for a Programmable Source
+  return "vtkPolyData"
 
 
 def Script(time="2001-01-01", coord_sys="GSM",

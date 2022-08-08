@@ -19,27 +19,27 @@ mvs.Earth()
 mvs.SetTitle("  Earth with Axes")
 
 xAxis = mvs.Axis(direction="X", extent=[-3, 3])
-mvs.SetDisplayProperties(source=xAxis, 
+mvs.SetPresentationProperties(source=xAxis, 
 		**{"label": {"source": {"Text": "$X_{GSM}$"}}})
 
 yAxis = mvs.Axis(direction="Y", extent=[-3, 3])
-mvs.SetDisplayProperties(source=yAxis, 
+mvs.SetPresentationProperties(source=yAxis, 
 		**{"label": {"source": {"Text": "$Y_{GSM}$"}}})
 
 zAxis = mvs.Axis(direction="Z", extent=[-3, 3])
-mvs.SetDisplayProperties(source=zAxis, 
+mvs.SetPresentationProperties(source=zAxis, 
 		**{"label": {"source": {"Text": "$Z_{GSM}$"}}})
 
 dkwargs = {
 			"display": {
-				"AmbientColor": [0,0,0],
-				"DiffuseColor": [0,0,0]
+				"AmbientColor": [0.5,0.5,0.5],
+				"DiffuseColor": [0.5,0.5,0.5]
 			},
 			"label": {
 				"source": {"Text": "$Z_{GEO}$"},
-				"display": {"Color": [0,0,0]}
+				"display": {"Color": [0.5,0.5,0.5]}
 			}
 		}
 zAxis2 = mvs.Axis(direction="Z", extent=[-3, 3], coord_sys="GEO")
-mvs.SetDisplayProperties(source=zAxis2, **dkwargs)
+mvs.SetPresentationProperties(source=zAxis2, **dkwargs)
 

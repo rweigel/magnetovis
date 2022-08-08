@@ -6,7 +6,7 @@ import magnetovis as mvs
 mvs.Curve()
 #mvs.PrintSourceDefaults('Curve')
 mvs.SetTitle("Curve with default options")
-#mvs.PrintDisplayDefaults('Curve', all=True)
+#mvs.PrintPresentationDefaults('Curve', all=True)
 
 # Demo 2
 import magnetovis as mvs
@@ -15,9 +15,9 @@ mvs.CreateViewAndLayout()
 skwargs = {
             "time": "2001-01-01",
             "coord_sys": "GSM",
-            "Npts": 5,
-            "closed": True,
-            "point_function": "circle(radius=1.0, origin=(0.0, 0.0, 0.0), orientation=(0, 0, 1))"
+            "Resolution": 5,
+            "Closed": True,
+            "point_function": "circle(radius=1.0, center=(0.0, 0.0, 0.0))"
         }
 
 dkwargs = {
@@ -34,19 +34,19 @@ dkwargs = {
 }
 
 curve = mvs.Curve(**skwargs)
-mvs.SetDisplayProperties(source=curve, **dkwargs)
+mvs.SetPresentationProperties(source=curve, **dkwargs)
 mvs.SetTitle("Curve using alt kwargs for point fn")
 
 # Demo 3
 import magnetovis as mvs
 mvs.CreateViewAndLayout()
 
-skwargs['closed'] = False
-skwargs['Npts'] = 100
+skwargs['Closed'] = False
+skwargs['Resolution'] = 100
 skwargs['point_function'] = "helix(radius=1.0, length=10, rounds=5)"
 
 curve = mvs.Curve(**skwargs)
-mvs.SetDisplayProperties(source=curve, **dkwargs)
+mvs.SetPresentationProperties(source=curve, **dkwargs)
 mvs.SetTitle("Curve using alt point fn")
 
 
@@ -65,8 +65,8 @@ mvsfunctions._randpts = _randpts
 skwargs = {
             "time": "2001-01-01",
             "coord_sys": "GSM",
-            "Npts": 100,
-            "closed": False,
+            "Resolution": 100,
+            "Closed": False,
             "point_function": "_randpts()"
         }
 
@@ -85,7 +85,7 @@ dkwargs = {
 }
 
 curve = mvs.Curve(**skwargs)
-mvs.SetDisplayProperties(source=curve, **dkwargs)
+mvs.SetPresentationProperties(source=curve, **dkwargs)
 mvs.SetTitle("Points from user-defined function; no tube.")
 
 # Demo #5
@@ -108,8 +108,8 @@ mvsfunctions._parabola = _parabola
 skwargs = {
             "time": "2001-01-01",
             "coord_sys": "GSM",
-            "Npts": 100,
-            "closed": False,
+            "Resolution": 100,
+            "Closed": False,
             "point_function": "_parabola()"
         }
 
@@ -135,7 +135,7 @@ mvs.Axis(direction="X")
 mvs.Axis(direction="Y")
 mvs.Axis(direction="Z")
 curve = mvs.Curve(**skwargs)
-mvs.SetDisplayProperties(source=curve, **dkwargs)
+mvs.SetPresentationProperties(source=curve, **dkwargs)
 mvs.SetTitle("Parabola in Y-Z plane colored by Z")
 
 # Color bar that appears by default has a minimum of 4.1e-3

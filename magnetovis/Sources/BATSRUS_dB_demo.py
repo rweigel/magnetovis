@@ -12,7 +12,7 @@ if not os.path.exists(vtkfile):
   print("Downloading " + url)
   urlretrieve(url, vtkfile)
 
-batsrus = mvs.BATSRUS(file=vtkfile, setDisplayProperties=False)
+batsrus = mvs.BATSRUS(file=vtkfile, setPresentationProperties=False)
 mvs.SetTitle()
 
 import paraview.simple as pvs
@@ -132,9 +132,9 @@ ckwargs =  {
 mvs.SetColoring(source=dB_E_n, **ckwargs)
 
 renderView1 = pvs.GetActiveViewOrCreate('RenderView')
-sliceXZDisplay = pvs.GetDisplayProperties(sliceXZ, view=renderView1)
+sliceXZDisplay = pvs.GetPresentationProperties(sliceXZ, view=renderView1)
 sliceXZDisplay.SetScalarBarVisibility(renderView1, False)
-sliceXYDisplay = pvs.GetDisplayProperties(sliceXY, view=renderView1)
+sliceXYDisplay = pvs.GetPresentationProperties(sliceXY, view=renderView1)
 sliceXYDisplay.SetScalarBarVisibility(renderView1, False)
 
 mvs.SetCamera(viewType="isometric")

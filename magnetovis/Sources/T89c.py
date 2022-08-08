@@ -64,7 +64,7 @@ def Script(time="2001-03-22T12:00:00", coord_sys='GSM', dimensions=[20, 20, 20],
     GridData.Script(**kwargs, xoutput=output)
 
 
-def GetDisplayDefaults():
+def GetPresentationDefaults():
 
     defaults = {
         'display': {
