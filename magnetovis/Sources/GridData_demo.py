@@ -75,5 +75,5 @@ dkwargs = {
 }
 
 mvs.SetPresentationProperties(**dkwargs)
-mvs.SetCamera(Azimuth=225.0)
-mvs.SetTitle(r"$\alpha$/β", title=registrationName)
+mvs.SetCamera(Azimuth=225.0, Elevation=30)
+mvs.SetTitle()
