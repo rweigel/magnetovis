@@ -58,7 +58,6 @@ def SetColoring(*args, source=None, display=None, view=None, **kwargs):
 
     pvs.ColorBy(display, **kwargs)
 
-
     #colorTF.ApplyPreset()
 
     scalarBarProperties = mvs.GetScalarBarDefaults(kwargs['value'], colorTF=colorTF)
@@ -66,6 +65,20 @@ def SetColoring(*args, source=None, display=None, view=None, **kwargs):
     scalarBarProperties = {**scalarBarProperties, **scalarBarPropertiesRequested}
 
     scalarBar = pvs.GetScalarBar(colorTF, view)
+
+    if False:
+      # TODO.
+      if kwargs['value'][1] == 'CELLS':
+        r = source.CellData[kwargs['value'][1]]
+      if kwargs['value'][1] == 'POINTS':
+        r = source.CellData[kwargs['value'][1]]
+      lims = [r.GetRange(0), r.GetRange(1), r.GetRange(2)]
+      
+      # Compute new limits using
+      # colorTF.RescaleTransferFunction(0.0, 1.2)
+      # Compute new tick values given number of colors or compute
+      # number of colors given tick values.
+      # Turn on annotations for min and max
 
     # GetScalarBar does not have option to pass properties,
     # so must do via SetProperties (compare code for
@@ -84,3 +97,5 @@ def SetColoring(*args, source=None, display=None, view=None, **kwargs):
     # display.RescaleTransferFunctionToDataRange()
 
     view.Update()
+
+    return [colorTF, scalarBar]
