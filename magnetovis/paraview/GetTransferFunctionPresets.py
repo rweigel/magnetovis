@@ -1,4 +1,4 @@
-def GetTransferFunctions(format="dict"):
+def GetTransferFunctionPresets(format="dict"):
 
   # Not yet used.
 
@@ -18,3 +18,6 @@ def GetTransferFunctions(format="dict"):
     return presets_dict
   if format == "namelist":
     return names
+
+if __name__ == "__main__":
+  print(GetTransferFunctionPresets())

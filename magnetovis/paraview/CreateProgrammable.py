@@ -34,6 +34,9 @@ def CreateProgrammable(scriptFile, ptype, **kwargs):
         setPresentationProperties = True
         if 'setPresentationProperties' in kwargs:
             setPresentationProperties = kwargs['setPresentationProperties']
+        setPresentationPropertiesOnShow = True
+        if 'setPresentationPropertiesOnShow' in kwargs:
+            setPresentationPropertiesOnShow = kwargs['setPresentationPropertiesOnShow']
         programmable = pvs.ProgrammableSource()
     else:
         programmable = pvs.ProgrammableFilter(Input=kwargs['Input'])
@@ -144,18 +147,19 @@ def CreateProgrammable(scriptFile, ptype, **kwargs):
 
             # TODO: Catch Hide() event. If associated source is a 
             # magnetovis source, hide its children.
-            view = pvs.GetActiveViewOrCreate('RenderView')
-            def ViewStartEvent(a,b):
-                from paraview import servermanager
-                rep = servermanager.GetRepresentation(programmable, view)
-                #mvs.logger.info("Event " + b + " on view for " + registrationName)
-                if rep is None:
-                    #mvs.logger.info("No representation for " + registrationName)
-                    return
-                mvs.logger.info("Call to SetPresentationProperties() triggered for " + programmable)
-                view.SMProxy.RemoveObserver(cb_id_ae)
-                mvs.SetPresentationProperties(source=programmable)
-            cb_id_ae = view.SMProxy.AddObserver('StartEvent', ViewStartEvent)
+            if setPresentationPropertiesOnShow == True:
+              view = pvs.GetActiveViewOrCreate('RenderView')
+              def ViewStartEvent(a,b):
+                  from paraview import servermanager
+                  rep = servermanager.GetRepresentation(programmable, view)
+                  #mvs.logger.info("Event " + b + " on view for " + registrationName)
+                  if rep is None:
+                      #mvs.logger.info("No representation for " + registrationName)
+                      return
+                  mvs.logger.info("Call to SetPresentationProperties() triggered for " + programmable)
+                  view.SMProxy.RemoveObserver(cb_id_ae)
+                  mvs.SetPresentationProperties(source=programmable)
+              cb_id_ae = view.SMProxy.AddObserver('StartEvent', ViewStartEvent)
 
     mvs.logger.info("Finished.\n")
 
