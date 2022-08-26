@@ -28,8 +28,8 @@ def SetColoring(*args, source=None, display=None, view=None, **kwargs):
         mvs.logger.info('Found cell data with name CellId. Using.')
         kwargs['value'] = ('CELLS', 'CellId') 
       else:
-        mvs.logger.info('No CellId array. Will give solid color.')
-        mvs.SetColor(proxy=source, representation=display, view=view)
+        mvs.logger.info('No CellId array. Leaving color as default.')
+        #mvs.SetColor(proxy=source, representation=display, view=view)
         return
 
     colorTransferFunctionProperties = \
@@ -41,31 +41,44 @@ def SetColoring(*args, source=None, display=None, view=None, **kwargs):
             **colorTransferFunctionProperties, 
             **kwargs['colorTransferFunction']
           }
-      del kwargs['colorTransferFunction']
 
-    # TODO: Allow a parameter "TransferFunctionName" to be bassed
-    #       and then apply after this line using colorTF.ApplyPreset.
-    print(colorTransferFunctionProperties)
+    opacityTransferFunctionProperties = {}
+    if 'opacityTransferFunction' in kwargs:
+      # Override defaults
+      opacityTransferFunctionProperties = {
+            **opacityTransferFunctionProperties, 
+            **kwargs['opacityTransferFunction']
+          }
+
+    preset = None
+    if 'preset' in colorTransferFunctionProperties:
+      preset = colorTransferFunctionProperties['preset']
+      del colorTransferFunctionProperties['preset']
+
+    separate = False
+    if 'separate' in colorTransferFunctionProperties:
+      separate = colorTransferFunctionProperties['separate']
+      del colorTransferFunctionProperties['separate']
+
+    _range = None
+    if 'range' in colorTransferFunctionProperties:
+      _range = colorTransferFunctionProperties['range']
+      del colorTransferFunctionProperties['range']
+
+    pvs.ColorBy(value=kwargs['value'], rep=display, separate=separate)
+
+    # If this call is made before call to ColorBy, then we need to
+    # call again prior to rescaling. 
     colorTF = pvs.GetColorTransferFunction(\
                 kwargs['value'][1], representation=display,\
-                separate=True, **colorTransferFunctionProperties)
+                separate=separate, **colorTransferFunctionProperties)
 
-    scalarBarPropertiesRequested = {}
-    if 'scalarBar' in kwargs:
-      scalarBarPropertiesRequested = kwargs['scalarBar']
-      del kwargs['scalarBar']
+    opacityTF = pvs.GetOpacityTransferFunction(\
+                kwargs['value'][1], representation=display,\
+                separate=separate, **opacityTransferFunctionProperties)
 
-    display.SetScalarBarVisibility(display, True)
-
-    pvs.ColorBy(display, separate=True, **kwargs)
-
-    #colorTF.ApplyPreset()
-
-    scalarBarProperties = mvs.GetScalarBarDefaults(kwargs['value'], colorTF=colorTF)
-    # Override defaults
-    scalarBarProperties = {**scalarBarProperties, **scalarBarPropertiesRequested}
-
-    scalarBar = pvs.GetScalarBar(colorTF, view=view)
+    if preset is not None:
+      colorTF.ApplyPreset(preset)
 
     if False:
       # TODO.
@@ -81,6 +94,21 @@ def SetColoring(*args, source=None, display=None, view=None, **kwargs):
       # number of colors given tick values.
       # Turn on annotations for min and max
 
+    scalarBarPropertiesRequested = {}
+    if 'scalarBar' in kwargs:
+      scalarBarPropertiesRequested = kwargs['scalarBar']
+      del kwargs['scalarBar']
+
+    if _range is not None:
+      colorTF.RescaleTransferFunction(*_range)
+      opacityTF.RescaleTransferFunction(*_range)
+
+    scalarBarProperties = mvs.GetScalarBarDefaults(kwargs['value'], colorTF=colorTF)
+    # Override defaults
+    scalarBarProperties = {**scalarBarProperties, **scalarBarPropertiesRequested}
+
+    scalarBar = pvs.GetScalarBar(colorTF, view)
+
     # GetScalarBar does not have option to pass properties,
     # so must do via SetProperties (compare code for
     # GetColorTransferFunction with GetScalarBar in
@@ -90,13 +118,21 @@ def SetColoring(*args, source=None, display=None, view=None, **kwargs):
     mvs.logger.info("Calling pvs.HideScalarBarIfNotNeeded()")
     pvs.HideScalarBarIfNotNeeded(colorTF, view=view)
 
+    #display.RescaleTransferFunctionToDataRange(False, False)
+    #display.SetScalarBarVisibility(view, True) 
+    #pvs.UpdateScalarBars(view=view)
+    #return colorTF, None
+
+    #mvs.logger.info("Calling pvs.HideScalarBarIfNotNeeded()")
+    #pvs.HideScalarBarIfNotNeeded(colorTF, view)
+
     # Hides unused scalar bars if they have HideScalarBarIfNotNeeded set.
-    pvs.UpdateScalarBars(view=view)
+    #pvs.UpdateScalarBars(view=view)
 
     # RescaleTransferFunctionToDataRange is not available in display
     # until after the call to pvs.ColorBy. Needed?
     # display.RescaleTransferFunctionToDataRange()
 
-    view.Update()
+    #view.Update()
 
-    return [colorTF, scalarBar]
+    return scalarBar, colorTF, opacityTF

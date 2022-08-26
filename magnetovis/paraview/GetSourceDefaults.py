@@ -21,7 +21,10 @@ def GetSourceDefaults(proxy, all=False):
     proxy = proxy(setPresentationProperties=False)
     is_magnetovis = True
   except:
-    proxy = proxy()
+    try:
+      proxy = proxy() # source or filter
+    except:
+      pass # transfer function or scalarbar
 
   defaults = {}
   props = proxy.ListProperties()
