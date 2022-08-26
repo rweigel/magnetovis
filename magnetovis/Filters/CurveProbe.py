@@ -19,5 +19,7 @@ def Script(_output=None):
   output.ShallowCopy(probeFilter.GetOutputDataObject(0))
 
   import magnetovis as mvs
-  if _output is None:
-    mvs.ProxyInfo.SetInfo(output, locals())
+  #if _output is None:
+  print("++++++")
+  print(locals())
+  mvs.ProxyInfo.SetInfo(output, locals())
