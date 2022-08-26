@@ -152,10 +152,10 @@ def CreateProgrammable(scriptFile, ptype, **kwargs):
                 if rep is None:
                     #mvs.logger.info("No representation for " + registrationName)
                     return
-                mvs.logger.info("Call to SetPresentationProperties() triggered for " + programmable)
+                mvs.logger.info("Call to SetPresentationProperties() triggered for " + registrationName)
                 view.SMProxy.RemoveObserver(cb_id_ae)
                 mvs.SetPresentationProperties(source=programmable)
-            cb_id_ae = view.SMProxy.AddObserver('StartEvent', ViewStartEvent)
+            #cb_id_ae = view.SMProxy.AddObserver('StartEvent', ViewStartEvent)
 
     mvs.logger.info("Finished.\n")
 

@@ -66,6 +66,7 @@ def SetInfo(output, local_vars, include=None):
     source_name = proxy.GetProperty('__magnetovis_name__')
 
     if source_name is None:
+        print(f"no __magnetovis_name__ in active source {proxy}")
         return
 
     #import importlib
@@ -97,13 +98,19 @@ def SetInfo(output, local_vars, include=None):
     registrationName = list(pvs.GetSources().keys())[list(pvs.GetSources().values()).index(pvs.GetActiveSource())][0]
     ScriptKwargs['registrationName'] = registrationName
 
+    print("xxxxx")
+    print(local_vars)
     if 'inputs' in local_vars and len(local_vars['inputs']) > 0:
         #filter.Input.Proxy.SMProxy.GetGlobalID()
         ScriptKwargs['inputRegistrationNames'] = []
+        print("------")
+        print(local_vars)
         for i in range(len(local_vars['inputs'])):
+            print(local_vars['inputs'][i])
             ScriptKwargs['inputRegistrationNames'].append(
                 local_vars['inputs'][i].GetFieldData().GetArray('registrationName').GetValue(0)
             )
+        print(ScriptKwargs['inputRegistrationNames'])
 
     # Set field data
     magnetovis.vtk.set_arrays(output, field_data=ScriptKwargs)

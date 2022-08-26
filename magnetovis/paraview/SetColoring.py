@@ -20,8 +20,6 @@ def SetColoring(*args, source=None, display=None, view=None, **kwargs):
     kwargs['value'] = None
     if len(args) != 0:
       kwargs['value'] = args[0]
-    if 'separate' not in kwargs:
-      kwargs['separate'] = True
 
     if kwargs['value'] is None:
       mvs.logger.info('No color_by given.')
@@ -47,6 +45,7 @@ def SetColoring(*args, source=None, display=None, view=None, **kwargs):
 
     # TODO: Allow a parameter "TransferFunctionName" to be bassed
     #       and then apply after this line using colorTF.ApplyPreset.
+    print(colorTransferFunctionProperties)
     colorTF = pvs.GetColorTransferFunction(\
                 kwargs['value'][1], representation=display,\
                 separate=True, **colorTransferFunctionProperties)
@@ -56,7 +55,9 @@ def SetColoring(*args, source=None, display=None, view=None, **kwargs):
       scalarBarPropertiesRequested = kwargs['scalarBar']
       del kwargs['scalarBar']
 
-    pvs.ColorBy(display, **kwargs)
+    display.SetScalarBarVisibility(display, True)
+
+    pvs.ColorBy(display, separate=True, **kwargs)
 
     #colorTF.ApplyPreset()
 
@@ -64,7 +65,7 @@ def SetColoring(*args, source=None, display=None, view=None, **kwargs):
     # Override defaults
     scalarBarProperties = {**scalarBarProperties, **scalarBarPropertiesRequested}
 
-    scalarBar = pvs.GetScalarBar(colorTF, view)
+    scalarBar = pvs.GetScalarBar(colorTF, view=view)
 
     if False:
       # TODO.
@@ -87,7 +88,7 @@ def SetColoring(*args, source=None, display=None, view=None, **kwargs):
     pvs.SetProperties(proxy=scalarBar, **scalarBarProperties)
 
     mvs.logger.info("Calling pvs.HideScalarBarIfNotNeeded()")
-    pvs.HideScalarBarIfNotNeeded(colorTF, view)
+    pvs.HideScalarBarIfNotNeeded(colorTF, view=view)
 
     # Hides unused scalar bars if they have HideScalarBarIfNotNeeded set.
     pvs.UpdateScalarBars(view=view)

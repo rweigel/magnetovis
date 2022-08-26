@@ -13,20 +13,22 @@ def t89c(points, ut=100, iopt=1, ps=None):
     import numpy as np
 
     import magnetovis as mvs
+    from geopack import geopack
     from geopack import t89
 
-    print(ut)
-    print(iopt)
-    print(ps)
-    #import datetime
-    #ut = (datetime.datetime(2001,1,1,2,3,4)-datetime.datetime(1970,1,1)).total_seconds()
-    #ps = geopack.recalc(ut)
-    ut = 983420048.0
-    ut = 983627464.0
-    ps = geopack.recalc(ut)
-    print(ps)
+    if False:
+        print(ut)
+        print(iopt)
+        print(ps)
+        #import datetime
+        #ut = (datetime.datetime(2001,1,1,2,3,4)-datetime.datetime(1970,1,1)).total_seconds()
+        ut = 983420048.0
+        ut = 983627464.0
+        ps = geopack.recalc(ut)
+        print(ps)
+        print(f"---{ps}")
 
-    print(f"---{ps}")
+    ps = geopack.recalc(ut)
     B = np.zeros(points.shape)
     for i in range(points.shape[0]):
         r = np.linalg.norm(points[i,:])
@@ -38,13 +40,14 @@ def t89c(points, ut=100, iopt=1, ps=None):
             #print(geopack.igrf_gsm(*[-5.1,0.3,2.8]))
 
             b0xgsm,b0ygsm,b0zgsm = geopack.igrf_gsm(points[i,0], points[i,1], points[i,2])
-            #dbxgsm,dbygsm,dbzgsm = t89.t89(iopt, ps, points[i,0], points[i,1], points[i,2])
-            B[i,0] = b0xgsm
-            B[i,1] = b0ygsm
-            B[i,2] = b0zgsm
+            if False:
+                B[i,0] = b0xgsm
+                B[i,1] = b0ygsm
+                B[i,2] = b0zgsm
 
-            #B[i,0] = b0xgsm + dbxgsm
-            #B[i,1] = b0ygsm + dbygsm
-            #B[i,2] = b0zgsm + dbzgsm
+            dbxgsm,dbygsm,dbzgsm = t89.t89(iopt, ps, points[i,0], points[i,1], points[i,2])
+            B[i,0] = b0xgsm + dbxgsm
+            B[i,1] = b0ygsm + dbygsm
+            B[i,2] = b0zgsm + dbzgsm
 
     return B

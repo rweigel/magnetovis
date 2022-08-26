@@ -67,7 +67,7 @@ parser.add_option('-h', '--help',
 parser.add_option('--loglevel',
             type='str',
             help="Magnetovis logging level. One of {info, debug, warning, error}", 
-            default='error')
+            default='info')
 
 parser.add_option('--paraview-version',
             type='str',
@@ -133,7 +133,7 @@ elif pvbatch:
     if len(args) > 1:
         syscom = PVBATCH + " " + args[1] + " " + options.pvbatch_options
 else:
-    syscom = PARAVIEW + " " + options.pvpython_options
+    syscom = PARAVIEW + " " + options.paraview_options
     if len(args) > 0:
         syscom = PARAVIEW + " --script=" + args[0] + " " + options.paraview_options
 
