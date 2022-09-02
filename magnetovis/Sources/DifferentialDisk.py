@@ -142,5 +142,3 @@ def Script(time="2001-01-01", coord_sys='GSM',
 
     set_points(output, points)
     set_arrays(output, point_data=point_arrays, include=["CellId"])
-
-    mvs.ProxyInfo.SetInfo(output, locals())

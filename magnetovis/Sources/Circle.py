@@ -23,8 +23,6 @@ def Script(time="2001-01-01", coord_sys="GSM", coord_sys_view=None,
   mvs._Curve(**kwargs, _output=output)
   mvs._RotateUsingVectors(Vector2=Direction, _output=output)
 
-  mvs.ProxyInfo.SetInfo(output, locals())
-
 
 def DefaultRegistrationName(**kwargs):
 

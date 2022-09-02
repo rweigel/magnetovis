@@ -35,9 +35,6 @@ def Script(in_name=None, out_name=None, time=None, _output=None, _inputs=None):
 
   output.ShallowCopy(transformFilter.GetOutputDataObject(0))
 
-  if _output is None:
-      mvs.ProxyInfo.SetInfo(output, locals())
-
 
 def DefaultRegistrationName(**kwargs):
 

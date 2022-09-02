@@ -49,9 +49,6 @@ def Script(time="2000-01-01", coord_sys="GSM", coord_sys_view=None,
 
   mvs._TransformByNames(in_name=coord_sys_view, out_name=coord_sys, time=time, _output=output, _inputs=[output])
 
-  # Store kwargs
-  mvs.ProxyInfo.SetInfo(output, locals())
-
 
 # Everything that follows is optional
 def GetPresentationDefaults():

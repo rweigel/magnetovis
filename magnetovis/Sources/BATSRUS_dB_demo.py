@@ -1,6 +1,6 @@
 # import magnetovis; exec(magnetovis.demo("Plasmasphere"))
 
-# import magnetovis as mvs; mvs.ClearPipeline(); exec(open("/Users/weigel/git/magnetovis/untitled.py", encoding="utf-8").read())
+# import magnetovis as mvs; mvs.ClearPipeline(); exec(open("/Users/weigel/git/magnetovis/magnetovis/Sources/BATSRUS_dB_demo.py", encoding="utf-8").read())
 
 # Demo 1
 from urllib.request import urlretrieve
@@ -77,7 +77,15 @@ def SetColorBar(color_by, name, source, UseLogScale=1):
 # Multiplying by a factor of 10,000 puts the result in nT.
 
 # Point to compute ΔB
-(X,Y,Z) = (1.0, 0.0, 0.0)
+# (X,Y,Z) = (1.0, 0.0, 0.0)
+(X,Y,Z) = [0.7116504060900085, -0.6711866226392706, 0.20751437806093234]
+if False:
+  # cxform does not have data past 2015 and geopack won't run b/c ParaView
+  # uses numpy 1.21 but on arm, 1.23 is needed.
+  time = '2019-09-02T04:10:00'
+  colaba_GSM = hx.transform(colaba_GEO, time, 'GEO', 'GSM', ctype_in='sph', ctype_out='car', lib='geopack_08_dp')
+  print(colaba_GSM)
+
 s = pvs.Sphere(registrationName="ΔB point", Radius=0.1, Center=(X,Y,Z))
 
 bs_E = f"10000*CellVolume*( j_Z*({X}-CellCenter_X) - j_X*({Z}-CellCenter_Z) )"
@@ -90,14 +98,14 @@ dB_E.Function = bs_E
 dB_E.ResultArrayName = 'ΔB_E'
 SetColorBar(('CELLS', 'ΔB_E'), 'ΔB_E', dB_E, UseLogScale=False)
 
-if False:
+if True:
     dB_E_p = pvs.Threshold(registrationName=registrationName + " > 0", Input=dB_E)
     dB_E_p.Scalars = ['CELLS', registrationName]
     dB_E_p.LowerThreshold = 1e-16
     dB_E_p.UpperThreshold = 1e8
     SetColorBar(('CELLS', 'ΔB_E'), 'ΔB_E > 0', dB_E_p)
 
-if False:
+if True:
 
     sliceXZ = pvs.Slice(registrationName="y=0 slice", Input=dB_E_p)
     sliceXZ.SliceType = 'Plane'

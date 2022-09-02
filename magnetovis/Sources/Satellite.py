@@ -101,7 +101,6 @@ def Script(self,
     point_arrays = mvs.vtk.get_arrays(point_array_functions, points)
     mvs.vtk.set_arrays(output, point_data=point_arrays)
 
-    mvs.ProxyInfo.SetInfo(output, locals())
 
 def DefaultRegistrationName(**kwargs):
 

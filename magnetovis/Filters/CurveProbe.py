@@ -5,10 +5,6 @@ def OutputDataSetType():
 
 def Script(_output=None):
 
-  if _output is not None:
-    output = _output
-    inputs = [_output]
-
   import vtk
 
   probeFilter = vtk.vtkProbeFilter()
@@ -17,9 +13,3 @@ def Script(_output=None):
   probeFilter.Update()
 
   output.ShallowCopy(probeFilter.GetOutputDataObject(0))
-
-  import magnetovis as mvs
-  #if _output is None:
-  print("++++++")
-  print(locals())
-  mvs.ProxyInfo.SetInfo(output, locals())

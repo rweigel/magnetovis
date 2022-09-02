@@ -8,3 +8,4 @@ def GetRegistrationName(source=None):
     sources = pvs.GetSources()
     # https://public.kitware.com/pipermail/paraview/2017-January/038962.html
     return list(sources.keys())[list(sources.values()).index(source)][0]
+

@@ -34,14 +34,11 @@ def Script(time="2001-01-01T00:00:00", coord_sys="GSM", dimensions=[4, 4, 4],
             point_array_functions=["xyz: position()"],
             cell_array_functions=["xyz: position()"],
             OutputDataSetType="vtkStructuredGrid",
-            xoutput=None):
+            output=None):
 
     # The keyword argument OutputDataSetType is not used explicitly here 
     # but is needed by CreateProgrammableSource(), which reads this
     # script to buid a Programmable Source.
-
-    if xoutput is not None:
-        output = xoutput
 
     import magnetovis as mvs
     mvs.logger.info("Called.")
@@ -87,15 +84,10 @@ def Script(time="2001-01-01T00:00:00", coord_sys="GSM", dimensions=[4, 4, 4],
     # Add point data and cell data to `output`.
     mvs.vtk.set_arrays(output, point_data=point_arrays, cell_data=cell_arrays, include=["CellId", "PointId"])
 
-    # Attach metadata to `output`. The metadata is the value of the
-    # keyword variables.
-    mvs.ProxyInfo.SetInfo(output, locals())
-
 
 def DefaultRegistrationName(**kwargs):
 
     import magnetovis as mvs
-
     return "{}/{}/{}" \
                 .format(kwargs['OutputDataSetType'], mvs.util.trim_iso(kwargs['time']), kwargs['coord_sys'])
 

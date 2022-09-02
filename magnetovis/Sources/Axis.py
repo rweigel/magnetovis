@@ -118,8 +118,6 @@ def Script(time="2001-01-01",
 
       output.ShallowCopy(combinedSources.GetOutputDataObject(0))
 
-      mvs.ProxyInfo.SetInfo(output, locals())
-
 
 def DefaultRegistrationName(**kwargs):
     import magnetovis as mvs

@@ -84,5 +84,3 @@ def Script(time="2001-01-01", coord_sys="GSM",
    mvs.vtk.set_points(output, points2)
    point_arrays = mvs.vtk.get_arrays(point_array_functions, points)
    mvs.vtk.set_arrays(output, point_data=point_arrays, include=["CellId"])
-
-   mvs.ProxyInfo.SetInfo(output, locals())

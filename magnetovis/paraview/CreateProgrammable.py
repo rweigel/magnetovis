@@ -22,9 +22,6 @@ def CreateProgrammable(scriptFile, ptype, **kwargs):
     module = create_module(scriptFile)
     sourceName = module.__name__
 
-    # If registrationName is not a keyword for source, it will be removed
-    # by the call to extract_script. So we need to get it here. Same for
-    # setPresentationProperties.
     defaultRegistrationName = file_name
     registrationName = None
     if 'registrationName' in kwargs:
@@ -55,28 +52,38 @@ def CreateProgrammable(scriptFile, ptype, **kwargs):
     if ptype == "filter" and hasattr(module, 'GetFilterDefaults'):
         kwargs = module.GetSourceDefaults(extract.extract_kwargs(module.Script), kwargs)
 
+    if registrationName is None and hasattr(module, 'DefaultRegistrationName'):
+        _kwargs = extract.extract_kwargs(module.Script, default_kwargs=kwargs)
+        registrationName = module.DefaultRegistrationName(**_kwargs)
+
+    registrationName = mvs.UniqueName(name=registrationName, proxyType="source", default=defaultRegistrationName)
+    pvs.RenameSource(registrationName, programmable)
+
     mvs.logger.info("Extracting script and kwarg defaults after replacing defaults with passed kwargs.")
     programmable.Script, kwargs = extract.extract_script(module.Script, kwargs)
 
+    if 'output' in kwargs and kwargs['output'] is None or 'output' not in kwargs:
+        programmable.Script += f"\nregistrationName='{registrationName}'\nimport magnetovis as mvs;mvs.ProxyInfo.SetInfo(output, locals())"
+
     if hasattr(module, 'OutputDataSetType'):
-        mvs.logger.info("Getting OutputDataSetType default.")
-        default = module.OutputDataSetType()
-        mvs.logger.info("Setting OutputDataSetType to " + default)
-        programmable.OutputDataSetType = default
+      mvs.logger.info("Getting OutputDataSetType default.")
+      default = module.OutputDataSetType()
+      mvs.logger.info("Setting OutputDataSetType to " + default)
+      programmable.OutputDataSetType = default
     else:
-        if 'OutputDataSetType' in kwargs:
-            mvs.logger.info("Setting OutputDataSetType passed as kwarg.")
-            programmable.OutputDataSetType = kwargs['OutputDataSetType']
+      if 'OutputDataSetType' in kwargs:
+        mvs.logger.info("Setting OutputDataSetType passed as kwarg.")
+        programmable.OutputDataSetType = kwargs['OutputDataSetType']
 
     if ptype == "source" and hasattr(module, 'ScriptRequestInformation'):
-        mvs.logger.info("Extracting ScriptRequestInformation script.")
-        programmable.ScriptRequestInformation, _ = extract.extract_script(module.ScriptRequestInformation, kwargs)
+      mvs.logger.info("Extracting ScriptRequestInformation script.")
+      programmable.ScriptRequestInformation, _ = extract.extract_script(module.ScriptRequestInformation, kwargs)
 
     if ptype == "filter" and hasattr(module, 'RequestInformationScript'):
-        # Note the difference in names (ScriptRequestInformation for source
-        # and RequestInformationScript for filter)
-        mvs.logger.info("Extracting RequestInformationScript script.")
-        programmable.RequestInformationScript, _ = extract.extract_script(module.RequestInformationScript, kwargs)
+      # Note the difference in names (ScriptRequestInformation for source
+      # and RequestInformationScript for filter)
+      mvs.logger.info("Extracting RequestInformationScript script.")
+      programmable.RequestInformationScript, _ = extract.extract_script(module.RequestInformationScript, kwargs)
 
     # Add kwargs as properties to make programmable have options
     # that can be obtained with GetProperty() in the same way that a
@@ -84,12 +91,12 @@ def CreateProgrammable(scriptFile, ptype, **kwargs):
     #Properties = programmable.ListProperties()
     Properties = []
     def ListProperties():
-        for key in dict(kwargs):
-            Properties.append(key)
-        Properties.append("__magnetovis_name__")
-        Properties.append("__magnetovis_children__")
-        Properties.append("__magnetovis_module__")
-        return Properties
+      for key in dict(kwargs):
+        Properties.append(key)
+      Properties.append("__magnetovis_name__")
+      Properties.append("__magnetovis_children__")
+      Properties.append("__magnetovis_module__")
+      return Properties
 
     children = None
     GetPropertyOriginal = programmable.GetProperty
@@ -118,12 +125,6 @@ def CreateProgrammable(scriptFile, ptype, **kwargs):
     # <bound method Proxy.GetPropertyValue of <paraview.servermanager.Sphere object at 0x2abf04640>>
     # s.GetProperty
     # <bound method Proxy.GetProperty of <paraview.servermanager.Sphere object at 0x2abf04640>>
-
-    if registrationName is None and hasattr(module, 'DefaultRegistrationName'):
-        registrationName = module.DefaultRegistrationName(**kwargs)
-
-    registrationName = mvs.UniqueName(name=registrationName, proxyType="source", default=defaultRegistrationName)
-    pvs.RenameSource(registrationName, programmable)
 
     if ptype == "source":
         if setPresentationProperties == True:

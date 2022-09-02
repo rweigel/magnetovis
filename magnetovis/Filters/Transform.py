@@ -20,9 +20,6 @@ def Script(x=[1, 0, 0], y=[0, 1, 0], z=[0, 0, 1], _output=None, _inputs=None):
 
     output.ShallowCopy(transformFilter.GetOutputDataObject(0))
 
-    if _output is None:
-        mvs.ProxyInfo.SetInfo(output, locals())
-
     #<paraview.vtk.numpy_interface.dataset_adapter.PointSet object at 0x14de43f70>
     #[<paraview.vtk.numpy_interface.dataset_adapter.PointSet object at 0x14de43fd0>]
     #<paraview.vtk.numpy_interface.dataset_adapter.PointSet object at 0x14de43f70>

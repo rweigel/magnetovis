@@ -54,7 +54,6 @@ def Script(time="2001-01-01T12:00:00", coord_sys='GSM', dimensions=[20, 20],
     mvs.vtk.set_points(output, points)
     mvs.vtk.set_arrays(output, point_data=point_arrays, include=["CellId"])
 
-    mvs.ProxyInfo.SetInfo(output, locals())
 
 def DefaultRegistrationName(**kwargs):
 

@@ -145,6 +145,11 @@ def extract_kwargs(function, default_kwargs=None):
             else:
                 kwargs[x] = p.default
 
+    if 'output' in kwargs:
+      del kwargs['output']
+    if 'inputs' in kwargs:
+      del kwargs['inputs']
+
     mvs.logger.info("Returning kwargs of {}".format(kwargs))
 
     return kwargs

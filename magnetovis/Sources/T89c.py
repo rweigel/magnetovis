@@ -61,7 +61,7 @@ def Script(time="2001-03-22T12:00:00", coord_sys='GSM', dimensions=[20, 20, 20],
     del kwargs['iopt']
     del kwargs['ps']
     GridData = importlib.import_module('magnetovis.Sources.GridData')
-    GridData.Script(**kwargs, xoutput=output)
+    GridData.Script(**kwargs, output=output)
 
 
 def GetPresentationDefaults():

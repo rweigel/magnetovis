@@ -17,7 +17,7 @@ def ScriptRequestInformation(self, dimensions=None):
     return mvs.Sources.GridData.ScriptRequestInformation(self, dimensions=dimensions)
 
 
-def Script(output, time="2001-01-01", coord_sys="GSM", coord_sys_view=None,
+def Script(time="2001-01-01", coord_sys="GSM", coord_sys_view=None,
             style="map", Radius=1.0, ThetaResolution=180, PhiResolution=180):
 
     import vtk
@@ -85,8 +85,6 @@ def Script(output, time="2001-01-01", coord_sys="GSM", coord_sys_view=None,
     fvtk = dsa.numpyTovtkDataArray(UV)
     fvtk.SetName('TCoordArray')
     output.GetPointData().AddArray(fvtk)
-
-    mvs.ProxyInfo.SetInfo(output, locals())
 
 
 def DefaultRegistrationName(**kwargs):

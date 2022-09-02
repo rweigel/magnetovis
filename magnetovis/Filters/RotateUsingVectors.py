@@ -25,8 +25,6 @@ def Script(Vector1=[0.0, 0.0, 1.0], Vector2=[0.0, 0.0, 1.0], _output=None):
   mvs.logger.info(f"Orient: Vector1 = {Vector1}; Vector2 = {Vector2}=> Rotation by angle = {angle}° around axis = {axis}")
   mvs._Rotate(angle=angle, axis=axis, _output=output)
 
-  if _output is None:
-    mvs.ProxyInfo.SetInfo(output, locals())
 
 def DefaultRegistrationName(**kwargs):
 

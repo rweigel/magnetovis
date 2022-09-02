@@ -41,10 +41,3 @@ def Script(_output=None):
   fl.convert_to_vtk()
 
   output.ShallowCopy(fl.vtk_polydata)
-
-  import magnetovis as mvs
-  if _output is None:
-     mvs.ProxyInfo.SetInfo(output, locals())
-
-
-

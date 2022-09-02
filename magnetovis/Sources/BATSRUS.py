@@ -16,6 +16,7 @@ def Script(file=None, time=None, coord_sys='GSM', tmpdir=None):
   mvs.logger.info("Called.")
 
   mvs.logger.info("Reading " + file)
+
   import vtk
   reader = vtk.vtkGenericDataObjectReader()
   reader.SetFileName(file)

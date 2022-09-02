@@ -61,16 +61,19 @@ def SetInfo(output, local_vars, include=None):
     import paraview.simple as pvs
     import magnetovis
 
-    proxy = pvs.GetActiveSource()
+    sources = pvs.GetSources()
+    for k, v in sources.items():
+      if k[0] == local_vars['registrationName']:
+        proxy = v
+        break
+    mvs.logger.info(f"Called. proxy = {proxy}")
 
     source_name = proxy.GetProperty('__magnetovis_name__')
 
     if source_name is None:
-        print(f"no __magnetovis_name__ in active source {proxy}")
+        mvs.logger.info(f"no __magnetovis_name__ in {proxy}")
         return
 
-    #import importlib
-    #Script = importlib.import_module('magnetovis.Sources.' + source_name).Script
     Script = proxy.GetProperty('__magnetovis_module__').Script
 
     # Get default keyword arguments
@@ -94,23 +97,16 @@ def SetInfo(output, local_vars, include=None):
             if vtkname in ScriptKwargs:
                 ScriptKwargs[vtkname] = magnetovis.vtk.get_settings(val, form='dict')
 
-    # TODO: Explain this.
-    registrationName = list(pvs.GetSources().keys())[list(pvs.GetSources().values()).index(pvs.GetActiveSource())][0]
+    registrationName = mvs.GetRegistrationName(source=proxy)
     ScriptKwargs['registrationName'] = registrationName
 
-    print("xxxxx")
-    print(local_vars)
-    if 'inputs' in local_vars and len(local_vars['inputs']) > 0:
+    #https://www.cfd-online.com/Forums/paraview/214354-listing-inputs-grouped-dataset-programmable-python-filter-paraview.html
+    if hasattr(proxy, 'Input'):
         #filter.Input.Proxy.SMProxy.GetGlobalID()
         ScriptKwargs['inputRegistrationNames'] = []
-        print("------")
-        print(local_vars)
-        for i in range(len(local_vars['inputs'])):
-            print(local_vars['inputs'][i])
-            ScriptKwargs['inputRegistrationNames'].append(
-                local_vars['inputs'][i].GetFieldData().GetArray('registrationName').GetValue(0)
-            )
-        print(ScriptKwargs['inputRegistrationNames'])
+        for Input in proxy.Input:
+            inputRegistrationName = mvs.GetRegistrationName(source=Input)
+            ScriptKwargs['inputRegistrationNames'].append(inputRegistrationName)
 
     # Set field data
     magnetovis.vtk.set_arrays(output, field_data=ScriptKwargs)

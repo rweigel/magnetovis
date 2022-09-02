@@ -24,11 +24,6 @@ def Script(point1=(0.0, 0.0, 0.0), point2=(1.0, 0.0, 0.0), resolution=10):
 
   output.ShallowCopy(vtkLineSource.GetOutputDataObject(0))
 
-  import magnetovis as mvs
-
-  # Store kwargs
-  mvs.ProxyInfo.SetInfo(output, locals())
-
 
 # Everything that follows is optional
 def GetPresentationDefaults():

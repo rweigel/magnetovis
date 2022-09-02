@@ -52,6 +52,7 @@ def trim_nums(vals, n, style='number'):
     else:
       return "{}".format(vals)
 
+
 def trim_nums_test():
 
   assert trim_nums(1, 4) == 1
@@ -76,6 +77,7 @@ def trim_iso(isostr):
       isostr = isostr[0:-3]
 
   return isostr
+
 
 def trim_iso_test():
 
