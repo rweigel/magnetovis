@@ -55,7 +55,7 @@ def Script(time="2001-01-01", coord_sys="GSM", coord_sys_view=None,
     z = Radius*np.cos(B2)
     points = np.column_stack((x,y,z))
 
-    if coord_sys != 'coord_sys_view':
+    if coord_sys != 'GEO':
         from hxform import hxform as hx
         points_gsm = hx.transform(points, mvs.util.iso2ints(time), 'GEO', 'GSM', lib='cxform')
         # req = requested coordinate system
