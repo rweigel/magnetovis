@@ -12,6 +12,8 @@ def SetColoring(*args, source=None, display=None, view=None, **kwargs):
     if view is None:
         view = pvs.GetActiveViewOrCreate('RenderView')
     if display is None:
+        print(source)
+        print(view)
         display = pvs.GetDisplayProperties(proxy=source, view=view)
         # TODO?: This will make object visible. If possible, reset to
         #        original visibility after call.
@@ -32,8 +34,12 @@ def SetColoring(*args, source=None, display=None, view=None, **kwargs):
         #mvs.SetColor(proxy=source, representation=display, view=view)
         return
 
+    ctfkwargs = {}
+    if 'colorTransferFunction' in kwargs:
+      ctfkwargs = kwargs['colorTransferFunction']
+
     colorTransferFunctionProperties = \
-        mvs.GetColorTransferFunctionDefaults(kwargs['value'], source=source)
+        mvs.GetColorTransferFunctionDefaults(kwargs['value'], source=source, **ctfkwargs)
 
     if 'colorTransferFunction' in kwargs:
       # Override defaults
@@ -68,7 +74,7 @@ def SetColoring(*args, source=None, display=None, view=None, **kwargs):
     pvs.ColorBy(value=kwargs['value'], rep=display, separate=separate)
 
     # If this call is made before call to ColorBy, then we need to
-    # call again prior to rescaling. 
+    # call again prior to rescaling.
     colorTF = pvs.GetColorTransferFunction(\
                 kwargs['value'][1], representation=display,\
                 separate=separate, **colorTransferFunctionProperties)
@@ -115,24 +121,18 @@ def SetColoring(*args, source=None, display=None, view=None, **kwargs):
     # https://kitware.github.io/paraview-docs/latest/python/_modules/paraview/simple.html
     pvs.SetProperties(proxy=scalarBar, **scalarBarProperties)
 
-    mvs.logger.info("Calling pvs.HideScalarBarIfNotNeeded()")
+    mvs.logger.info("Calling pvs.HideScalarBarIfNotNeeded() and UpdateScalarBars().")
     pvs.HideScalarBarIfNotNeeded(colorTF, view=view)
+    pvs.UpdateScalarBars(view=view)
 
-    #display.RescaleTransferFunctionToDataRange(False, False)
+    # See https://stackoverflow.com/a/63028935 for rescaling to visible range.
+    mvs.logger.info("Calling pvs.RescaleTransferFunctionToDataRange().")
+    # For explanation of False, True see
+    # https://kitware.github.io/paraview-docs/latest/cxx/classvtkSMPVRepresentationProxy.html#a67200556fed6885f56753a450f2a2956
+    # (False, True) is what is used when the rescale button is clicked in the GUI.
+    display.RescaleTransferFunctionToDataRange(False, True)
     #display.SetScalarBarVisibility(view, True) 
-    #pvs.UpdateScalarBars(view=view)
-    #return colorTF, None
 
-    #mvs.logger.info("Calling pvs.HideScalarBarIfNotNeeded()")
-    #pvs.HideScalarBarIfNotNeeded(colorTF, view)
-
-    # Hides unused scalar bars if they have HideScalarBarIfNotNeeded set.
-    #pvs.UpdateScalarBars(view=view)
-
-    # RescaleTransferFunctionToDataRange is not available in display
-    # until after the call to pvs.ColorBy. Needed?
-    # display.RescaleTransferFunctionToDataRange()
-
-    #view.Update()
+    view.Update()
 
     return scalarBar, colorTF, opacityTF

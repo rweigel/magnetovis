@@ -21,6 +21,7 @@ def Script(time="2001-01-01", coord_sys="GSM", coord_sys_view=None,
 
   import magnetovis as mvs
 
+  print(point_function)
   points = mvs.vtk.get_arrays(point_function, Resolution)
 
   vtkPolyLine = vtk.vtkPolyLine()
@@ -43,9 +44,6 @@ def Script(time="2001-01-01", coord_sys="GSM", coord_sys_view=None,
   mvs.vtk.set_arrays(output, point_data=point_arrays)
 
   mvs._TransformByNames(in_name=coord_sys_view, out_name=coord_sys, time=time, _output=output, _inputs=[output])
-
-  if _output is None:
-    mvs.ProxyInfo.SetInfo(output, locals())
 
 
 def GetPresentationDefaults():

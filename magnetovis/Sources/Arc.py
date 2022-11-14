@@ -26,13 +26,10 @@ def Script(time="2001-01-01", coord_sys="GSM", coord_sys_view=None,
   mvs._Curve(**kwargs)
   mvs._RotateUsingVectors(Vector2=Direction, _output=output)
 
-  mvs.ProxyInfo.SetInfo(output, locals())
-
 
 def DefaultRegistrationName(**kwargs):
 
     import magnetovis as mvs
-
     Radius = mvs.util.trim_nums(kwargs['Radius'], 2, style='string')
     Center = mvs.util.trim_nums(kwargs['Center'], 2, style='string')
     Direction = mvs.util.trim_nums(kwargs['Direction'], 2, style='string')

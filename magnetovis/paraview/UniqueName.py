@@ -19,7 +19,11 @@ def UniqueName(name=None, proxyType="source", default=None):
     if name is None:
         name = proxyType.capitalize()
 
-    if name in usedNames:
+    first = ""
+    if proxyType != "source":
+        first = " #1"
+
+    if name + first in usedNames:
         k = 2
         while name + " #" + str(k) in usedNames:
             k = k + 1

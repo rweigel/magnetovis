@@ -5,18 +5,21 @@
 import magnetovis as mvs
 mvs.Earth()
 mvs.SetTitle("  Earth with Default Options")
+mvs.SetOrientationAxisLabel('GSM')
 
 # Demo 2
 import magnetovis as mvs
 mvs.CreateViewAndLayout()
 mvs.Earth(style="daynight")
 mvs.SetTitle('  Earth with style="daynight"')
+mvs.SetOrientationAxisLabel('GSM')
 
 # Demo 3
 import magnetovis as mvs
 mvs.CreateViewAndLayout()
 mvs.Earth()
 mvs.SetTitle("  Earth with Axes")
+mvs.SetOrientationAxisLabel('GSM')
 
 xAxis = mvs.Axis(direction="X", extent=[-3, 3])
 mvs.SetPresentationProperties(source=xAxis, 

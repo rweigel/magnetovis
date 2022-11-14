@@ -133,7 +133,81 @@ magnetovis magnetovis/Sources/FILENAME
 where `FILENAME` is the name of a demo file listed below, e.g., `Axis_demo.py`.
 
 <!-- Demos Start -->
+## NEZ
+
+Source file: [NEZ.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Demos/NEZ.py) | Demo file: [NEZ_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Demos/NEZ_demo.py)
+
+### Demo 1
+
+```python
+import paraview.simple as pvs
+import magnetovis as mvs
+import numpy as np
+
+def nez(time, pos, csys):
+  """Unit vectors in geographic north, east, and zenith dirs"""
+
+  from hxform import hxform as hx
+
+  # Geographic z axis in cys
+  Z = hx.transform(np.array([0, 0, 1]), time, 'GEO', csys, lib='cxform')
+
+  # zenith direction ("up")
+  z_geo = pos/np.linalg.norm(pos)
+
+  e_geo = np.cross(z_geo, Z)
+  e_geo = e_geo/np.linalg.norm(e_geo)
+
+  n_geo = np.cross(e_geo, z_geo)
+  n_geo = n_geo/np.linalg.norm(n_geo)
+
+  return n_geo, e_geo, z_geo
+
+time = '2001-09-02T04:10:00' # Should be 2019
+pos = (1., 18.907, 72.815)   # Geographic r, lat, long of Colaba
+from hxform import hxform as hx
+pos = hx.transform(np.array(pos), time, 'GEO', 'GSM', ctype_in="sph", ctype_out="car", lib='cxform')
+pos = (1/np.sqrt(2), 0, 1/np.sqrt(2))
+#pos = (1, 0, 0)
+
+n_geo, e_geo, z_geo = nez(time, pos, "GEO")
+
+print("Unit vectors for Geographic N, E, and Z in GSM:")
+print(n_geo)
+print(e_geo)
+print(z_geo)
+
+up = pvs.Line(registrationName="Z", Point1=pos, Point2=pos+z_geo)
+up_tube = pvs.Tube(up, Radius=0.02)
+mvs.SetColor('red')
+pvs.Show(up_tube)
+
+east = pvs.Line(registrationName="E", Point1=pos, Point2=pos+e_geo)
+east_tube = pvs.Tube(east, Radius=0.02)
+mvs.SetColor('green')
+pvs.Show(east_tube)
+
+north = pvs.Line(registrationName="N", Point1=pos, Point2=pos+n_geo)
+north_tube = pvs.Tube(north, Radius=0.02)
+mvs.SetColor('blue')
+pvs.Show(north_tube)
+
+mvs.SetOrientationAxisLabel(Text="GEO")
+mvs.Earth(coord_sys="GEO", coord_sys_view="GEO")
+mvs.LatLong(coord_sys="GEO", coord_sys_view="GEO")
+mvs.SetTitle()
+
+# GSM
+#mvs.Earth(time=time, coord_sys="GSM")
+#mvs.LatLong(time=time, coord_sys="GEO", phis=list(np.arange(0, 175, 5)), thetas=list(np.arange(-75, 75, 5)))
+#s = pvs.Sphere(Radius=0.1, Center=pos)
+#pvs.Show(s)
+```
+
+![NEZ_demo.py](magnetovis/Test/Demos/NEZ_demo-1.png)
+
 ## Arc
+
 Source file: [Arc.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Arc.py) | Demo file: [Arc_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Arc_demo.py)
 
 ### Demo 1
@@ -168,6 +242,7 @@ pvs.Show(text, TextPropMode='Billboard 3D Text', BillboardPosition=[0, 0, 1.05],
 ![Arc_demo.py](magnetovis/Test/Sources/Arc_demo-2.png)
 
 ## Axis
+
 Source file: [Axis.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Axis.py) | Demo file: [Axis_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Axis_demo.py)
 
 ### Demo 1
@@ -234,6 +309,7 @@ zAxis = mvs.Axis(**skwargs)
 ![Axis_demo.py](magnetovis/Test/Sources/Axis_demo-2.png)
 
 ## Bowshock
+
 Source file: [Bowshock.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Bowshock.py) | Demo file: [Bowshock_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Bowshock_demo.py)
 
 ### Demo 1
@@ -246,6 +322,7 @@ bowshock = mvs.Bowshock()
 ![Bowshock_demo.py](magnetovis/Test/Sources/Bowshock_demo-1.png)
 
 ## Circle
+
 Source file: [Circle.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Circle.py) | Demo file: [Circle_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Circle_demo.py)
 
 ### Demo 1
@@ -258,6 +335,7 @@ mvs.Circle()
 ![Circle_demo.py](magnetovis/Test/Sources/Circle_demo-1.png)
 
 ## Curve
+
 Source file: [Curve.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Curve.py) | Demo file: [Curve_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Curve_demo.py)
 
 ### Demo 1
@@ -265,174 +343,19 @@ Source file: [Curve.py](https://github.com/rweigel/magnetovis/tree/main/magnetov
 ```python
 import magnetovis as mvs
 mvs.Curve()
+mvs.SetCamera(viewType="isometric", Zoom=10)
+
 #mvs.PrintSourceDefaults('Curve')
 mvs.SetTitle("Curve with default options")
 #mvs.PrintPresentationDefaults('Curve', all=True)
+
+if False:
 ```
 
 ![Curve_demo.py](magnetovis/Test/Sources/Curve_demo-1.png)
 
-### Demo 2
-
-```python
-import magnetovis as mvs
-mvs.CreateViewAndLayout()
-
-skwargs = {
-            "time": "2001-01-01",
-            "coord_sys": "GSM",
-            "Resolution": 5,
-            "Closed": True,
-            "point_function": "circle(radius=1.0, center=(0.0, 0.0, 0.0))"
-        }
-
-dkwargs = {
-        "display": {
-            "Representation": "Surface",
-            "Opacity": 1.0,
-            "AmbientColor": [1, 1, 0],
-            "DiffuseColor": [1, 1, 0],
-            "Visibility": 1
-        },
-        'coloring': {
-            'colorBy': None
-        }
-}
-
-curve = mvs.Curve(**skwargs)
-mvs.SetPresentationProperties(source=curve, **dkwargs)
-mvs.SetTitle("Curve using alt kwargs for point fn")
-```
-
-![Curve_demo.py](magnetovis/Test/Sources/Curve_demo-2.png)
-
-### Demo 3
-
-```python
-import magnetovis as mvs
-mvs.CreateViewAndLayout()
-
-skwargs['Closed'] = False
-skwargs['Resolution'] = 100
-skwargs['point_function'] = "helix(radius=1.0, length=10, rounds=5)"
-
-curve = mvs.Curve(**skwargs)
-mvs.SetPresentationProperties(source=curve, **dkwargs)
-mvs.SetTitle("Curve using alt point fn")
-```
-
-![Curve_demo.py](magnetovis/Test/Sources/Curve_demo-3.png)
-
-### Demo 4
-
-```python
-import magnetovis as mvs
-mvs.CreateViewAndLayout()
-
-def _randpts(Npts):
-
-	import numpy as np
-	return  -0.5 + np.random.random_sample([Npts,3])
-
-from magnetovis import functions as mvsfunctions
-mvsfunctions._randpts = _randpts
-
-skwargs = {
-            "time": "2001-01-01",
-            "coord_sys": "GSM",
-            "Resolution": 100,
-            "Closed": False,
-            "point_function": "_randpts()"
-        }
-
-dkwargs = {
-        "display": {
-            "Representation": "Surface",
-            "Opacity": 1.0,
-            "AmbientColor": [1, 1, 0],
-            "DiffuseColor": [1, 1, 0],
-            "Visibility": 1
-        },
-        'tube': None,
-        'coloring': {
-            'colorBy': None
-        }
-}
-
-curve = mvs.Curve(**skwargs)
-mvs.SetPresentationProperties(source=curve, **dkwargs)
-mvs.SetTitle("Points from user-defined function; no tube.")
-```
-
-![Curve_demo.py](magnetovis/Test/Sources/Curve_demo-4.png)
-
-### Demo #5
-
-```python
-import magnetovis as mvs
-mvs.CreateViewAndLayout()
-
-def _parabola(Npts):
-
-  import numpy as np
-  xyz = np.zeros([Npts,3])
-
-  xyz[:,1] = 40*np.linspace(-1,1,Npts)
-  xyz[:,2] = xyz[:,1]**2/40
-
-  return xyz 
-
-from magnetovis import functions as mvsfunctions
-mvsfunctions._parabola = _parabola
-
-skwargs = {
-            "time": "2001-01-01",
-            "coord_sys": "GSM",
-            "Resolution": 100,
-            "Closed": False,
-            "point_function": "_parabola()"
-        }
-
-dkwargs = {
-        "display": {
-            "Representation": "Surface",
-            "Opacity": 1.0,
-            "AmbientColor": [1, 1, 0],
-            "DiffuseColor": [1, 1, 0],
-            "Visibility": 1
-        },
-        'tube': {
-            'source': {
-                'Radius': 1.0
-            }
-        },
-        'coloring': {
-            'colorBy': ('POINTS', 'xyz', 'Z')
-        }
-}
-
-mvs.Axis(direction="X")
-mvs.Axis(direction="Y")
-mvs.Axis(direction="Z")
-curve = mvs.Curve(**skwargs)
-mvs.SetPresentationProperties(source=curve, **dkwargs)
-mvs.SetTitle("Parabola in Y-Z plane colored by Z")
-
-# Color bar that appears by default has a minimum of 4.1e-3
-# even though min of xyz >= 0. Not sure why this is. The max
-# value is correct, however. The following resets
-#import paraview.simple as pvs
-import paraview.simple as pvs
-curve1 = pvs.GetActiveSource()
-renderView1 = pvs.GetActiveViewOrCreate('RenderView')
-curve1Display = pvs.GetDisplayProperties(curve1, view=renderView1)
-LUT = pvs.GetColorTransferFunction('xyz', curve1Display, separate=True)
-LUT.RescaleTransferFunction(0.0, 40.0)
-```
-
-![Curve_demo.py](magnetovis/Test/Sources/Curve_demo-5.png)
-
 ## DifferentialDisk
+
 Source file: [DifferentialDisk.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/DifferentialDisk.py) | Demo file: [DifferentialDisk_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/DifferentialDisk_demo.py)
 
 ### Demo 1
@@ -440,6 +363,7 @@ Source file: [DifferentialDisk.py](https://github.com/rweigel/magnetovis/tree/ma
 ```python
 import magnetovis as mvs
 mvs.DifferentialDisk()
+mvs.SetColoring(colorTransferFunction={"separate": True})
 mvs.SetTitle("Differential Disk with Default Options")
 ```
 
@@ -451,6 +375,7 @@ mvs.SetTitle("Differential Disk with Default Options")
 import magnetovis as mvs
 mvs.CreateViewAndLayout()
 mvs.DifferentialDisk(Nr=1)
+mvs.SetColoring(colorTransferFunction={"separate": True})
 mvs.SetTitle("Nr=1")
 ```
 
@@ -462,6 +387,7 @@ mvs.SetTitle("Nr=1")
 import magnetovis as mvs
 mvs.CreateViewAndLayout()
 mvs.DifferentialDisk(ro=1, rf=2, Nφ=10, φo=0, φf=360)
+mvs.SetColoring(colorTransferFunction={"separate": True})
 mvs.SetTitle("ro=1, rf=2, Nφ=10, φo=0, φf=360")
 ```
 
@@ -473,12 +399,14 @@ mvs.SetTitle("ro=1, rf=2, Nφ=10, φo=0, φf=360")
 import magnetovis as mvs
 mvs.CreateViewAndLayout()
 mvs.DifferentialDisk(ro=1, rf=2, Nφ=10, φo=0, φf=80, closed=False)
+mvs.SetColoring(colorTransferFunction={"separate": True})
 mvs.SetTitle("$ro=1, rf=2, Nφ=10, φo=0, φf=80, closed=False$")
 ```
 
 ![DifferentialDisk_demo.py](magnetovis/Test/Sources/DifferentialDisk_demo-4.png)
 
 ## Dipole
+
 Source file: [Dipole.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Dipole.py) | Demo file: [Dipole_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Dipole_demo.py)
 
 ### Demo 1
@@ -541,6 +469,7 @@ pvs.Hide3DWidgets(proxy=slice1.SliceType)
 ![Dipole_demo.py](magnetovis/Test/Sources/Dipole_demo-2.png)
 
 ## Earth
+
 Source file: [Earth.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Earth.py) | Demo file: [Earth_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Earth_demo.py)
 
 ### Demo 1
@@ -549,6 +478,7 @@ Source file: [Earth.py](https://github.com/rweigel/magnetovis/tree/main/magnetov
 import magnetovis as mvs
 mvs.Earth()
 mvs.SetTitle("  Earth with Default Options")
+mvs.SetOrientationAxisLabel('GSM')
 ```
 
 ![Earth_demo.py](magnetovis/Test/Sources/Earth_demo-1.png)
@@ -560,6 +490,7 @@ import magnetovis as mvs
 mvs.CreateViewAndLayout()
 mvs.Earth(style="daynight")
 mvs.SetTitle('  Earth with style="daynight"')
+mvs.SetOrientationAxisLabel('GSM')
 ```
 
 ![Earth_demo.py](magnetovis/Test/Sources/Earth_demo-2.png)
@@ -571,6 +502,7 @@ import magnetovis as mvs
 mvs.CreateViewAndLayout()
 mvs.Earth()
 mvs.SetTitle("  Earth with Axes")
+mvs.SetOrientationAxisLabel('GSM')
 
 xAxis = mvs.Axis(direction="X", extent=[-3, 3])
 mvs.SetPresentationProperties(source=xAxis, 
@@ -601,6 +533,7 @@ mvs.SetPresentationProperties(source=zAxis2, **dkwargs)
 ![Earth_demo.py](magnetovis/Test/Sources/Earth_demo-3.png)
 
 ## GridData
+
 Source file: [GridData.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/GridData.py) | Demo file: [GridData_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/GridData_demo.py)
 
 ### Demo 1
@@ -694,13 +627,14 @@ dkwargs = {
 }
 
 mvs.SetPresentationProperties(**dkwargs)
-mvs.SetCamera(Azimuth=225.0)
-mvs.SetTitle(r"$\alpha$/β", title=registrationName)
+mvs.SetCamera(Azimuth=225.0, Elevation=30)
+mvs.SetTitle()
 ```
 
 ![GridData_demo.py](magnetovis/Test/Sources/GridData_demo-4.png)
 
 ## LatLong
+
 Source file: [LatLong.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/LatLong.py) | Demo file: [LatLong_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/LatLong_demo.py)
 
 ### Demo 1
@@ -763,6 +697,7 @@ mvs.SetPresentationProperties(source=zAxis,
 ![LatLong_demo.py](magnetovis/Test/Sources/LatLong_demo-4.png)
 
 ## Lines
+
 Source file: [Lines.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Lines.py) | Demo file: [Lines_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Lines_demo.py)
 
 ### Demo 1
@@ -797,6 +732,7 @@ mvs.Lines(**kwargs)
 ![Lines_demo.py](magnetovis/Test/Sources/Lines_demo-2.png)
 
 ## Plasmasphere
+
 Source file: [Plasmasphere.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Plasmasphere.py) | Demo file: [Plasmasphere_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Plasmasphere_demo.py)
 
 ### Demo 1
@@ -891,6 +827,7 @@ mvs.SetCamera(viewType="isometric")
 ![Plasmasphere_demo.py](magnetovis/Test/Sources/Plasmasphere_demo-3.png)
 
 ## Satellite
+
 Source file: [Satellite.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Satellite.py) | Demo file: [Satellite_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Satellite_demo.py)
 
 ### Demo 1
@@ -944,6 +881,7 @@ mvs.SetTitle(mvs.util.trim_iso(skwargs["start"]) \
 ![Satellite_demo.py](magnetovis/Test/Sources/Satellite_demo-2.png)
 
 ## T89c
+
 Source file: [T89c.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/T89c.py) | Demo file: [T89c_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/T89c_demo.py)
 
 ### Demo 1
@@ -985,6 +923,7 @@ streamTracer1Display = pvs.Show(streamTracer1)
 ![T89c_demo.py](magnetovis/Test/Sources/T89c_demo-2.png)
 
 ## T95CurrentSheet
+
 Source file: [T95CurrentSheet.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/T95CurrentSheet.py) | Demo file: [T95CurrentSheet_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/T95CurrentSheet_demo.py)
 
 ### Demo 1
@@ -995,107 +934,4 @@ s = mvs.T95CurrentSheet()
 ```
 
 ![T95CurrentSheet_demo.py](magnetovis/Test/Sources/T95CurrentSheet_demo-1.png)
-
-## CurveProbe
-Source file: [CurveProbe.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/CurveProbe.py) | Demo file: [CurveProbe_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/CurveProbe_demo.py)
-
-### Demo 1
-
-```python
-import paraview.simple as pvs
-import magnetovis as mvs
-mvs.ClearPipeline()
-grid = mvs.GridData()
-mvs.SetRepresentation('Wireframe')
-mvs.SetColor('blue')
-
-line = pvs.Line(Point1=[0.9, 0.0, 0.0], Point2=[0.0, 0.9, 0.9], Resolution=3)
-
-curve = mvs.CurveProbe(Input=[grid, line])
-tube = pvs.Tube(Input=curve, Radius=0.01)
-mvs.SetColoring(["POINTS", "xyz", "X"])
-mvs.SetCamera(viewType='isometric')
-```
-
-![CurveProbe_demo.py](magnetovis/Test/Filters/CurveProbe_demo-1.png)
-
-## RotateUsingVectors
-Source file: [RotateUsingVectors.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/RotateUsingVectors.py) | Demo file: [RotateUsingVectors_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/RotateUsingVectors_demo.py)
-
-### Demo 1
-
-```python
-import paraview.simple as pvs
-import magnetovis as mvs
-a = mvs.Axis()
-# Vector1 rotated into Vector2 corresponds to a rotation of 45° around Z
-cR = mvs.RotateUsingVectors(Input=a, Vector1=[1, 1, 0], Vector2=[0, 1, 0]) 
-mvs.SetTitle()
-pvs.Show(cR)
-mvs.SetCamera(viewType="-Z")
-```
-
-![RotateUsingVectors_demo.py](magnetovis/Test/Filters/RotateUsingVectors_demo-1.png)
-
-## Rotate
-Source file: [Rotate.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Rotate.py) | Demo file: [Rotate_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Rotate_demo.py)
-
-### Demo 1
-
-```python
-import paraview.simple as pvs
-import magnetovis as mvs
-a = mvs.Axis()
-# Default is to rotate around Z
-cR = mvs.Rotate(Input=a, angle=90) 
-pvs.Show(cR)
-pvs.ResetCamera()
-```
-
-![Rotate_demo.py](magnetovis/Test/Filters/Rotate_demo-1.png)
-
-### Demo 2
-
-```python
-import paraview.simple as pvs
-import magnetovis as mvs
-mvs.CreateViewAndLayout()
-a = mvs.Axis()
-aR = mvs.Rotate(Input=a, angle=90, axis="Y")
-pvs.Show(aR)
-pvs.ResetCamera()
-```
-
-![Rotate_demo.py](magnetovis/Test/Filters/Rotate_demo-2.png)
-
-### Demo 3
-
-```python
-import paraview.simple as pvs
-import magnetovis as mvs
-mvs.CreateViewAndLayout()
-a = mvs.Axis()
-aR = mvs.Rotate(Input=a, angle=89.999999, axis=[1, 1, 0])
-pvs.Show(aR)
-pvs.ResetCamera()
-```
-
-![Rotate_demo.py](magnetovis/Test/Filters/Rotate_demo-3.png)
-
-## Transform
-Source file: [Transform.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Transform.py) | Demo file: [Transform_demo.py](https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Transform_demo.py)
-
-### Demo 1
-
-```python
-import paraview.simple as pvs
-import magnetovis as mvs
-earth = mvs.Earth(style="daynight")
-pvs.Hide(earth)
-earthT = mvs.Transform(x=[0, -1, 0], y=[1, 0, 0], Input=earth)
-pvs.Show(earthT)
-pvs.ResetCamera()
-```
-
-![Transform_demo.py](magnetovis/Test/Filters/Transform_demo-1.png)
 

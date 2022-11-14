@@ -47,7 +47,7 @@ def Script(time="2001-01-01T00:00:00", coord_sys='GSM',
     del kwargs['k']
     del kwargs['r_nan']
     GridData = importlib.import_module('magnetovis.Sources.GridData')
-    GridData.Script(**kwargs, xoutput=output)
+    GridData.Script(**kwargs, output=output)
 
 
 def GetPresentationDefaults():

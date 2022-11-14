@@ -99,7 +99,6 @@ def extract_kwargs(function, default_kwargs=None):
 
     mvs.logger.info("Called with function = {} and default kwargs of {}".format(function, default_kwargs))
 
-    kwargs = {}
     if isinstance(function, str):
         # e.g., function = "circle(radius=1, center=[0, 0, 0])"
         # https://stackoverflow.com/questions/2626582/running-exec-inside-function

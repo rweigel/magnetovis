@@ -23,7 +23,6 @@ def SetCamera(view=None, source=None, viewType=None,
     Dolly = 0.0
     Roll = 0.0
     Yaw = 0.0
-    Zoom = 1.5
 
   # These choices match those on the "set view direction" buttons in the ParaView GUI
   if viewType in ["+X", "-X", "+Y", "-Y", "+Z", "-Z"]:
@@ -109,6 +108,7 @@ def SetCamera(view=None, source=None, viewType=None,
   view.StillRender()
 
   # Reset camera settings to include entire scene while preserving orientation 
+  # This will undo zoom!
   view.ResetCamera()
 
   return camera

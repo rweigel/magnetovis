@@ -1,7 +1,7 @@
 def MySource(**kwargs):
 
   import magnetovis as mvs
-  return mvs.CreateProgrammableSource("MySource.py")
+  return mvs.CreateProgrammable("MySource.py", "source")
 
 
 def OutputDataSetType():

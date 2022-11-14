@@ -17,7 +17,7 @@ def CreateViewAndLayout(name=None, viewType=None):
   # get problems with colorbars on previous layouts.
   layout = pvs.CreateLayout(name=name)
   pvs.SetActiveView(None)
-  view = pvs.CreateView('RenderView')
+  view = pvs.CreateView(viewType)
   pvs.AssignViewToLayout(view=view, layout=layout)
 
   return view, layout

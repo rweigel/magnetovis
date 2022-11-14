@@ -4,6 +4,8 @@
 # in the launch script, we can build a list of plugins to
 # load and pass them as --plugins instead of passing a 
 # directory name.
+
+# Demo 1
 if not '__file__' in globals():
 
 	import paraview.simple as pvs

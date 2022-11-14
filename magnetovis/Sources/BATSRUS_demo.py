@@ -16,7 +16,7 @@ batsrus = mvs.BATSRUS(file=vtkfile)
 mvs.SetTitle("Default")
 
 if False:
-    # If a VTK file does not exist, can create it using the following.
+    # If a VTK file does not exist, create it using the following.
     url = 'http://mag.gmu.edu/git-data/swmfio/3d__var_2_e20190902-041000-000'
     vtkfile = "/tmp/" + url.split("/")[-1]
     import os
@@ -76,7 +76,7 @@ ckwargs =  {
                             }
 }
 
-mvs.SetColoring(source=sliceYDisplay, display=sliceYDisplay, **ckwargs)
+mvs.SetColoring(source=sliceY, display=sliceYDisplay, **ckwargs)
 
 sliceZDisplay.SetScalarBarVisibility(view, False)
 
@@ -94,7 +94,6 @@ display = pvs.GetDisplayProperties(proxy=batsrus, view=view)
 pvs.ColorBy(display, ('CELLS', 'block_id'), separate=True)
 pvs.UpdateScalarBars(view=view)
 view.Update()
-
 
 # Demo 4
 import magnetovis as mvs
@@ -140,12 +139,11 @@ clip1.ClipType.Normal = [0.0, 1.0, 0.0]
 
 
 ckwargs =  {
-    'colorBy': ('CELLS', 'Δ'),
     'scalarBar': {
                     'Title': r"Δ [R$_E$]",
                     'ComponentTitle': '',
                     'HorizontalTitle': 1,
-                    'TitleJustification': 'Left',
+                    'TitleJustification': 'Centered',
                     'Visibility': 1,
                     'ScalarBarLength': 0.8
                 },
@@ -170,7 +168,7 @@ clip1 = GetActiveSource()
 pvs.ResetCamera()
 pvs.Hide3DWidgets(proxy=clip1.ClipType)
 
-mvs.SetColoring(source=clip1, view=renderView2, display=clip1Display, **ckwargs)
+mvs.SetColoring(('CELLS', 'Δ'), source=clip1, view=renderView2, display=clip1Display, **ckwargs)
 
 # Demo 5
 # This demo shows an issue with the VTK StreamTracer when tracing line

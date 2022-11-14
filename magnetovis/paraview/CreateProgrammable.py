@@ -37,6 +37,7 @@ def CreateProgrammable(scriptFile, ptype, **kwargs):
         programmable = pvs.ProgrammableSource()
     else:
         programmable = pvs.ProgrammableFilter(Input=kwargs['Input'])
+        del kwargs['Input']
 
     mvs.logger.info("scriptFile = " + scriptFile)
     mvs.logger.info("ptype = " + ptype)
@@ -53,8 +54,9 @@ def CreateProgrammable(scriptFile, ptype, **kwargs):
         kwargs = module.GetSourceDefaults(extract.extract_kwargs(module.Script), kwargs)
 
     if registrationName is None and hasattr(module, 'DefaultRegistrationName'):
-        _kwargs = extract.extract_kwargs(module.Script, default_kwargs=kwargs)
-        registrationName = module.DefaultRegistrationName(**_kwargs)
+        import copy
+        _kwargs = extract.extract_kwargs(module.Script, default_kwargs=copy.deepcopy(kwargs))
+        registrationName = module.DefaultRegistrationName(**copy.deepcopy(_kwargs))
 
     registrationName = mvs.UniqueName(name=registrationName, proxyType="source", default=defaultRegistrationName)
     pvs.RenameSource(registrationName, programmable)
@@ -150,12 +152,12 @@ def CreateProgrammable(scriptFile, ptype, **kwargs):
             # magnetovis source, hide its children.
             if setPresentationPropertiesOnShow == True:
               view = pvs.GetActiveViewOrCreate('RenderView')
-              def ViewStartEvent(a,b):
+              def ViewStartEvent(vtkSMViewProxy, eventName):
                   from paraview import servermanager
                   rep = servermanager.GetRepresentation(programmable, view)
-                  #mvs.logger.info("Event " + b + " on view for " + registrationName)
+                  #mvs.logger.info(f"Event {eventName} on view for {registrationName}")
                   if rep is None:
-                      #mvs.logger.info("No representation for " + registrationName)
+                      #mvs.logger.info(f"No representation for {registrationName}. Not calling SetPresentationProperties().")
                       return
                   mvs.logger.info(f"Call to SetPresentationProperties() triggered for {registrationName}")
                   view.SMProxy.RemoveObserver(cb_id_ae)

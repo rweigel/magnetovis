@@ -124,19 +124,23 @@ def SetPresentationProperties(source, view=None, **kwargs):
     import magnetovis as mvs
 
     time = source.GetProperty('time')
-    png_url = 'http://mag.gmu.edu/git-data/magnetovis/topography/world.topo.2004{}.3x5400x2700.png'
-    png_url = png_url.format(time[5:7])
 
-    try:
-        png_file = mvs.util.dlfile(png_url)
-    except:
-        mvs.SetTitle("\n\n" + "Could not download\n" + png_url, display={"FontSize": 12, "Justification": "Left"})
+    if False:
+        png_url = 'http://mag.gmu.edu/git-data/magnetovis/topography/world.topo.2004{}.3x5400x2700.png'
+        png_url = png_url.format(time[5:7])
+
+        try:
+            png_file = mvs.util.dlfile(png_url)
+        except:
+            mvs.SetTitle("\n\n" + "Could not download\n" + png_url, display={"FontSize": 12, "Justification": "Left"})
+    else:
+        mvs_dir = os.path.dirname(os.path.abspath(mvs.__file__))
+        png_file = os.path.join(mvs_dir,'Sources','Earth.png')
 
     display = pvs.GetDisplayProperties(proxy=source, view=view)
     display.SelectTCoordArray = 'TCoordArray'
     display.Texture = pvs.CreateTexture(png_file)
 
-    import magnetovis as mvs
     # Set Sphere color; if not set, image is dimmed. Not sure why
     # given that texture is applied over sphere.
     mvs.SetColor('white', proxy=source, view=view)

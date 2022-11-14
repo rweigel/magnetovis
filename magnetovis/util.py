@@ -30,27 +30,29 @@ def trim_nums(vals, n, style='number'):
   """
 
   if isinstance(vals, list):
-    for i, v in enumerate(vals):
+    valsc = vals.copy()
+    for i, v in enumerate(valsc):
       if v != round(v, n):
-        vals[i] = round(v, n)
+        valsc[i] = round(v, n)
         if style == 'string':
-          vals[i] = "{0:.4f}…".format(vals[i])
+          valsc[i] = "{0:.4f}…".format(valsc[i])
       else:
         if style == 'string':
-          vals[i] = "{}".format(vals[i])
+          valsc[i] = "{}".format(valsc[i])
   else:
-    if vals != round(vals, n):
-      vals = round(vals, n)
+    valsc = vals
+    if valsc != round(valsc, n):
+      valsc = round(vals, n)
       if style == 'string':
-        vals = "{0:.4f}…".format(vals)
+        valsc = "{0:.4f}…".format(valsc)
 
   if style == 'number':
-    return vals
+    return valsc
   else:
-    if isinstance(vals, list):
-      return "[" + "{}".format(", ".join(vals)) + "]"
+    if isinstance(valsc, list):
+      return "[" + "{}".format(", ".join(valsc)) + "]"
     else:
-      return "{}".format(vals)
+      return "{}".format(valsc)
 
 
 def trim_nums_test():

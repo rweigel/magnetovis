@@ -178,5 +178,5 @@ except OSError as e:
     raise OSError(msg)
 except (KeyboardInterrupt, SystemExit) as e:
 	pass
-except e:
+except Exception as e:
 	raise e

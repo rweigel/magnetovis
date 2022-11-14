@@ -1,4 +1,4 @@
-def GetColorTransferFunctionDefaults(color_by=None, source=None):
+def GetColorTransferFunctionDefaults(color_by=None, source=None, **kwargs):
 
   # TODO?: Allow passing transfer function name and then set RGB points
   #        using return of GetTransferFunctions() (using vtk as here for 
@@ -57,8 +57,13 @@ def GetColorTransferFunctionDefaults(color_by=None, source=None):
   mvs.logger.info(f'Number of unique values in {color_by} = {n_unique}')
   defaults['NumberOfTableValues'] = min(n_unique, 32)
 
+  categorizeIfFewUnique = 1
+  if 'InterpretValuesAsCategories' in kwargs:
+    if kwargs['InterpretValuesAsCategories'] == 0:
+      categorizeIfFewUnique = False
+
   ntv = defaults['NumberOfTableValues']
-  if ntv <= 8:
+  if ntv <= 8 and categorizeIfFewUnique == 1:
     u = np.flip(u)
 
     import vtk
@@ -82,5 +87,7 @@ def GetColorTransferFunctionDefaults(color_by=None, source=None):
     defaults['Annotations'] = Annotations
     defaults['IndexedColors'] = IndexedColors
     defaults['IndexedOpacities'] = ntv*[1.0]
+
+  mvs.logger.info(f"Returning {defaults}")
 
   return defaults
