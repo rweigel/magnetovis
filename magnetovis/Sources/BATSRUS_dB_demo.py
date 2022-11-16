@@ -25,6 +25,7 @@ import glob
 #vtkfiles = glob.glob('/Volumes/WDMyPassport5GB-1/git-data/Curtis/data/Brian_Curtis_042213_2/GM_CDF/3d__*.vtk')
 #vtkfiles = ["/tmp/3d__var_1_e20120723-120000-000.out.cdf.vtk"]
 vtkfiles = ["/Volumes/My Passport for Mac/git-data/dwelling/divB_simple1/GM/3d__mhd_4_e20100320-000000-000.vtk"]
+#vtkfiles = ["/tmp/mag.gmu.edu/git-data/dwelling/divB_simple1/GM/3d__mhd_4_e20100320-000000-000_blocks=0,1.vtk"]
 
 if test:
     j = 'js' # Use a artificial j for Biot-Savart calculations
@@ -115,10 +116,10 @@ def SetColorBar(color_by, title, source, UseLogScale=True, Position=None, Window
 def RenderScene(vtkfile, DateTime=""):
 
     # Geographic north, east and zenith unit vectors 
-    n_geo, e_geo, z_geo = nez(DateTime, (X,Y,Z), "GSM")
-
+    #n_geo, e_geo, z_geo = nez(DateTime, (X,Y,Z), "GSM")
     #print(n_geo)
     n_geo = [0, 0, 1]
+
     s = pvs.Sphere(registrationName="ΔB point", Radius=0.2, Center=(X,Y,Z))
     pvs.Show(s)
 
@@ -144,7 +145,7 @@ def RenderScene(vtkfile, DateTime=""):
     registrationName = 'Append j_phi'
     calculator3 = pvs.Calculator(registrationName=registrationName, Input=calculator2)
     calculator3.AttributeType = 'Cell Data'
-    calculator3.Function = f"-{j}_X*CellCenter_Y/CellCenter_R + {j}_Y*CellCenter_X/CellCenter_R" 
+    calculator3.Function = f"(-{j}_X*CellCenter_Y + {j}_Y*CellCenter_X)/sqrt(CellCenter_X^2 + CellCenter_Y^2)" 
     calculator3.ResultArrayName = 'j_phi'
 
     threshold1 = pvs.Threshold(registrationName=f"Cells w/ CellCenter_R > rCurrents = {rCurrents}", Input=calculator3)
