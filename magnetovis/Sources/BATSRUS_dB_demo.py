@@ -181,7 +181,7 @@ def RenderScene(vtkfile, DateTime=""):
         registrationName = 'dB'
         dB = pvs.Calculator(registrationName=registrationName, Input=threshold1)
         dB.AttributeType = 'Cell Data'
-        dB.Function = "673.1*(" + BiotSavart_X + " + " + BiotSavart_Y + " + " + BiotSavart_Z + ")/" + Denominator 
+        dB.Function = "637.1*(" + BiotSavart_X + " + " + BiotSavart_Y + " + " + BiotSavart_Z + ")/" + Denominator 
         dB.ResultArrayName = registrationName
         #SetColorBar(('CELLS', registrationName), r'Δ$\mathbf{B}$ [nT]', dB)
 
