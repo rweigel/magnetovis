@@ -20,10 +20,10 @@ def nez(time, pos, csys):
   n_geo = np.cross(z_geo, e_geo)
   n_geo = n_geo/np.linalg.norm(n_geo)
 
-  print(f"Unit vectors for Geographic N, E, and Z in {csys}:")
-  print("North: ".format(n_geo))
-  print("East:  ".format(e_geo))
-  print("Z:     ".format(z_geo))
+  print(f"Unit vectors for Geographic N, E, and Z at {pos} in {csys} at {time}:")
+  print("North: {}".format(n_geo))
+  print("East:  {}".format(e_geo))
+  print("Z:     {}".format(z_geo))
 
   return n_geo, e_geo, z_geo
 
@@ -57,28 +57,29 @@ def showaxis(pos, n_geo, e_geo, z_geo):
   pvs.Show(s)
 
 # Demo 1
-time = "2000-01-01T00:00:00"
+time = "2010-01-01T06:00:00"
 pos = (1, 0, 0)
 csys = "GEO"
 n_geo, e_geo, z_geo = nez(time, pos, csys)
 
 showaxis(pos, n_geo, e_geo, z_geo)
 mvs.SetOrientationAxisLabel(Text="GEO")
-mvs.Earth(coord_sys=csys)
+mvs.Earth(time=time, coord_sys=csys)
 mvs.LatLong(coord_sys=csys, coord_sys_view=csys)
 
 # Demo 2
 mvs.CreateViewAndLayout()
 
 csys = "GSM"
-time = "2000-01-01T00:00:00"
+time = "2009-01-01T03:00:00"
 #pos = (1., 18.907, 72.815) # Geographic r, lat, long of Colaba
-pos = (1., 60., 0.)
+#pos = (1., 60., 0.)
 #pos = (1., 0, 0)
-from hxform import hxform as hx
-pos = hx.transform(np.array(pos), time, 'GEO', csys, ctype_in="sph", ctype_out="car", lib='cxform')
-mvs.Earth(coord_sys=csys)
+#from hxform import hxform as hx
+#pos = hx.transform(np.array(pos), time, 'GEO', csys, ctype_in="sph", ctype_out="car", lib='cxform')
+pos = (1., 0, 0)
+mvs.Earth(time=time)
 n_geo, e_geo, z_geo = nez(time, pos, csys)
 showaxis(pos, n_geo, e_geo, z_geo)
 mvs.SetOrientationAxisLabel(Text="GSM")
-mvs.LatLong(coord_sys="GEO", coord_sys_view=csys)
+mvs.LatLong(time=time, coord_sys="GEO", coord_sys_view=csys)
