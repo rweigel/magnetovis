@@ -83,22 +83,52 @@ mvs.Earth(time=time, coord_sys=csys)
 mvs.SetTitle(f"{time} {pos_GEO_label}")
 mvs.LatLong(coord_sys=csys, coord_sys_view=csys)
 
-# Demo 2
-mvs.CreateViewAndLayout()
+L = 10
+skwargs = {
+            "time": time,
+            "coord_sys": "GEO",
+            "coord_sys_view": "GEO",
+            "Resolution": 20,
+            "point_function": f"dipole_field_line(L={L})"
+        }
+curve = mvs.Curve(**skwargs)
 
-csys = "GSM"
-time = "2010-01-01T12:00:00"
-#pos = (1., 18.907, 72.815) # Geographic r, lat, long of Colaba
-#pos = (1., 60., 0.)
-pos_GEO = (1, 0, 0)
-mvs.SetTitle(f"{time} {pos_GEO_label}")
+import paraview
+sourceData = paraview.servermanager.Fetch(curve)
+points = sourceData.GetPointData().GetArray('xyz')
+from vtk.util import numpy_support
+points = numpy_support.vtk_to_numpy(points)
 
-from hxform import hxform as hx
-pos = hx.transform(np.array(pos_GEO), time, 'GEO', csys, ctype_in="sph", ctype_out="car", lib='cxform')
-n_geo, e_geo, z_geo = nez(time, pos, csys)
+idx = np.argmax(points[:,2], axis=0)
+print(idx)
+lpos = points[idx,:]
+print(lpos)
+BasePosition=points[idx,:]
+TopPosition=np.copy(points[idx,:])
+TopPosition[2] = TopPosition[2] + 0.1
 
-mvs.Earth(time=time)
-mvs.SetTitle(f"{time} {pos_GEO_label}")
-showaxis(pos, n_geo, e_geo, z_geo, pos_label=pos_GEO_label)
-mvs.SetOrientationAxisLabel(Text="GSM")
-mvs.LatLong(time=time, coord_sys="GEO", coord_sys_view=csys)
+Label = pvs.Text(registrationName=f"L={L}", Text=f"L={L}")
+text1Display = pvs.Show(Label, pvs.GetActiveViewOrCreate('RenderView'),
+  'TextSourceRepresentation', TextPropMode='Flagpole Actor',
+  BasePosition=BasePosition, TopPosition=TopPosition)
+
+if False:
+  # Demo 2
+  mvs.CreateViewAndLayout()
+
+  csys = "GSM"
+  time = "2010-01-01T12:00:00"
+  #pos = (1., 18.907, 72.815) # Geographic r, lat, long of Colaba
+  #pos = (1., 60., 0.)
+  pos_GEO = (1, 0, 0)
+  mvs.SetTitle(f"{time} {pos_GEO_label}")
+
+  from hxform import hxform as hx
+  pos = hx.transform(np.array(pos_GEO), time, 'GEO', csys, ctype_in="sph", ctype_out="car", lib='cxform')
+  n_geo, e_geo, z_geo = nez(time, pos, csys)
+
+  mvs.Earth(time=time)
+  mvs.SetTitle(f"{time} {pos_GEO_label}")
+  showaxis(pos, n_geo, e_geo, z_geo, pos_label=pos_GEO_label)
+  mvs.SetOrientationAxisLabel(Text="GSM")
+  mvs.LatLong(time=time, coord_sys="GEO", coord_sys_view=csys)

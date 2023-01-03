@@ -137,7 +137,7 @@ else:
     if len(args) > 0:
         syscom = PARAVIEW + " --script=" + args[0] + " " + options.paraview_options
         last_script = os.path.join(setup_path, "magnetovis/Macros/_last.py")
-        if os.path.exists(last_script):
+        if os.path.islink(last_script) or os.path.exists(last_script):
           os.remove(last_script)
         os.symlink(os.path.abspath(args[0]), last_script)
 

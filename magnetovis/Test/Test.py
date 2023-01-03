@@ -4,7 +4,8 @@
 import os
 import magnetovis as mvs
 
-dirs = ["Demos", "Sources"]
+#dirs = ["Demos", "Sources"]
+dirs = ["Demos"]
 #dirs = ["Sources", "Filters", "Plugins"]
 testonly = []
 #testonly = ["Rotate_demo.py", "Axis_demo.py"]

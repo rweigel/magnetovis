@@ -1,2 +1,2 @@
 def position(points):
-    return points
+  return points
