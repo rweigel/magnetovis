@@ -1,63 +1,163 @@
 import os
 import sys
 
+def trim_nums(vals, n, style='number'):
+  """ Round floats with precision larger than n
+
+  For n = 2,
+
+  r = trim_nums(val, n)
+  
+  val      r
+  1     -> 1
+  1.0   -> 1.0
+  1.00  -> 1.00
+  1.005 -> 1.01
+
+  r = trim_nums(val, n, style='string')
+  
+  val      r
+  1     -> '1'
+  1.0   -> '1.0'
+  1.00  -> '1.00'
+  1.005 -> '1.01…' (Unicode ellipsis)
+
+  val can be a list, e.g.,
+  
+  trim_nums([1, 1.005], 2) = [1, 1.01]
+  trim_nums([1, 1.005], 2, style='string') = '[1, 1.01…]'
+
+  """
+
+  if isinstance(vals, list):
+    valsc = vals.copy()
+    for i, v in enumerate(valsc):
+      if v != round(v, n):
+        valsc[i] = round(v, n)
+        if style == 'string':
+          valsc[i] = "{0:.4f}…".format(valsc[i])
+      else:
+        if style == 'string':
+          valsc[i] = "{}".format(valsc[i])
+  else:
+    valsc = vals
+    if valsc != round(valsc, n):
+      valsc = round(vals, n)
+      if style == 'string':
+        valsc = "{0:.4f}…".format(valsc)
+
+  if style == 'number':
+    return valsc
+  else:
+    if isinstance(valsc, list):
+      return "[" + "{}".format(", ".join(valsc)) + "]"
+    else:
+      return "{}".format(valsc)
+
+
+def trim_nums_test():
+
+  assert trim_nums(1, 4) == 1
+  assert trim_nums(1.00001, 4) == 1.0000
+  assert trim_nums(1.00005, 4) == 1.0001
+  assert trim_nums([1], 4)[0] == 1
+  assert trim_nums(1, 4, style='string') == "1"
+  assert trim_nums(1.00001, 4, style='string') == "1.0000…"
+  assert trim_nums([1.00001], 4, style='string') == "[1.0000…]"
+  assert trim_nums([1.00001, 1.0], 4, style='string') == "[1.0000…, 1.0]"
+
+
+def trim_iso(isostr):
+
+  if isostr.endswith('Z'):
+      isostr = isostr[0:-1]
+  if isostr.endswith(':00'):
+      isostr = isostr[0:-3]
+  if isostr.endswith(':00'):
+      isostr = isostr[0:-3]
+  if isostr.endswith('T00'):
+      isostr = isostr[0:-3]
+
+  return isostr
+
+
+def trim_iso_test():
+
+  assert trim_iso('2000-01-01T00:00:00') == "2000-01-01", ""
+  assert trim_iso('2000-01-01T00:00') == "2000-01-01", ""
+  assert trim_iso('2000-01-01T00') == "2000-01-01", ""
+
+  assert trim_iso('2000-01-01T00:00:00Z') == "2000-01-01", ""
+  assert trim_iso('2000-01-01T00:00Z') == "2000-01-01", ""
+  assert trim_iso('2000-01-01T00Z') == "2000-01-01", ""
+
+  assert trim_iso('2000-01-01T01:00:00') == "2000-01-01T01", ""
+  assert trim_iso('2000-01-01T01:00') == "2000-01-01T01", ""
+  assert trim_iso('2000-01-01T01') == "2000-01-01T01", ""
+
+  assert trim_iso('2000-01-01T01:00:00Z') == "2000-01-01T01", ""
+  assert trim_iso('2000-01-01T01:00Z') == "2000-01-01T01", ""
+  assert trim_iso('2000-01-01T01Z') == "2000-01-01T01", ""
+
+
+def iso2ints(isostr):
+
+  import re
+  tmp = re.split("-|:|T|Z", isostr)
+  if len(tmp) > 6:
+    tmp = tmp[0:5]
+
+  int_list = []
+  for str_int in tmp:
+    if str_int != "Z" and str_int != '':
+      int_list.append(int(str_int))
+
+  return int_list
+
 
 def tstr(time, length=7):
-    """Create ISO8601 date/time string
-    
-    tstr((2000, 1, 1, 2)) # 2000-01-01T02:00:00
-    tstr((2000, 1, 1, 2, 3)) # 2000-01-01T02:03:00
-    tstr((2000, 1, 1, 2, 3, 4)) # 2000-01-01T02:03:04
-    tstr((2000, 1, 1, 2, 3, 4, 567)) # 2000-01-01T02:03:04.000567
-    """
-    import datetime
-    assert(len(time) > 2)
+  """Create ISO8601 date/time string from integers
+  
+  tstr((2000, 1, 1, 2)) # 2000-01-01T02:00:00
+  tstr((2000, 1, 1, 2, 3)) # 2000-01-01T02:03:00
+  tstr((2000, 1, 1, 2, 3, 4)) # 2000-01-01T02:03:04
+  tstr((2000, 1, 1, 2, 3, 4, 567)) # 2000-01-01T02:03:04.000567
+  """
+  import datetime
+  assert(len(time) > 2)
 
-    time = datetime.datetime(*time)
-    time_str = time.isoformat()
+  time = datetime.datetime(*time)
+  time_str = time.isoformat()
 
-    if length == 7:
-        l = len("2000-01-01T02:03:04.000567")
-    elif length == 6:
-        l = len("2000-01-01T02:03:04")
-    elif length == 5:
-        l = len("2000-01-01T02:03")
-    elif length == 4:
-        l = len("2000-01-01T02")
-    elif length == 3:
-        l = len("2000-01-01")
-    
-    return time_str[0:l]
+  if length == 7:
+    l = len("2000-01-01T02:03:04.000567")
+  elif length == 6:
+    l = len("2000-01-01T02:03:04")
+  elif length == 5:
+    l = len("2000-01-01T02:03")
+  elif length == 4:
+    l = len("2000-01-01T02")
+  elif length == 3:
+    l = len("2000-01-01")
+  
+  return time_str[0:l]
 
 
 def time2datetime(t):
-    import datetime as dt
 
-    t = list(t)
-    for i in range(len(t)):
-        if int(t[i]) != t[i]:
-            raise ValueError("int(t[{0:d}] != t[{0:d}] = {1:f}".format(i, t[i]))\
-        
-        t[i] = int(t[i])
+  import datetime as dt
 
-    if len(t) < 3:
-        raise ValueError('Time list/tuple must have 3 or more elements')
-    else:
-        return dt.datetime(*t)
+  t = list(t)
+  for i in range(len(t)):
+    if int(t[i]) != t[i]:
+      raise ValueError("int(t[{0:d}] != t[{0:d}] = {1:f}".format(i, t[i]))\
+    
+    t[i] = int(t[i])
 
-
-def prompt(question, default=''):
-    # Based on suggestions in https://gist.github.com/garrettdreyfus/8153571
-
-    import sys
-    if sys.version_info[0] > 2:
-        reply = str(input(question + ': ')).lower().strip()
-    else:
-        reply = str(raw_input(question + ': ')).lower().strip()
-
-    if len(reply) == 0:
-        return default
-    return reply[:1] 
+  if len(t) < 3:
+    raise ValueError('Time list/tuple must have 3 or more elements')
+  else:
+    return dt.datetime(*t)
 
 
 def install_paraview(paraview_version, install_path='/tmp/'):
@@ -65,7 +165,7 @@ def install_paraview(paraview_version, install_path='/tmp/'):
 
     def extract(fullpath, install_path):
         cmd_list = ['tar', 'zxf', '--checkpoint', 10000, '--checkpoint-action="echo=Extracted file %u/124000"',fullpath, '--directory', install_path]
-        print('Executing ' + ' '.join(cmd_list))
+        mvs.logger.info('Executing ' + ' '.join(cmd_list))
         import subprocess
         subprocess.run(cmd_list)
         
@@ -77,7 +177,7 @@ def install_paraview(paraview_version, install_path='/tmp/'):
         extract(fullpath, install_path)
         return
     
-    print('Downloading ' + file + ' to ' + tmpdir)
+    mvs.logger.info('Downloading ' + file + ' to ' + tmpdir)
     url = 'https://www.paraview.org/paraview-downloads/download.php?' + \
           'submit=Download&version=v5.8&type=binary&os=Linux&downloadFile=' + file 
 
@@ -94,69 +194,113 @@ def install_paraview(paraview_version, install_path='/tmp/'):
                 f.flush()
 
                 
-def compatability_check(debug=False):
+def compatability_check(use=''):
 
     import os
     import glob
     import site
     import warnings
     import subprocess
-        
-    debug = True
+
+    import magnetovis as mvs
+
+    mvs.logger.info("Called")
 
     ver = sys.version_info
     SYSTEM_PYTHON_VERSION = list(ver[0:2])
     SYSTEM_PYTHON_VERSION_STRING = str(ver.major) + "." + str(ver.minor) + "." + str(ver.micro)
 
-    PARAVIEW_PYTHON_VERSIONS = {
-                                "5.9.0": [3,8,8],
-                                "5.9.1": [3,8,8]
-                                }
-
-    if debug:
-        print('sys.platform = ' + sys.platform)
-    if sys.platform.startswith("darwin"):
-        versions = glob.glob("/Applications/ParaView*")
-        versions.sort()
-        version = versions[-1]
-        if len(version) == 0:
-            print("ParaView not found in /Applications directory." \
-                " To install ParaView, see https://www.paraview.org/download/.")
-            print("Exiting.")
-            # TODO?: Allow for ParaView not located in /Applications/
+    def pvpython_version(PVPYTHON):
+        util_path = os.path.dirname(os.path.realpath(__file__))
+        cmd = 'import sys;ver = sys.version_info;print(str(ver.major) + "." + str(ver.minor) + "." + str(ver.micro))'
+        try:
+            mvs.logger.info("Executing:\n\n" + PVPYTHON + " -c '" + cmd + "'\n")
+            cmd = [PVPYTHON,'-c',cmd]
+            stdout = subprocess.check_output(cmd, encoding='utf-8')
+        except:
+            mvs.logger.error("Could not execute " + PVPYTHON + " " + cmd + ". Exiting.")
             sys.exit(1)
-        use = ""
-        # versions list will have elements of, e.g.,
+        version_list = stdout.strip().split(".")
+        version_listi = [int(i) for i in version_list]
+        return [stdout.strip(), version_listi]
+
+    mvs.logger.info('sys.platform = ' + sys.platform)
+    if sys.platform.startswith("darwin"):
+        version_paths = glob.glob("/Applications/ParaView*")
+        version_paths.sort()
+
+        if len(version_paths) == 0:
+            mvs.logger.error("ParaView not found in /Applications directory." \
+                            " See https://www.paraview.org/download/.")
+            mvs.logger.error("Exiting.")
+            sys.exit(1)
+
+        # version_paths list will have elements of, e.g.,
         # ["/Applications/ParaView-5.7.0.app", "/Applications/ParaView-5.8.0.app"].
         version_strs = []
-        for version in versions:
-            if debug:
-                print("Found " + version)
-            version_str = version \
+        found = False
+        version_paths_releases = []
+        version_paths_masters = []
+        version_ints_releases = []
+        version_ints_masters = []
+        for version_path in version_paths:
+            mvs.logger.info("Found " + version_path)
+            version_str = version_path \
                             .replace("/Applications/ParaView-", "") \
                             .replace(".app", "")
             version_strs.append(version_str)
-            version_num = [int(i) for i in version_str.split(".")]
-            # version_num is tuple of (major, minor, patch)
-            if version_str in PARAVIEW_PYTHON_VERSIONS \
-                and SYSTEM_PYTHON_VERSION[0:2] == PARAVIEW_PYTHON_VERSIONS[version_str][0:2]:
-                use = version
-                PARAVIEW = use + "/Contents/MacOS/paraview"
-                PVPYTHON = use + "/Contents/bin/pvpython"
-                PVBATCH = use + "/Contents/bin/pvbatch"
 
-        if use == "":
-            msg = "System Python version (" + SYSTEM_PYTHON_VERSION_STRING + ") does not match Python used by available ParaView version(s) " + ", ".join(version_strs) + ". Consider installing the needed Python version in a virtual environment. Using Anaconda the commands are\n\n  conda create --name 3.8 python=3.8\n  conda activate 3.8\n  pip install magnetovis\n"
-            msg = msg + "\nAllowed Paraview/Python versions:\n"
-            for pv_ver in PARAVIEW_PYTHON_VERSIONS:                
-                msg = msg + " ParaView " + pv_ver + " and Python " + ".".join(str(x) for x in PARAVIEW_PYTHON_VERSIONS[pv_ver][0:2]) + "\n"
-            print(msg)
-            print("Exiting.")
-            #raise ValueError(msg)
-            sys.exit(1)
+            if use == version_str:
+                found = True
+                version = version_path
+                break
+
+            if 'master' in version_str:
+                version_paths_masters.append(version_path)
+                version_ints_masters.append([int(y) for y in version_str.replace("master-","").replace("-",'.').split(".")[0:-1]])
+            else:
+                version_paths_releases.append(version_path)
+                version_ints_releases.append([int(y) for y in version_str.replace("-",'.').split(".")])
+ 
+        if use == 'latest-release' or found == False:
+            if len(version_paths_releases) > 0:
+                # Semantic sort.
+                l = sorted((e,i) for i,e in enumerate(version_ints_releases))
+                version = version_paths_releases[l[-1][1]]
+                found = True
+        if use == 'latest-master' or found == False:
+            if len(version_paths_masters) > 0:
+                l = sorted((e,i) for i,e in enumerate(version_ints_masters))
+                version = version_paths_masters[l[-1][1]]
+                found = True
+
+        if not found:
+            if use != '':
+                mvs.logger.error(f"ParaView version {use} is not installed. Installed versions include {version_strs}")
+                mvs.logger.error("Exiting.")
+                sys.exit(1)
+
+        pvpython_ver_info = pvpython_version(version +  "/Contents/bin/pvpython")
+
+        if SYSTEM_PYTHON_VERSION[0:2] == pvpython_ver_info[1][0:2]:
+            PARAVIEW = version + "/Contents/MacOS/paraview"
+            PVPYTHON = version + "/Contents/bin/pvpython"
+            PVBATCH = version + "/Contents/bin/pvbatch"
+            mvs.logger.info("Using " + use)
         else:
-            if debug:
-                print("Using " + use)
+            descr = 'latest ParaView version on this system'
+            if use != '':
+                descr = 'requested ParaView version'
+
+            msg = "\n\nSystem Python version (" + SYSTEM_PYTHON_VERSION_STRING \
+                    + f") does not match Python version ({pvpython_ver_info[0]}) used by the {descr}" \
+                    + f" ({version})" \
+                    + f". Consider installing the needed Python version in a virtual environment.\n\n" \
+                    + f"Using Anaconda, the commands are\n\n  conda create --name {pvpython_ver_info[0]} python={pvpython_ver_info[0]}\n  conda activate {pvpython_ver_info[0]}\n  pip install -e .\n"
+            msg = msg + "\nThe Python version used for a given version of Paraview can be found in the filenames at https://www.paraview.org/download/\n"
+            mvs.logger.error(msg)
+            mvs.logger.error("Exiting.")
+            sys.exit(1)
 
     elif sys.platform.startswith("linux"):
 
@@ -171,52 +315,45 @@ def compatability_check(debug=False):
         config_file = os.path.expanduser('~') + '/.magnetovis.conf'
         PARAVIEWPATH = ''
         if 'PARAVIEWPATH' in os.environ:
-            if debug:
-                print('PARAVIEW os environment variable set as ' + os.environ['PARAVIEWPATH'])
+            mvs.logger.info('PARAVIEW os environment variable set as ' + os.environ['PARAVIEWPATH'])
             PARAVIEWPATH = os.path.expanduser(config['DEFAULT']['PARAVIEWPATH'])                
             PARAVIEW = PARAVIEWPATH + '/bin/paraview'
             PVPYTHON = PARAVIEWPATH + '/bin/pvpython'
             PVBATCH = PARAVIEWPATH + '/bin/pvbatch'
 
         else:
-            if debug:
-                print('PARAVIEW os environment not set.')
+            mvs.logger.info('PARAVIEW os environment not set.')
             
         if PARAVIEWPATH == '' and os.path.exists(config_file):
-            if debug:
-                print('File ' + config_file + ' found')
+            mvs.logger.info('File ' + config_file + ' found')
             config.read(config_file)
             try:
                 PARAVIEWPATH = os.path.expanduser(config.get('DEFAULT', 'PARAVIEWPATH'))
-                if debug:
-                    print('Found PARAVIEWPATH = ' + PARAVIEWPATH + ' in [DEFAULT] section of ' + config_file + '.')
+                mvs.logger.info('Found PARAVIEWPATH = ' + PARAVIEWPATH + ' in [DEFAULT] section of ' + config_file + '.')
                 if os.path.exists(PARAVIEWPATH):
                     PARAVIEW = PARAVIEWPATH + '/bin/paraview'
                     PVPYTHON = PARAVIEWPATH + '/bin/pvpython'
                 else:
-                    print(PARAVIEWPATH + ' not found.')
+                    mvs.logger.info(PARAVIEWPATH + ' not found.')
                     PARAVIEWPATH = ''
             except:
-                if debug:
-                    print('unable to get PARAVIEWPATH variable in ' + config_file + ' file')
+                mvs.logger.info('Unable to get PARAVIEWPATH variable in ' + config_file + ' file')
 
         if PARAVIEWPATH == '':
             PVPYTHON = ''
             try:
-                if debug:
-                    print('Trying output of `which paraview`')
+                mvs.logger.info('Trying output of `which paraview`')
                 PARAVIEW = subprocess.check_output(['which','paraview'])
                 try:
-                    if debug:
-                        print('Trying output of `which pvpython`')
+                    mvs.logger.info('Trying output of `which pvpython`')
                     PVPYTHON = subprocess.check_output(['which','pvpython'])
                 except:
-                    print("Executable named 'pvpython' was not found in path, but 'paraview' found at " \
+                    mvs.logger.error("Executable named 'pvpython' was not found in path, but 'paraview' found at " \
                           + PARAVIEW + ". Check installation; pvpython binary should be in the " \
                           + "same directory as paraview binary.")
                     sys.exit(1)
             except:
-                print("Executable named 'paraview' was not found in path.")
+                mvs.logger.info("Executable named 'paraview' was not found in path.")
                 if prompt('Attempt to install? [y]/n', default='y') == 'y':
                     install_path = prompt('Enter installation path [~]', default='~')
                     install_path = os.path.expanduser(install_path)
@@ -227,9 +364,9 @@ def compatability_check(debug=False):
                     PVPYTHON = PARAVIEWPATH + '/bin/pvpython'
                     config = configparser.ConfigParser()
                     if os.path.exists(config_file):
-                        if debug:
-                            print("Found " + config_file + ". Updating PARAVIEWPATH " + \
-                                  "variable to " + PARAVIEWPATH)
+                        mvs.logger.info("Found " + config_file \
+                                        + ". Updating PARAVIEWPATH " \
+                                        + "variable to " + PARAVIEWPATH)
                         config.read(config_file)
                         if 'PARAVIEWPATH' in config['DEFAULT']:
                             config['DEFAULT']['PARAVIEWPATH'] = PARAVIEWPATH
@@ -237,32 +374,80 @@ def compatability_check(debug=False):
                             config['DEFAULT'] = {'PARAVIEWPATH': PARAVIEWPATH}
                         with open(config_file, 'w') as f:
                             config.write(f)
-                        if debug:
-                            print("Updated PARAVIEWPATH variable to " + PARAVIEWPATH)
+                        mvs.logger.info("Updated PARAVIEWPATH variable to " + PARAVIEWPATH)
                     else:
-                        if debug:
-                            print("Writing " + config_file)
+                        mvs.logger.info("Writing " + config_file)
                         config['DEFAULT'] = {'PARAVIEWPATH': install_path}
                         with open(config_file, 'w') as f:
                             config.write(f)
-                        if debug:
-                            print("Wrote " + config_file)
+                        mvs.logger.info("Wrote " + config_file)
                 else:
                     sys.exit(1)
                             
     else:
-        print("Installation implemented only for Linux and OS-X.")
+        mvs.logger.error("Installation implemented only for Linux and OS-X.")
         sys.exit(0)
 
-    if False:
-        util_path = os.path.dirname(os.path.realpath(__file__))
-        ver_path = os.path.join(util_path,'..','etc','version.py')
-        if debug:
-            print("Executing %s %s" % (PVPYTHON, ver_path))
-        try:
-                pvpython_version_str = subprocess.check_output([PVPYTHON, ver_path])
-        except:
-            print("Could not execute " + PVPYTHON + " " + ver_path + ". Exiting.")
-            sys.exit(1)
-
     return PARAVIEW, PVPYTHON, PVBATCH
+
+
+def fileparts(file):
+    import os
+    (dirname, fname) = os.path.split(file)
+    (fname, fext) = os.path.splitext(fname)
+
+    if file.startswith("http"):
+        fname_split = file.split("/")
+        fname, fext = os.path.splitext(fname_split[-1])
+        dirname = "/".join(fname_split[0:-1])
+    else:
+        file_parts = fname
+
+    return dirname, fname, fext
+
+
+def dlfile(file, tmpdir=None):
+
+    import os
+    from urllib.request import urlretrieve
+
+    import magnetovis as mvs
+
+    if tmpdir is None:
+        import tempfile
+        import platform
+        system = platform.system()
+        if system in ["Darwin", "Linux"]:
+            tmpdir = "/tmp"
+        else:
+            tmpdir = tempfile.gettempdir()
+
+    (dirname, fname, fext) = fileparts(file)
+    filename = fname + fext
+    subdir = dirname.replace("http://","").replace("https://","")
+    subdir = os.path.join(tmpdir, subdir)
+    if not os.path.exists(subdir):
+        mvs.logger.info("Creating " + subdir)
+        os.makedirs(subdir)
+    tmppath = os.path.join(subdir, filename)
+
+    if os.path.exists(tmppath):
+        mvs.logger.info("Found " + tmppath)
+    else:
+        partfile = tmppath + ".part"
+        mvs.logger.info("Downloading " + file + " to " + partfile)
+        try:
+            urlretrieve(dirname + "/" + filename, partfile)
+        except Error as e:
+            mvs.logger.info("Download error")
+            # Won't remove .part file if application crashes.
+            # Would need to register an atexit.
+            if os.path.exists(partfile):
+                mvs.logger.info("Removing " + partfile)
+                os.remove(partfile)
+            raise 
+
+        mvs.logger.info("Renaming " + partfile + "\nto\n" + tmppath)
+        os.rename(partfile, tmppath)
+
+    return tmppath

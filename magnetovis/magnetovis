@@ -5,49 +5,159 @@ import site
 import shlex
 import subprocess
 import sysconfig
+import optparse
+
+
+desc = """
+Start ParaView with Magnetovis extensions
+
+    List options and usage:
+
+        magnetovis -h
+
+    This command line program sets environment variables needed to use Magnetovis
+    in ParaView and then launches the ParaView GUI or executed pvbatch or pvpython.
+
+    By default,
+
+        magnetovis
+
+    executes the command line program to launch the ParaView GUI with Magnetovis
+    environment variables set.
+
+        magnetovis filename
+
+    launches ParaView with --script=filename. See the Options section below for
+    additional Magnetovis command line options.
+
+    To pass additional command line options to the ParaView GUI program, use
+
+        magnetovis --paraview-options="..."
+
+    where ... is a string of options that are listed by executing
+
+        magnetovis --paraview-options="--help"
+
+    For example,
+
+        magnetovis --paraview-options="--force-offscreen-rendering --verbosity=INFO"
+
+    To use Magnetovis with pvbatch or pvpython, use
+
+        magnetovis pvbatch [magnetovis options] --pvbatch-options="..."
+        magnetovis pvpython [magnetovis options] --pvpython-options="..."
+
+    To see the options for pvbatch and pvpython, execute
+
+        magnetovis pvbatch --pvbatch-options="--help"
+        magnetovis pvpython --pvpython-options="--help"
+
+    To execute all tests, use
+
+        magnetovis test
+"""
+
+parser = optparse.OptionParser(add_help_option=False, usage="")
+
+parser.add_option('-h', '--help',
+                  dest='help',
+                  action='store_true',
+                  help='Show this help message and exit')
+
+parser.add_option('--loglevel',
+            type='str',
+            help="Magnetovis logging level. One of {info, debug, warning, error}", 
+            default='info')
+
+parser.add_option('--paraview-version',
+            type='str',
+            help="ParaView version; 'latest-release', 'latest-master', or a specific version string", 
+            default='')
+
+parser.add_option('--paraview-options',
+            type='str',
+            help="Options to pass to the paraview program when executed", 
+            default='')
+
+parser.add_option('--pvbatch-options',
+            type='str',
+            help="Command line options to pass to the pvbatch program when executed", 
+            default='')
+
+parser.add_option('--pvpython-options',
+            type='str',
+            help="Command line options to pass to the pvpython program when executed", 
+            default='')
+
+(options, args) = parser.parse_args()
+
+if options.help:
+    print("Usage: magnotovis [pvbatch or pvpython] [filename] ...")
+    print(desc)
+    parser.print_help()
+    print("Version: 0.1.0")
+    sys.exit(0)
+
+import magnetovis as mvs
+
+# The following only applies to logging in this file.
+# To set log level globally, will need to save log level passed on
+# command line to a file and then have logger read file. Will not be
+# thread safe. For now, users will need to set it each time magnetovis
+# is imported. 
+mvs.logger.setLevel(options.loglevel.upper())
+
+setup_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+PARAVIEW, PVPYTHON, PVBATCH = mvs.util.compatability_check(use=options.paraview_version)
 
 pvpython = False
 pvbatch = False
 if len(sys.argv) > 1:
     if sys.argv[1] == "pvpython":
         pvpython = True
-        sys.argv[1] = ''
-
     if sys.argv[1] == "pvbatch":
         pvbatch = True
-        sys.argv[1] = ''
+    if sys.argv[1] == "test":
+        args[0] = os.path.join(setup_path, 'magnetovis', 'Test', 'Test.py')
 
-# https://stackoverflow.com/a/8663557
-# Temporarily modify path so that util functions can be used.
-setup_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-sys.path.insert(0, os.path.join(setup_path, 'magnetovis'))
-import util
-del sys.path[0]
 
-PARAVIEW, PVPYTHON, PVBATCH = util.compatability_check()
-
+# Path of Python used to execute this program
 PYTHONPATH = ":".join(site.getsitepackages())
-pvargs = " ".join(sys.argv[1:])
 
 if pvpython:
-    syscom = PVPYTHON + " " + pvargs
+    syscom = PVPYTHON + " " + options.paraview_options
+    if len(args) > 1:
+        syscom = PVPYTHON + " " + args[1] + " " + options.pvpython_options
 elif pvbatch:
-    syscom = PVBATCH + " " + pvargs
+    syscom = PVBATCH + " " + options.pvbatch_options
+    if len(args) > 1:
+        syscom = PVBATCH + " " + args[1] + " " + options.pvbatch_options
 else:
-    syscom = PARAVIEW + " " + pvargs
+    syscom = PARAVIEW + " " + options.paraview_options
+    if len(args) > 0:
+        syscom = PARAVIEW + " --script=" + args[0] + " " + options.paraview_options
+        last_script = os.path.join(setup_path, "magnetovis/Macros/_last.py")
+        if os.path.islink(last_script) or os.path.exists(last_script):
+          os.remove(last_script)
+        os.symlink(os.path.abspath(args[0]), last_script)
+
+# Paraview is not able to find modules in PYTHONPATH that were installed
+# using pip install -e . (which creates symlinks to the local directory).
+# As a result, we need to append the path of this file to PYTHONPATH.
+extra_path = ""
+if os.path.exists(PYTHONPATH + "/magnetovis.egg-link"):
+    extra_path = ":" + setup_path
 
 my_env = os.environ.copy()
 if "PYTHONPATH" in my_env:
-	my_env["PYTHONPATH"] = PYTHONPATH + ":.:" + my_env["PYTHONPATH"]
+	my_env["PYTHONPATH"] = PYTHONPATH + ":" + my_env["PYTHONPATH"] + extra_path
 else:
-	my_env["PYTHONPATH"] = PYTHONPATH + ":."
+	my_env["PYTHONPATH"] = PYTHONPATH + extra_path
 
-# this is done to resolve import error on _sysconfig__darwin_darwin for macos 11.4
 stdlib = sysconfig.get_path('stdlib')
 if stdlib not in my_env["PYTHONPATH"].split(":"):
     my_env["PYTHONPATH"] = stdlib + ":" + my_env["PYTHONPATH"]
 
-# this is done to resolve import error of _lzma for macos 11.4 (note: importing lzma works but inside of lzma.py there is a call to _lzma)
 if sys.platform == 'darwin':
     lib_dynload = os.path.join(stdlib,'lib-dynload')
     if lib_dynload not in my_env["PYTHONPATH"]:
@@ -55,12 +165,12 @@ if sys.platform == 'darwin':
 
 
 # TODO: Get base path
-my_env["PV_MACRO_PATH"] = 'magnetovis/Macros'
-my_env["PV_PLUGIN_PATH"] = 'magnetovis/Plugins'
-
+my_env["PV_MACRO_PATH"] = os.path.join(setup_path, 'magnetovis/Macros')
+my_env["PV_PLUGIN_PATH"] = os.path.join(setup_path, 'magnetovis/Plugins')
 
 # The following prints the equivalent of what is being executed.
-print("Executing PV_MACRO_PATH=" + my_env["PV_MACRO_PATH"] + " PV_PLUGIN_PATH=" + my_env["PV_PLUGIN_PATH"] + " PYTHONPATH=" + my_env["PYTHONPATH"] + " " + syscom)
+mvs.logger.info("Executing:\n\nPV_MACRO_PATH=" + my_env["PV_MACRO_PATH"] + " PV_PLUGIN_PATH=" + my_env["PV_PLUGIN_PATH"] + " PYTHONPATH=" + my_env["PYTHONPATH"] + " " + syscom + "\n")
+
 try:
     args = shlex.split(syscom)
     process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=my_env)
@@ -71,5 +181,5 @@ except OSError as e:
     raise OSError(msg)
 except (KeyboardInterrupt, SystemExit) as e:
 	pass
-except e:
+except Exception as e:
 	raise e

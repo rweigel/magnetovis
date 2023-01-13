@@ -30,7 +30,7 @@ class PythonSuperquadricSource2(VTKPythonAlgorithmBase):
     # for anything too complex or not yet supported, you can explicitly
     # provide the XML for the method.
     @smproperty.xml("""
-        <DoubleVectorProperty name="Center"
+        <DoubleVectorProperty name="Center" label="The Center"
             number_of_elements="3"
             default_values="0 0 0"
             command="SetCenter">
