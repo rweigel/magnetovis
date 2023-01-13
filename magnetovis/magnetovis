@@ -136,11 +136,14 @@ else:
     syscom = PARAVIEW + " " + options.paraview_options
     if len(args) > 0:
         syscom = PARAVIEW + " --script=" + args[0] + " " + options.paraview_options
+        last_script = os.path.join(setup_path, "magnetovis/Macros/_last.py")
+        if os.path.islink(last_script) or os.path.exists(last_script):
+          os.remove(last_script)
+        os.symlink(os.path.abspath(args[0]), last_script)
 
 # Paraview is not able to find modules in PYTHONPATH that were installed
 # using pip install -e . (which creates symlinks to the local directory).
 # As a result, we need to append the path of this file to PYTHONPATH.
-
 extra_path = ""
 if os.path.exists(PYTHONPATH + "/magnetovis.egg-link"):
     extra_path = ":" + setup_path

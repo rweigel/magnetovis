@@ -5,6 +5,8 @@ def dipole(r, m=[0, 0, 1], k=1e-7, vectorized=True, r_nan=1.0):
       = k ( 3(m dot r)r/|r|^5 - m/|r|^3 )
       = k ( 3(m_x*r_x + m_y*r_y + m_z*r_z)r - m/|r|^3)
 
+    where
+
     r = [x, y, z]
 
     and the default constant is that for a magnetic dipole in MKS:
