@@ -2,37 +2,12 @@
 #   magnetovis BATSRUS_demo.py
 
 # Demo 1
-from urllib.request import urlretrieve
-url = 'http://mag.gmu.edu/git-data/swmfio/3d__var_2_e20190902-041000-000.vtk'
-vtkfile = "/tmp/" + url.split("/")[-1]
-
-import os
-if not os.path.exists(vtkfile):
-  print("Downloading " + url, flush=True)
-  urlretrieve(url, vtkfile)
-
 import magnetovis as mvs
+# See BATSRUS_prep.py for downloading this file.
+vtkfile = "/tmp/3d__var_2_e20190902-041000-000.vtk"
+
 batsrus = mvs.BATSRUS(file=vtkfile)
 mvs.SetTitle("Default")
-
-if False:
-    # If a VTK file does not exist, create it using the following.
-    url = 'http://mag.gmu.edu/git-data/swmfio/3d__var_2_e20190902-041000-000'
-    vtkfile = "/tmp/" + url.split("/")[-1]
-    import os
-    if not os.path.exists(vtkfile):
-      try:
-        import swmfio
-      except:
-        print('\n\nInstall swmfio using')
-        print('pip install "swmfio@git+https://github.com/GaryQ-physics/swmfio@main#egg=swmfio"\n')
-        raise ModuleNotFoundError("Package swmfio must be installed.")
-
-      import logging
-      swmfio.logger.setLevel(logging.INFO)
-      filebase = swmfio.dlfile(url, progress=True)
-      vtkfile = swmfio.write_vtk(filebase)
-
 
 # Demo 2
 import magnetovis as mvs
@@ -44,7 +19,6 @@ mvs.SetTitle("Run files: http://mag.gmu.edu/git-data/swmfio/3d__var_2_e20190902-
 import paraview.simple as pvs
 pvs.Hide(batsrus)
 
-import paraview.simple as pvs
 view = pvs.GetActiveViewOrCreate('RenderView')
 
 sliceY = pvs.Slice(registrationName=' y=0 slice', Input=batsrus)
