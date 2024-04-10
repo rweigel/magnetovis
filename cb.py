@@ -9,6 +9,8 @@ mvs.ShowColorBar(source=..., display=...)
 #colorTF = mvs.SetColorTransferFunction(('POINTS', 'xyz'), rep=, separate=, **options)
 # cb = mvs.SetColorBar(color_by=..., proxy=..., display=..., view=..., setparate=..., color_tf=..., **scalarBarProperties)
 
+mvs.ColorBar()
+
 # mvs.ColorBy()
 pvs.ColorBy(value=('POINTS', 'Normals'))
 
