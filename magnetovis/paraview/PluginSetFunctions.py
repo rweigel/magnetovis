@@ -22,6 +22,15 @@ def GridPropertyGroupString():
                     <Property function="point_array_functions" name="point_array_functions"/>
                 </PropertyGroup>"""    
 
+def SetID(default_values):
+  from paraview.util.vtkAlgorithm import smproxy, smproperty, smhint, smdomain
+  @smproperty.stringvector(name="selfID", label="selfID", command="SetID", documentation="", default_values=default_values)
+  def SetID(self, ID):
+      self.mvs.logger.info(name + " = " + ID)
+      setattr(self, name, ID)
+      self.Modified()
+  return SetID
+
 def SetTime(default_values, name="time", label="time", panel_visibility="default"):
     from paraview.util.vtkAlgorithm import smproxy, smproperty, smhint, smdomain
     @smproperty.stringvector(name=name, label=label, command="SetTime", documentation="Time in ISO8601 format (YYYY-MM-DD[THH[:MM[:SS]]])", default_values=default_values)

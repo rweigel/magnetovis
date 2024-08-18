@@ -29,6 +29,13 @@ def CreatePlugin(name):
     # Ordering of GUI elements is alphabetical. See proposed fix for this at
     # https://gitlab.kitware.com/paraview/paraview/-/merge_requests/2846
 
+    # See UpdateDisplayOptions() for use of this property
+    @smproperty.stringvector(name="selfID", label="selfID", command="SetID", documentation="", panel_visibility="never")
+    def SetID(self, selfID):
+        self.mvs.logger.info(selfID + " = " + selfID)
+        setattr(self, "selfID", hex(id(self)))
+        self.Modified()
+
     SetTime = PluginSetFunctions.SetTime(ScriptKwargs["time"])
     SetCoordinateSystem = PluginSetFunctions.SetCoordinateSystem(ScriptKwargs["coord_sys"])
     SetDimensions = PluginSetFunctions.SetDimensions(ScriptKwargs["dimensions"])
@@ -37,6 +44,7 @@ def CreatePlugin(name):
     SetScriptBodyText = PluginSetFunctions.SetScriptBodyText(ScriptBodyText)
 
     @smproperty.xml(PluginSetFunctions.GridPropertyGroupString())
+
 
     def __init__(self, **default_values):
 
@@ -47,30 +55,34 @@ def CreatePlugin(name):
               nOutputPorts=1,
               outputType=OutputDataSetType)
 
-      # The following hack is used to automatically set
+      output = None
+      # The following hack is used to automatically execute Show.
       def UpdateDisplayOptions(caller, event):
         import paraview.simple as pvs
         import magnetovis as mvs
         mvs.logger.info("Called")
-        mvs.logger.info(f"Caller: {caller}")
+        #mvs.logger.info(f"Caller: {caller}")
         mvs.logger.info(f"Event: {event}")
-        print(pvs.GetActiveSource())
+        # Look for sources with selfID property that maches hex(id(self)).
+        # This is a hacky way to determine the source that the executed plugin
+        # is associated with.
         sources = pvs.GetSources()
         for key in sources.keys():
-          if not hasattr(sources[key], '_default_display_properies_set'):
-            sources[key].add_attribute('_default_display_properies_set', True)
-            mvs.logger.info(f"Removing callback with id = {cb_id}")
-            self.RemoveObserver(cb_id)
-            mvs.SetPresentationProperties(source=sources[key])
-        else:
-          mvs.logger.info("SetPresentationProperties was already called. Not re-calling")
+          l = sources[key].ListProperties()
+          if 'selfID' in l and self.selfID == hex(id(self)):
+            if not hasattr(sources[key], '_default_display_properies_set'):
+              sources[key].add_attribute('_default_display_properies_set', True)
+              mvs.logger.info(f"Removing callback with id = {cb_id}")
+              self.RemoveObserver(cb_id)
+              mvs.SetPresentationProperties(source=sources[key])
+              #print(pvs.GetRenderViews())
+            else:
+              mvs.logger.info("SetPresentationProperties was already called. Not re-calling")
+
+      import paraview.simple as pvs
 
       cb_id = self.AddObserver('EndEvent', UpdateDisplayOptions)
       mvs.logger.info(f"Added Observer UpdateDisplayOptions for EndEvent; Callback id = {cb_id}")
-      import paraview.simple as pvs
-      sources = pvs.GetSources()
-      print(sources)
-      print(self)
 
       self._logger = mvs.logger
 
@@ -126,6 +138,8 @@ def CreatePlugin(name):
 
       exec(ScriptBodyText)
 
+      #mvs.ProxyInfo.SetInfo(output, locals())
+      
       mvs.logger.info("Finished execution of script.")
 
       return 1

@@ -15,7 +15,7 @@ def SetPresentationProperties(source=None, view=None, **kwargs):
     else:
         # Programmable source
         name = source.GetProperty("__magnetovis_name__")
-    mvs.logger.info("Source object is a Magnetovis " + name)
+    #mvs.logger.info("Source object is a Magnetovis " + name)
 
     # If called more than once, need to delete existing children.
     children = source.GetProperty("__magnetovis_children__")
@@ -50,7 +50,9 @@ def SetPresentationProperties(source=None, view=None, **kwargs):
         kwargs['display'] = displaySettings
 
     mvs.logger.info("Calling Show()")
+    #print(pvs.GetRenderViews())
     display = pvs.Show(proxy=source, view=view, **displaySettings)
+    #print(pvs.GetRenderViews())
 
     coloringSettings = {}
     color_by = None
@@ -87,5 +89,6 @@ def SetPresentationProperties(source=None, view=None, **kwargs):
     camera = mvs.SetCamera(view=view, source=source, viewType="isometric")
 
     view.Update()
+    #print(pvs.GetRenderViews())
 
     return children

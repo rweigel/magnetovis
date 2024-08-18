@@ -1,0 +1,1733 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>README</title>
+  <link id="favicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%220.9em%22 font-size=%22100%22>📖</text></svg>">
+  <link id="hljs-css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css">
+  <style>
+    #toc>ol ol {
+      display: none
+    }
+
+    body {
+      background-image: url("https://rweigel.github.io/biedit/img/paper.png")
+    }
+
+    .body {
+      display: flex;
+      min-width: 50%;
+      max-height: 100%;
+      position: absolute;
+      background-image: url("https://rweigel.github.io/biedit/img/paper.png");
+    }
+
+    #toc {
+      flex: 0 1 auto;
+      margin-top: 0em;
+      margin-right: 1em;
+      max-width: 12em;
+      overflow: hidden auto;
+    }
+
+    #toc .toctext {
+      color: darkblue;
+    }
+
+    #toc .toctext-empty {
+      min-width: 1em;
+      border-bottom: 1px solid blue;
+    }
+
+    #toc ol {
+      list-style-type: decimal;
+      margin: 0.25em 0em 0em 0.25em;
+      padding-inline-start: 1em;
+    }
+
+    #toc a {
+      text-decoration: none;
+    }
+
+    #display {
+      flex: 1 1 80%;
+      overflow: hidden auto;
+      overflow-wrap: break-word;
+    }
+
+    #display .abstract {
+      text-align: center;
+      font-size: 100%;
+      font-weight: bold;
+      color: black;
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
+    }
+
+    #display .title {
+      text-align: center;
+      font-size: 150%;
+      font-weight: bold;
+      color: black;
+      margin-top: 0.2em;
+      margin-bottom: 0.2em;
+    }
+
+    #display .subtitle {
+      text-align: center;
+      font-size: 120%;
+      font-weight: bold;
+      color: black;
+      margin-top: 0.2em;
+    }
+
+    #display .date {
+      text-align: right;
+      color: black;
+    }
+
+    #display .block {
+      display: flex;
+      flex: 1 1 auto;
+    }
+
+    #display .block>.comment {
+      display: none;
+    }
+
+    #display .hr {
+      width: 100%;
+      height: 1px;
+      display: block;
+      margin: 0.5em;
+      border-top: 1px solid black;
+    }
+
+    #display a {
+      text-decoration-line: none;
+      text-decoration-color: black;
+      color: darkblue;
+    }
+
+    #display a.broken-internal-link {
+      text-decoration-line: underline;
+      text-decoration-style: wavy;
+      text-underline-offset: 2px;
+      text-decoration-color: red;
+    }
+
+    #display span.broken-internal-link {
+      font-size: 0.75em;
+      color: red;
+    }
+
+    #display a:focus-visible {
+      outline: none;
+      background-color: yellow;
+    }
+
+    #display p {
+      width: 100%;
+      display: block;
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
+    }
+
+    #display pre {
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
+    }
+
+    #display h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      width: 100%;
+      text-decoration: none;
+      color: inherit;
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
+    }
+
+    #display h1 {
+      color: darkblue;
+      border-bottom: 2px solid darkblue;
+    }
+
+    #display h2 {
+      border-bottom: 1px solid black;
+    }
+
+    #display h3 {
+      border-bottom: 1px dotted black;
+    }
+
+    #display img {
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
+      max-width: 100%;
+    }
+
+    figure {
+      display: block;
+      margin-block: 0em;
+      margin-inline: 0px;
+    }
+
+    details>summary {
+      font-weight: bold;
+    }
+
+    details {
+      padding-left: 0.5em;
+    }
+
+    details[open] {
+      border: 1px solid black;
+      padding: 0em 0em 0em 0.5em;
+    }
+
+    table {
+      padding: 0px;
+      display: block;
+      width: 100%;
+    }
+
+    table tr {
+      border-top: 1px solid rgb(204, 204, 204);
+      background-color: white;
+      margin: 0px;
+      padding: 0px;
+    }
+
+    table tr:nth-child(2n) {
+      background-color: rgb(248, 248, 248);
+    }
+
+    table tr th {
+      font-weight: bold;
+      border: 1px solid rgb(204, 204, 204);
+      text-align: left;
+      margin: 0px;
+      padding: 6px 13px;
+    }
+
+    table tr td {
+      border: 1px solid rgb(204, 204, 204);
+      text-align: left;
+      margin: 0px;
+      padding: 6px 13px;
+    }
+
+    table tr th :first-child,
+    table tr td :first-child {
+      margin-top: 0px;
+    }
+
+    table tr th :last-child,
+    table tr td :last-child {
+      margin-bottom: 0px;
+    }
+
+    #display code {
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.03);
+      border-radius: 0px;
+      white-space: pre-wrap;
+    }
+
+    #display code~.line-number {
+      margin-top: 3px;
+      margin-right: 3px;
+    }
+
+    #display pre {
+      width: 100%;
+      text-indent: 0.75em;
+      margin: 0.5em 0px;
+      white-space: pre-wrap;
+      border-left: 3px solid black;
+      background-color: rgba(0, 0, 0, 0.03);
+      line-height: 1.25;
+      overflow-x: clip;
+    }
+
+    #display pre code {
+      background-color: rgba(0, 0, 0, 0);
+      margin-top: 0.25em;
+      margin-bottom: 0.25em;
+    }
+
+    #display pre.language-python {}
+
+    #display li>div {
+      display: flex;
+    }
+
+    #display li {
+      min-height: 1em;
+      width: 100%;
+    }
+
+    #display ul {
+      width: 100%;
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
+      margin-left: 1em;
+      padding-left: 0.35em;
+    }
+
+    #display ul.compact {
+      margin-top: 0.25em;
+      margin-bottom: 0.25em;
+    }
+
+    #display ol {
+      width: 100%;
+      margin-left: 1em;
+      padding-left: 0.5em;
+    }
+
+    #display>.section>.block>ol.loose {
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
+    }
+
+    #display>.section>.block>ol.compact {
+      margin-top: 0.25em;
+      margin-bottom: 0.25em;
+    }
+
+    #display ol.compact p {
+      margin-top: 0.25em;
+      margin-bottom: 0.25em;
+    }
+
+    #display ol.loose p {
+      margin-top: 0.25em;
+      margin-bottom: 0.25em;
+    }
+
+    #display ul.compact p {
+      margin-top: 0.25em;
+      margin-bottom: 0.25em;
+    }
+
+    #display ul.loose p {
+      margin-top: 0.25em;
+      margin-bottom: 0.25em;
+    }
+
+    .inline-html .block .block-info {
+      display: none;
+    }
+
+    .inline-html {
+      width: 100%;
+    }
+
+    .section>.block ol~.block-info {}
+
+    .section>.block ul~.block-info {}
+
+    .section>.block pre~.block-info {}
+
+    .section>.block code~.block-info {}
+
+    pre .block-info {
+      font-size: 8px;
+      text-align: right;
+      text-indent: 0px;
+    }
+
+    .block-info {
+      text-align: right;
+      width: 24px;
+      font-family: monospace;
+      white-space: pre-line;
+      overflow-wrap: break-word;
+      font-size: 8px;
+      border-top: 1px solid black;
+      border-bottom: 1px solid black;
+      border-right: 1px solid black;
+    }
+
+    .blockquote {
+      width: 100%;
+      display: block;
+      margin: 1em;
+      border: 1px solid black;
+      padding: 1em;
+      border-radius: 0.5em;
+    }
+
+    .solutionsfalse {
+      display: block;
+    }
+
+    .solutionstrue {
+      display: none;
+    }
+
+    .inline {
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
+    }
+
+    .latex-underline {
+      text-decoration: underline;
+    }
+
+    .katex {
+      font-size: inherit !important;
+    }
+
+    .katex-warning {
+      border-right: 0.5em solid red;
+    }
+
+    .katex-display {
+      text-align: center;
+      margin: 0em;
+      font-size: 1em !important;
+    }
+
+    .katex-display.fleqn>.katex {
+      padding-left: 0em;
+      margin: 0em;
+    }
+
+    @media print {
+      * {
+        overflow: visible !important;
+      }
+
+      @page {
+        size: auto;
+        margin: 0.75in;
+      }
+
+      .katex .hide-tail {
+        overflow: hidden !important;
+      }
+
+      .body {
+        display: inline;
+        position: relative;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        width: 100%;
+        margin-block: 0.1em;
+      }
+
+      h1 {
+        font-size: 1.25em;
+        color: black;
+        border-bottom: 2px solid black;
+      }
+
+      h2 {
+        font-size: 1.15em;
+        border-bottom: 1px solid black;
+      }
+
+      h3 {
+        font-size: 1.1em;
+      }
+
+      h4,
+      h5,
+      h6 {
+        font-size: 1.05em;
+      }
+
+      .md-toc {
+        break-inside: avoid;
+        font-size: 14px;
+      }
+
+      pre {
+        break-inside: avoid;
+      }
+
+      p {
+        margin-top: 0.5em;
+        margin-bottom: 0.5em;
+      }
+
+      #toc {
+        display: none;
+        font-size: 100%;
+        margin: 0px;
+        width: 100%;
+        overflow-y: hidden;
+        padding-left: 0px;
+        padding-right: 0px;
+      }
+
+      #display {
+        margin-left: 0em;
+        width: 100%;
+        padding-left: 0px;
+        padding-right: 0px;
+        border: none;
+        overflow-wrap: break-word;
+      }
+
+      .katex {
+        font: 1em / 1.1 KaTeX_Main, "Times New Roman", serif;
+        white-space: nowrap;
+        text-indent: 0px;
+        text-rendering: auto;
+      }
+
+      .katex-display {
+        margin-top: 0px !important;
+        font-size: 1em !important;
+      }
+    }
+  </style>
+</head>
+
+<body class="body">
+  <div id="toc" style="min-width: 5em;">
+    <ol>
+      <li>
+        <a href="#about" raw="# About" lo="1">
+          <span class="toctext">About</span>
+        </a>
+      </li>
+      <li>
+        <a href="#install" raw="# Install" lo="9" class="">
+          <span class="toctext">Install</span>
+        </a>
+      </li>
+      <li>
+        <a href="#getting-started" raw="# Getting started" lo="26">
+          <span class="toctext">Getting started</span>
+        </a>
+      </li>
+      <li>
+        <a href="#approach" raw="# Approach" lo="34">
+          <span class="toctext">Approach</span>
+        </a>
+      </li>
+      <li>
+        <a href="#development-notes" raw="# Development Notes" lo="50" class="">
+          <span class="toctext">Development Notes</span>
+        </a>
+        <ol class="toc" style="display: block;">
+          <li>
+            <a href="#terminology" raw="## Terminology" lo="52" class="">
+              <span class="toctext">Terminology</span>
+            </a>
+          </li>
+          <li>
+            <a href="#testing-and-developing-scripts" raw="## Testing and Developing Scripts" lo="71" class="">
+              <span class="toctext">Testing and Developing Scripts</span>
+            </a>
+          </li>
+          <li>
+            <a href="#testing-and-developing-programmable-sources" raw="## Testing and Developing Programmable Sources" lo="80" class="">
+              <span class="toctext">Testing and Developing Programmable Sources</span>
+            </a>
+          </li>
+        </ol>
+      </li>
+      <li>
+        <a href="#notes" raw="# Notes" lo="120">
+          <span class="toctext">Notes</span>
+        </a>
+      </li>
+      <li>
+        <a href="#demos" raw="# Demos" lo="124" class="">
+          <span class="toctext">Demos</span>
+        </a>
+        <ol class="toc" style="display: block;">
+          <li>
+            <a href="#nez" raw="## NEZ" lo="136" class="">
+              <span class="toctext">NEZ</span>
+            </a>
+            <ol class="toc" style="display: block;">
+              <li>
+                <a href="#demo-1" raw="### Demo 1" lo="140">
+                  <span class="toctext">Demo 1</span>
+                </a>
+              </li>
+              <li>
+                <a href="#demo-1" raw="### Demo 1" lo="203">
+                  <span class="toctext">Demo 1</span>
+                </a>
+              </li>
+            </ol>
+          </li>
+          <li>
+            <a href="#arc" raw="## Arc" lo="219">
+              <span class="toctext">Arc</span>
+            </a>
+            <ol class="toc" style="display: none;">
+              <li>
+                <a href="#demo-1" raw="### Demo 1" lo="223">
+                  <span class="toctext">Demo 1</span>
+                </a>
+              </li>
+              <li>
+                <a href="#demo-2" raw="### Demo 2" lo="235" class="">
+                  <span class="toctext">Demo 2</span>
+                </a>
+              </li>
+            </ol>
+          </li>
+          <li>
+            <a href="#axis" raw="## Axis" lo="254">
+              <span class="toctext">Axis</span>
+            </a>
+            <ol class="toc" style="display: none;">
+              <li>
+                <a href="#demo-1" raw="### Demo 1" lo="258">
+                  <span class="toctext">Demo 1</span>
+                </a>
+              </li>
+              <li>
+                <a href="#demo-2" raw="### Demo 2" lo="270">
+                  <span class="toctext">Demo 2</span>
+                </a>
+              </li>
+            </ol>
+          </li>
+          <li>
+            <a href="#batsrus" raw="## BATSRUS" lo="321" class="">
+              <span class="toctext">BATSRUS</span>
+            </a>
+            <ol class="toc" style="display: block;">
+              <li>
+                <a href="#demo-1" raw="### Demo 1" lo="325">
+                  <span class="toctext">Demo 1</span>
+                </a>
+              </li>
+              <li>
+                <a href="#demo-2" raw="### Demo 2" lo="338">
+                  <span class="toctext">Demo 2</span>
+                </a>
+              </li>
+              <li>
+                <a href="#demo-3" raw="### Demo 3" lo="388">
+                  <span class="toctext">Demo 3</span>
+                </a>
+              </li>
+              <li>
+                <a href="#demo-4" raw="### Demo 4" lo="407">
+                  <span class="toctext">Demo 4</span>
+                </a>
+              </li>
+              <li>
+                <a href="#demo-5" raw="### Demo 5" lo="487">
+                  <span class="toctext">Demo 5</span>
+                </a>
+              </li>
+            </ol>
+          </li>
+          <li>
+            <a href="#bowshock" raw="## Bowshock" lo="568">
+              <span class="toctext">Bowshock</span>
+            </a>
+            <ol class="toc" style="display: none;">
+              <li>
+                <a href="#demo-1" raw="### Demo 1" lo="572">
+                  <span class="toctext">Demo 1</span>
+                </a>
+              </li>
+            </ol>
+          </li>
+          <li>
+            <a href="#circle" raw="## Circle" lo="581">
+              <span class="toctext">Circle</span>
+            </a>
+            <ol class="toc" style="display: none;">
+              <li>
+                <a href="#demo-1" raw="### Demo 1" lo="585">
+                  <span class="toctext">Demo 1</span>
+                </a>
+              </li>
+            </ol>
+          </li>
+          <li>
+            <a href="#curve" raw="## Curve" lo="594">
+              <span class="toctext">Curve</span>
+            </a>
+            <ol class="toc" style="display: none;">
+              <li>
+                <a href="#demo-1" raw="### Demo 1" lo="598" class="">
+                  <span class="toctext">Demo 1</span>
+                </a>
+              </li>
+            </ol>
+          </li>
+          <li>
+            <a href="#differentialdisk" raw="## DifferentialDisk" lo="614">
+              <span class="toctext">DifferentialDisk</span>
+            </a>
+            <ol class="toc" style="display: none;">
+              <li>
+                <a href="#demo-1" raw="### Demo 1" lo="618">
+                  <span class="toctext">Demo 1</span>
+                </a>
+              </li>
+              <li>
+                <a href="#demo-2" raw="### Demo 2" lo="629">
+                  <span class="toctext">Demo 2</span>
+                </a>
+              </li>
+              <li>
+                <a href="#demo-3" raw="### Demo 3" lo="641">
+                  <span class="toctext">Demo 3</span>
+                </a>
+              </li>
+              <li>
+                <a href="#demo-4" raw="### Demo 4" lo="653">
+                  <span class="toctext">Demo 4</span>
+                </a>
+              </li>
+            </ol>
+          </li>
+          <li>
+            <a href="#dipole" raw="## Dipole" lo="665">
+              <span class="toctext">Dipole</span>
+            </a>
+            <ol class="toc" style="display: none;">
+              <li>
+                <a href="#demo-1" raw="### Demo 1" lo="669">
+                  <span class="toctext">Demo 1</span>
+                </a>
+              </li>
+              <li>
+                <a href="#demo-2" raw="### Demo 2" lo="679">
+                  <span class="toctext">Demo 2</span>
+                </a>
+              </li>
+            </ol>
+          </li>
+          <li>
+            <a href="#earth" raw="## Earth" lo="728">
+              <span class="toctext">Earth</span>
+            </a>
+            <ol class="toc" style="display: none;">
+              <li>
+                <a href="#demo-1" raw="### Demo 1" lo="732">
+                  <span class="toctext">Demo 1</span>
+                </a>
+              </li>
+              <li>
+                <a href="#demo-2" raw="### Demo 2" lo="743">
+                  <span class="toctext">Demo 2</span>
+                </a>
+              </li>
+              <li>
+                <a href="#demo-3" raw="### Demo 3" lo="755">
+                  <span class="toctext">Demo 3</span>
+                </a>
+              </li>
+            </ol>
+          </li>
+          <li>
+            <a href="#griddata" raw="## GridData" lo="792" class="">
+              <span class="toctext">GridData</span>
+            </a>
+            <ol class="toc" style="display: none;">
+              <li>
+                <a href="#demo-1" raw="### Demo 1" lo="796" class="">
+                  <span class="toctext">Demo 1</span>
+                </a>
+              </li>
+              <li>
+                <a href="#demo-2" raw="### Demo 2" lo="806">
+                  <span class="toctext">Demo 2</span>
+                </a>
+              </li>
+              <li>
+                <a href="#demo-3" raw="### Demo 3" lo="817">
+                  <span class="toctext">Demo 3</span>
+                </a>
+              </li>
+              <li>
+                <a href="#demo-4" raw="### Demo 4" lo="828">
+                  <span class="toctext">Demo 4</span>
+                </a>
+              </li>
+            </ol>
+          </li>
+          <li>
+            <a href="#latlong" raw="## LatLong" lo="893">
+              <span class="toctext">LatLong</span>
+            </a>
+            <ol class="toc" style="display: none;">
+              <li>
+                <a href="#demo-1" raw="### Demo 1" lo="897">
+                  <span class="toctext">Demo 1</span>
+                </a>
+              </li>
+              <li>
+                <a href="#demo-2" raw="### Demo 2" lo="909">
+                  <span class="toctext">Demo 2</span>
+                </a>
+              </li>
+              <li>
+                <a href="#demo-3" raw="### Demo 3" lo="922">
+                  <span class="toctext">Demo 3</span>
+                </a>
+              </li>
+              <li>
+                <a href="#demo-4" raw="### Demo 4" lo="939">
+                  <span class="toctext">Demo 4</span>
+                </a>
+              </li>
+            </ol>
+          </li>
+          <li>
+            <a href="#lines" raw="## Lines" lo="956">
+              <span class="toctext">Lines</span>
+            </a>
+            <ol class="toc" style="display: none;">
+              <li>
+                <a href="#demo-1" raw="### Demo 1" lo="960">
+                  <span class="toctext">Demo 1</span>
+                </a>
+              </li>
+              <li>
+                <a href="#demo-2" raw="### Demo #2" lo="972">
+                  <span class="toctext">Demo #2</span>
+                </a>
+              </li>
+            </ol>
+          </li>
+          <li>
+            <a href="#plasmasphere" raw="## Plasmasphere" lo="991">
+              <span class="toctext">Plasmasphere</span>
+            </a>
+            <ol class="toc" style="display: none;">
+              <li>
+                <a href="#demo-1" raw="### Demo 1" lo="995">
+                  <span class="toctext">Demo 1</span>
+                </a>
+              </li>
+              <li>
+                <a href="#demo-2" raw="### Demo #2" lo="1006">
+                  <span class="toctext">Demo #2</span>
+                </a>
+              </li>
+              <li>
+                <a href="#demo-3" raw="### Demo #3" lo="1052">
+                  <span class="toctext">Demo #3</span>
+                </a>
+              </li>
+            </ol>
+          </li>
+          <li>
+            <a href="#satellite" raw="## Satellite" lo="1086">
+              <span class="toctext">Satellite</span>
+            </a>
+            <ol class="toc" style="display: none;">
+              <li>
+                <a href="#demo-1" raw="### Demo 1" lo="1090">
+                  <span class="toctext">Demo 1</span>
+                </a>
+              </li>
+              <li>
+                <a href="#demo-2" raw="### Demo #2" lo="1099">
+                  <span class="toctext">Demo #2</span>
+                </a>
+              </li>
+            </ol>
+          </li>
+          <li>
+            <a href="#t89c" raw="## T89c" lo="1140">
+              <span class="toctext">T89c</span>
+            </a>
+            <ol class="toc" style="display: none;">
+              <li>
+                <a href="#demo-1" raw="### Demo 1" lo="1144">
+                  <span class="toctext">Demo 1</span>
+                </a>
+              </li>
+              <li>
+                <a href="#demo-2" raw="### Demo 2" lo="1154">
+                  <span class="toctext">Demo 2</span>
+                </a>
+              </li>
+            </ol>
+          </li>
+          <li>
+            <a href="#t95currentsheet" raw="## T95CurrentSheet" lo="1182">
+              <span class="toctext">T95CurrentSheet</span>
+            </a>
+            <ol class="toc" style="display: none;">
+              <li>
+                <a href="#demo-1" raw="### Demo 1" lo="1186">
+                  <span class="toctext">Demo 1</span>
+                </a>
+              </li>
+            </ol>
+          </li>
+        </ol>
+      </li>
+    </ol>
+  </div>
+  <div id="display">
+    <div class="section">
+    </div>
+    <div class="section">
+      <div class="block">
+        <h1><a name="about" class="anchor hanchor" href="#about"><span class="hnumber">1</span>&nbsp;<span class="htext">About</span></a></h1>
+      </div>
+      <div class="block">
+        <p><code>magnetovis</code> is a set of Python scripts that display magnetosphere-related objects, regions, and data in <a href="https://www.paraview.org/">ParaView</a> that was initially developed under NASA Grant Number 80NSSC21K0305.</p>
+      </div>
+      <div class="block">
+        <p>The objects created by <code>magnetovis</code> scripts are displayed in the <code>ParaView</code> GUI where the can be inspected, manipulated, and modified.</p>
+      </div>
+      <div class="block">
+        <p>See the <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Demos">demo files</a> for example usage.</p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h1 class=""><a name="install" class="anchor hanchor" href="#install"><span class="hnumber">2</span>&nbsp;<span class="htext">Install</span></a></h1>
+      </div>
+      <div class="block">
+        <p>An existing installation of <a href="https://www.paraview.org/download/">ParaView 5.9+</a> is required. </p>
+      </div>
+      <div class="block">
+        <p>ParaView includes a Python 3 version. Because <code>magnetovis</code> requires packages that are not distributed with ParaView, you should execute <code>magnetovis</code> in a enviroment with the same Python version number as that used by ParaView.</p>
+      </div>
+      <div class="block">
+        <p>Installation has been only tested in OS-X and Linux. </p>
+      </div>
+      <div class="block">
+        <p>Please provide feedback by submitting an <a href="https://github.com/rweigel/magnetovis/issues">issue</a>.</p>
+      </div>
+      <div class="block">
+        <pre class=""><div class="block"><code>git clone https://github.com/rweigel/magnetovis</code></div><div class="block"><code>cd magnetovis</code></div><div class="block"><code>pip install --editable .</code></div><div class="block"><code>magnetovis magnetovis_demo.py</code></div></pre>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h1><a name="getting-started" class="anchor hanchor" href="#getting-started"><span class="hnumber">3</span>&nbsp;<span class="htext">Getting started</span></a></h1>
+      </div>
+      <div class="block">
+        <p><code>magnetovis</code> has three distinct parts</p>
+      </div>
+      <div class="block">
+        <ol class="compact">
+          <li markerlength="3">
+            <div class="block">
+              <p>A collection of Programmable Sources, Filters and Plugins that create and filter Heliophyiscs-related objects. See the <a href="#demos">demos</a> for a full list and example usage. Most Magnetovis programmable sources (and their associated Plugins) have a set of default display options that are applied automatically when they are created. In Paraview, when a source is added to the pipeline, no display options are set and the user must select the options in the GUI or write a script that sets the options. <code>magnetovis</code> objects have default display options that are applied when the object is added to the pipeline.</p>
+            </div>
+          </li>
+          <li markerlength="3" lo="31" lf="31">
+            <div class="block">
+              <p>A collection of helper functions for reducing the amount of code needed to modify view properties, the camera, and color bars. See the files starting with “Set” in <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/paraview">the <code>paraview</code> directory</a>.</p>
+            </div>
+          </li>
+          <li markerlength="3" lo="32" lf="34">
+            <div class="block">
+              <p>A collection of helper functions for reducing the amount of code needed for creating programmable sources and filters. The functions are in the <code>vtk</code> folder.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h1><a name="approach" class="anchor hanchor" href="#approach"><span class="hnumber">4</span>&nbsp;<span class="htext">Approach</span></a></h1>
+      </div>
+      <div class="block">
+        <p>The objects (e.g, Earth, Plasmapause, etc.) in <code>magnetovis</code> are created using <code>ParaView</code> <a href="https://docs.paraview.org/en/latest/ReferenceManual/pythonProgrammableFilter.html"><code>Programmable Sources</code></a>. Programmable Sources are short Python scripts that create <a href="https://vtk.org"><code>VTK</code></a> objects.</p>
+      </div>
+      <div class="block">
+        <p>When a a <code>magnetovis</code> Programmable Source is created in a Macro or one the Python command line in Paraview, the user can see and modify the script that created the object. Each Programmable Source in the <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources">Sources</a> directory has a corresponding <code>Plugin</code> that is automatically created from the Programmable Source file at startup.</p>
+      </div>
+      <div class="block">
+        <p>The objects were developed using the ParaView GUI and the <a href="https://docs.paraview.org/en/latest/ReferenceManual/pythonProgrammableFilter.html#recipes-for-programmable-source">Programmable Source editor</a>. The final scripts are then placed in a file in the <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources">Sources</a> directory. Each file in this directory is associated with a object and the code that is used to genereate the object is in a function called <code>Script()</code>.</p>
+      </div>
+      <div class="block">
+        <div class="comment">%To demonstrate the general procedure by which magnetovis object are created, we will use the <a href="https://docs.paraview.org/en/latest/ReferenceManual/pythonProgrammableFilter.html#helix-source">Helix</a> example from the ParaView user’s guide.</div>
+      </div>
+      <div class="block">
+        <div class="comment">%Magnetovis objects are listed in the ParaView <code>Sources</code> drop-down menu. </div>
+      </div>
+      <div class="block">
+        <div class="comment">%Selection of these sources creates an unstyled object that can be modified using the <code>Display (GeometryRepresentation)</code> menu in the <code>Properties</code> window.</div>
+      </div>
+      <div class="block">
+        <div class="comment">%In <code>magnetovis</code>, each Programmable Source object has an associated script that adds attributes to the display object such as colors and annotations. To apply these attributes, execute a <code>Macro</code> associated with the Programmable Source.</div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h1 class=""><a name="development-notes" class="anchor hanchor" href="#development-notes"><span class="hnumber">5</span>&nbsp;<span class="htext">Development Notes</span></a></h1>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h2 class=""><a name="terminology" class="anchor hanchor" href="#terminology"><span class="hnumber">5.1</span>&nbsp;<span class="htext">Terminology</span></a></h2>
+      </div>
+      <div class="block">
+        <p><strong>ParaView</strong></p>
+      </div>
+      <div class="block">
+        <ul class="compact">
+          <li markerlength="2">
+            <div class="block">
+              <p>Proxy</p>
+            </div>
+          </li>
+          <li markerlength="2" lo="57" lf="57">
+            <div class="block">
+              <p>Plugin</p>
+            </div>
+          </li>
+          <li markerlength="2" lo="58" lf="58">
+            <div class="block">
+              <p>Source (Sometime used for filter, e.g, GetActiveSource() can return a filter)</p>
+            </div>
+          </li>
+          <li markerlength="2" lo="59" lf="59">
+            <div class="block">
+              <p>Filter</p>
+            </div>
+          </li>
+          <li markerlength="2" lo="60" lf="60">
+            <div class="block">
+              <p>Display/Representation</p>
+            </div>
+          </li>
+          <li markerlength="2" lo="61" lf="61">
+            <div class="block">
+              <p>View - types include <em marker="_">Render View</em>, …</p>
+            </div>
+          </li>
+          <li markerlength="2" lo="62" lf="62">
+            <div class="block">
+              <p>Pipeline</p>
+            </div>
+          </li>
+          <li markerlength="2" lo="63" lf="63">
+            <div class="block">
+              <p>Transfer function/lookup table</p>
+            </div>
+          </li>
+          <li markerlength="2" lo="64" lf="66">
+            <div class="block">
+              <p>Camera</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="block">
+        <p><strong>Magnetovis</strong></p>
+      </div>
+      <div class="block">
+        <ul class="compact">
+          <li markerlength="2">
+            <div class="block">
+              <p>Presentation</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h2 class=""><a name="testing-and-developing-scripts" class="anchor hanchor" href="#testing-and-developing-scripts"><span class="hnumber">5.2</span>&nbsp;<span class="htext">Testing and Developing Scripts</span></a></h2>
+      </div>
+      <div class="block">
+        <p class="">ParaView has a script and macro editor. However, the editor is basic and limited. To test scripts created using a different editor, enter the following on ParaView’s Python Shell command line.</p>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis; magnetovis.ClearPipeline() <span class="hljs-comment"># Optional</span></code></div><div class="block"><code>exec(<span class="hljs-built_in">open</span>(<span class="hljs-string">"/absolute/path/to/script.py"</span>).read())</code></div></pre>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h2 class=""><a name="testing-and-developing-programmable-sources" class="anchor hanchor" href="#testing-and-developing-programmable-sources"><span class="hnumber">5.3</span>&nbsp;<span class="htext">Testing and Developing Programmable Sources</span></a></h2>
+      </div>
+      <div class="block">
+        <p>On start-up, <code>magnetovis</code> creates Programmable Sources based on the files in <code>magnetovis/Sources</code>. To create and test your own <code>magnetovis</code> programmable source, start with the following template</p>
+      </div>
+      <div class="block">
+        <p><code>/tmp/MySource.py</code></p>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">MySource</span>(<span class="hljs-params">**kwargs</span>):</span></code><div class="line-number">1</div></div><div class="block"><code>  <span class="hljs-keyword">import</span> magnetovis</code><div class="line-number">2</div></div><div class="block"><code>  <span class="hljs-keyword">return</span> magnetovis.CreateProgrammableSource(<span class="hljs-string">'/tmp/MySource.py'</span>)</code><div class="line-number">3</div></div><div class="block"><code></code><div class="line-number">4</div></div><div class="block"><code><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">OutputDataSetType</span>():</span></code><div class="line-number">5</div></div><div class="block"><code></code><div class="line-number">6</div></div><div class="block"><code>  <span class="hljs-comment"># What is set in the drop-down menu for Output Data Set Type for</span></code><div class="line-number">7</div></div><div class="block"><code>  <span class="hljs-comment"># Programmable Source.</span></code><div class="line-number">8</div></div><div class="block"><code>  <span class="hljs-keyword">return</span> <span class="hljs-string">"vtkPolyData"</span></code><div class="line-number">9</div></div><div class="block"><code></code><div class="line-number">10</div></div><div class="block"><code><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">Script</span>(<span class="hljs-params">point1=<span class="hljs-number">0.0</span>, point2=<span class="hljs-number">1.0</span>, resolution=<span class="hljs-number">10</span></span>):</span></code><div class="line-number">11</div></div><div class="block"><code></code><div class="line-number">12</div></div><div class="block"><code>  <span class="hljs-comment"># What entered into the Script text area for a Programmable Source</span></code><div class="line-number">13</div></div><div class="block"><code></code><div class="line-number">14</div></div><div class="block"><code>  vtkLineSource = vtk.vtkLineSource()</code><div class="line-number">15</div></div><div class="block"><code>  vtkLineSource.SetPoint1(point1)</code><div class="line-number">16</div></div><div class="block"><code>  vtkLineSource.SetPoint2(point2)</code><div class="line-number">17</div></div><div class="block"><code>  vtkLineSource.SetResolution(resolution)</code><div class="line-number">18</div></div><div class="block"><code>  vtkLineSource.Update()</code><div class="line-number">19</div></div><div class="block"><code></code><div class="line-number">20</div></div><div class="block"><code>  output.ShallowCopy(vtkLineSource.GetOutputDataObject(<span class="hljs-number">0</span>))</code><div class="line-number">21</div></div><div class="block"><code></code><div class="line-number">22</div></div></pre>
+      </div>
+      <div class="block">
+        <p>To use the source, enter the following in a script or on the Python Shell command line</p>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code>exec(<span class="hljs-built_in">open</span>(<span class="hljs-string">"/tmp/MySource.py"</span>).read())</code></div><div class="block"><code>source = MySource()</code></div></pre>
+      </div>
+      <div class="block">
+        <p>After entering the above command, you should see <code>MySource</code> in the ParaView pipeline and the content of <code>Script</code> will be the in the script text area under the <code>Properties</code> tab. Modifications to your source can be tested by either executing the above two commands in the ParaView Python Shell or by modifying the content of <code>Script</code> in the ParaView GUI.</p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h1><a name="notes" class="anchor hanchor" href="#notes"><span class="hnumber">6</span>&nbsp;<span class="htext">Notes</span></a></h1>
+      </div>
+      <div class="block">
+        <p>See <code>docs/Satellite_Region_Notes.md</code> for documentation on how magnetosphere regions were computed and a comparison with regions reported by SSCWeb.</p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h1 class=""><a name="demos" class="anchor hanchor" href="#demos"><span class="hnumber">7</span>&nbsp;<span class="htext">Demos</span></a></h1>
+      </div>
+      <div class="block">
+        <p>The demos can be run using</p>
+      </div>
+      <div class="block">
+        <pre class=""><div class="block"><code>git clone https://github.com/rweigel/magnetovis</code></div><div class="block"><code>magnetovis magnetovis/Sources/FILENAME.py</code></div></pre>
+      </div>
+      <div class="block">
+        <p class="">where <code>FILENAME.py</code> is the name of a demo file listed below, e.g., <code>Axis_demo.py</code>.</p>
+      </div>
+      <div class="block">
+        <div class="comment">
+          <!-- Demos Start -->
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h2 class=""><a name="nez" class="anchor hanchor" href="#nez"><span class="hnumber">7.1</span>&nbsp;<span class="htext">NEZ</span></a></h2>
+      </div>
+      <div class="block">
+        <p>Source file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Demos/NEZ.py">NEZ.py</a> | Demo file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Demos/NEZ_demo.py">NEZ_demo.py</a></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-1" class="anchor hanchor" href="#demo-1"><span class="hnumber">7.1.1</span>&nbsp;<span class="htext">Demo 1</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> paraview.simple <span class="hljs-keyword">as</span> pvs</code><div class="line-number">1</div></div><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">2</div></div><div class="block"><code><span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np</code><div class="line-number">3</div></div><div class="block"><code></code><div class="line-number">4</div></div><div class="block"><code><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">nez</span>(<span class="hljs-params">time, pos, csys</span>):</span></code><div class="line-number">5</div></div><div class="block"><code>  <span class="hljs-string">"""Unit vectors in geographic north, east, and zenith dirs"""</span></code><div class="line-number">6</div></div><div class="block"><code></code><div class="line-number">7</div></div><div class="block"><code>  <span class="hljs-keyword">from</span> hxform <span class="hljs-keyword">import</span> hxform <span class="hljs-keyword">as</span> hx</code><div class="line-number">8</div></div><div class="block"><code></code><div class="line-number">9</div></div><div class="block"><code>  <span class="hljs-comment"># Geographic z axis in csys</span></code><div class="line-number">10</div></div><div class="block"><code>  Z = hx.transform(np.array([<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>]), time, <span class="hljs-string">'GEO'</span>, csys, lib=<span class="hljs-string">'cxform'</span>)</code><div class="line-number">11</div></div><div class="block"><code></code><div class="line-number">12</div></div><div class="block"><code>  <span class="hljs-comment"># zenith direction ("up")</span></code><div class="line-number">13</div></div><div class="block"><code>  z_geo = pos/np.linalg.norm(pos)</code><div class="line-number">14</div></div><div class="block"><code></code><div class="line-number">15</div></div><div class="block"><code>  e_geo = np.cross(Z, z_geo)</code><div class="line-number">16</div></div><div class="block"><code>  e_geo = e_geo/np.linalg.norm(e_geo)</code><div class="line-number">17</div></div><div class="block"><code></code><div class="line-number">18</div></div><div class="block"><code>  n_geo = np.cross(z_geo, e_geo)</code><div class="line-number">19</div></div><div class="block"><code>  n_geo = n_geo/np.linalg.norm(n_geo)</code><div class="line-number">20</div></div><div class="block"><code></code><div class="line-number">21</div></div><div class="block"><code>  print(<span class="hljs-string">f"Unit vectors for Geographic N, E, and Z at <span class="hljs-subst">{pos}</span> in <span class="hljs-subst">{csys}</span> at <span class="hljs-subst">{time}</span>:"</span>)</code><div class="line-number">22</div></div><div class="block"><code>  print(<span class="hljs-string">"North: {}"</span>.<span class="hljs-built_in">format</span>(n_geo))</code><div class="line-number">23</div></div><div class="block"><code>  print(<span class="hljs-string">"East:  {}"</span>.<span class="hljs-built_in">format</span>(e_geo))</code><div class="line-number">24</div></div><div class="block"><code>  print(<span class="hljs-string">"Z:     {}"</span>.<span class="hljs-built_in">format</span>(z_geo))</code><div class="line-number">25</div></div><div class="block"><code></code><div class="line-number">26</div></div><div class="block"><code>  <span class="hljs-keyword">return</span> n_geo, e_geo, z_geo</code><div class="line-number">27</div></div><div class="block"><code></code><div class="line-number">28</div></div><div class="block"><code><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">showaxis</span>(<span class="hljs-params">pos, n_geo, e_geo, z_geo</span>):</span></code><div class="line-number">29</div></div><div class="block"><code></code><div class="line-number">30</div></div><div class="block"><code>  <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">showlabel</span>(<span class="hljs-params"><span class="hljs-built_in">dir</span>,base,top</span>):</span></code><div class="line-number">31</div></div><div class="block"><code></code><div class="line-number">32</div></div><div class="block"><code>    Label = pvs.Text(registrationName=<span class="hljs-built_in">dir</span>+<span class="hljs-string">'_GEO Label'</span>, Text=<span class="hljs-built_in">dir</span>+<span class="hljs-string">"$_{GEO}$"</span>)</code><div class="line-number">33</div></div><div class="block"><code>    text1Display = pvs.Show(Label, pvs.GetActiveViewOrCreate(<span class="hljs-string">'RenderView'</span>), <span class="hljs-string">'TextSourceRepresentation'</span>,</code><div class="line-number">34</div></div><div class="block"><code>      TextPropMode=<span class="hljs-string">'Flagpole Actor'</span>,BasePosition=base,TopPosition=top)</code><div class="line-number">35</div></div><div class="block"><code></code><div class="line-number">36</div></div><div class="block"><code>  north = pvs.Line(registrationName=<span class="hljs-string">"N"</span>, Point1=pos, Point2=pos+n_geo)</code><div class="line-number">37</div></div><div class="block"><code>  north_tube = pvs.Tube(north, Radius=<span class="hljs-number">0.02</span>)</code><div class="line-number">38</div></div><div class="block"><code>  mvs.SetColor(<span class="hljs-string">'blue'</span>)</code><div class="line-number">39</div></div><div class="block"><code>  pvs.Show(north_tube)</code><div class="line-number">40</div></div><div class="block"><code>  showlabel(<span class="hljs-string">'N'</span>,pos+n_geo,pos+<span class="hljs-number">1.05</span>*n_geo)</code><div class="line-number">41</div></div><div class="block"><code></code><div class="line-number">42</div></div><div class="block"><code>  east = pvs.Line(registrationName=<span class="hljs-string">"E"</span>, Point1=pos, Point2=pos+e_geo)</code><div class="line-number">43</div></div><div class="block"><code>  east_tube = pvs.Tube(east, Radius=<span class="hljs-number">0.02</span>)</code><div class="line-number">44</div></div><div class="block"><code>  mvs.SetColor(<span class="hljs-string">'green'</span>)</code><div class="line-number">45</div></div><div class="block"><code>  pvs.Show(east_tube)</code><div class="line-number">46</div></div><div class="block"><code>  showlabel(<span class="hljs-string">'E'</span>,pos+e_geo,pos+e_geo+<span class="hljs-number">0.05</span>*n_geo)</code><div class="line-number">47</div></div><div class="block"><code></code><div class="line-number">48</div></div><div class="block"><code>  up = pvs.Line(registrationName=<span class="hljs-string">"Z"</span>, Point1=pos, Point2=pos+z_geo)</code><div class="line-number">49</div></div><div class="block"><code>  up_tube = pvs.Tube(up, Radius=<span class="hljs-number">0.02</span>)</code><div class="line-number">50</div></div><div class="block"><code>  mvs.SetColor(<span class="hljs-string">'red'</span>)</code><div class="line-number">51</div></div><div class="block"><code>  pvs.Show(up_tube)</code><div class="line-number">52</div></div><div class="block"><code>  showlabel(<span class="hljs-string">'Z'</span>,pos+z_geo,pos+z_geo+<span class="hljs-number">0.05</span>*n_geo)</code><div class="line-number">53</div></div><div class="block"><code></code><div class="line-number">54</div></div><div class="block"><code>  s = pvs.Sphere(Radius=<span class="hljs-number">0.05</span>, Center=pos)</code><div class="line-number">55</div></div><div class="block"><code>  pvs.Show(s)</code><div class="line-number">56</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Demos/NEZ_demo-1.png" alt="NEZ_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-1" class="anchor hanchor" href="#demo-1"><span class="hnumber">7.1.2</span>&nbsp;<span class="htext">Demo 1</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code>time = <span class="hljs-string">"2010-01-01T06:00:00"</span></code><div class="line-number">1</div></div><div class="block"><code>pos = (<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>)</code><div class="line-number">2</div></div><div class="block"><code>csys = <span class="hljs-string">"GEO"</span></code><div class="line-number">3</div></div><div class="block"><code>n_geo, e_geo, z_geo = nez(time, pos, csys)</code><div class="line-number">4</div></div><div class="block"><code></code><div class="line-number">5</div></div><div class="block"><code>showaxis(pos, n_geo, e_geo, z_geo)</code><div class="line-number">6</div></div><div class="block"><code>mvs.SetOrientationAxisLabel(Text=<span class="hljs-string">"GEO"</span>)</code><div class="line-number">7</div></div><div class="block"><code>mvs.Earth(time=time, coord_sys=csys)</code><div class="line-number">8</div></div><div class="block"><code>mvs.LatLong(coord_sys=csys, coord_sys_view=csys)</code><div class="line-number">9</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Demos/NEZ_demo-2.png" alt="NEZ_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h2><a name="arc" class="anchor hanchor" href="#arc"><span class="hnumber">7.2</span>&nbsp;<span class="htext">Arc</span></a></h2>
+      </div>
+      <div class="block">
+        <p>Source file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Arc.py">Arc.py</a> | Demo file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Arc_demo.py">Arc_demo.py</a></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-1" class="anchor hanchor" href="#demo-1"><span class="hnumber">7.2.1</span>&nbsp;<span class="htext">Demo 1</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> paraview.simple <span class="hljs-keyword">as</span> pvs</code><div class="line-number">1</div></div><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">2</div></div><div class="block"><code>arc = mvs.Arc()</code><div class="line-number">3</div></div><div class="block"><code>tube = pvs.Tube(arc)</code><div class="line-number">4</div></div><div class="block"><code>pvs.Show(tube)</code><div class="line-number">5</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/Arc_demo-1.png" alt="Arc_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3 class=""><a name="demo-2" class="anchor hanchor" href="#demo-2"><span class="hnumber">7.2.2</span>&nbsp;<span class="htext">Demo 2</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> paraview.simple <span class="hljs-keyword">as</span> pvs</code><div class="line-number">1</div></div><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">2</div></div><div class="block"><code>mvs.CreateViewAndLayout()</code><div class="line-number">3</div></div><div class="block"><code>mvs.Earth(coord_sys=<span class="hljs-string">"GEO"</span>, coord_sys_view=<span class="hljs-string">"GEO"</span>)</code><div class="line-number">4</div></div><div class="block"><code>arc = mvs.Arc(Radisus=<span class="hljs-number">1.01</span>, Direction=[<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>], StartPhi=-<span class="hljs-number">90</span>, EndPhi=<span class="hljs-number">90</span>)</code><div class="line-number">5</div></div><div class="block"><code></code><div class="line-number">6</div></div><div class="block"><code>color = [<span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>]</code><div class="line-number">7</div></div><div class="block"><code>tube = pvs.Tube(arc)</code><div class="line-number">8</div></div><div class="block"><code>pvs.Show(tube, DiffuseColor=color)</code><div class="line-number">9</div></div><div class="block"><code></code><div class="line-number">10</div></div><div class="block"><code>text = pvs.Text(Text=<span class="hljs-string">'Prime Meridian'</span>)</code><div class="line-number">11</div></div><div class="block"><code>pvs.Show(text, TextPropMode=<span class="hljs-string">'Billboard 3D Text'</span>, BillboardPosition=[<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1.05</span>], Color=[<span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>])</code><div class="line-number">12</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/Arc_demo-2.png" alt="Arc_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h2><a name="axis" class="anchor hanchor" href="#axis"><span class="hnumber">7.3</span>&nbsp;<span class="htext">Axis</span></a></h2>
+      </div>
+      <div class="block">
+        <p>Source file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Axis.py">Axis.py</a> | Demo file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Axis_demo.py">Axis_demo.py</a></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-1" class="anchor hanchor" href="#demo-1"><span class="hnumber">7.3.1</span>&nbsp;<span class="htext">Demo 1</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">1</div></div><div class="block"><code>mvs.Axis()</code><div class="line-number">2</div></div><div class="block"><code><span class="hljs-comment">#mvs.PrintSourceDefaults('Axis')</span></code><div class="line-number">3</div></div><div class="block"><code>mvs.SetTitle(<span class="hljs-string">"Axis with default options"</span>)</code><div class="line-number">4</div></div><div class="block"><code><span class="hljs-comment">#mvs.PrintPresentationDefaults('Axis', all=True)</span></code><div class="line-number">5</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/Axis_demo-1.png" alt="Axis_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-2" class="anchor hanchor" href="#demo-2"><span class="hnumber">7.3.2</span>&nbsp;<span class="htext">Demo 2</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">1</div></div><div class="block"><code>mvs.CreateViewAndLayout()</code><div class="line-number">2</div></div><div class="block"><code></code><div class="line-number">3</div></div><div class="block"><code>skwargs = {</code><div class="line-number">4</div></div><div class="block"><code>            <span class="hljs-string">"time"</span>: <span class="hljs-string">"2001-01-01"</span>,</code><div class="line-number">5</div></div><div class="block"><code>            <span class="hljs-string">"coord_sys"</span>: <span class="hljs-string">"GSM"</span>,</code><div class="line-number">6</div></div><div class="block"><code>            <span class="hljs-string">"tube"</span>: <span class="hljs-literal">True</span>,</code><div class="line-number">7</div></div><div class="block"><code>            <span class="hljs-string">"tubeAndCone"</span>: <span class="hljs-literal">True</span>,</code><div class="line-number">8</div></div><div class="block"><code>            <span class="hljs-string">"tubeFilterSettings"</span>: [<span class="hljs-string">"Radius: 0.5"</span>, <span class="hljs-string">"Capping: 1"</span>]</code><div class="line-number">9</div></div><div class="block"><code>        }</code><div class="line-number">10</div></div><div class="block"><code></code><div class="line-number">11</div></div><div class="block"><code>dkwargs = {</code><div class="line-number">12</div></div><div class="block"><code>            <span class="hljs-string">"display"</span>: {</code><div class="line-number">13</div></div><div class="block"><code>                <span class="hljs-string">"Representation"</span>: <span class="hljs-string">"Surface"</span>,</code><div class="line-number">14</div></div><div class="block"><code>                <span class="hljs-string">"Opacity"</span>: <span class="hljs-number">1.0</span>,</code><div class="line-number">15</div></div><div class="block"><code>                <span class="hljs-string">"AmbientColor"</span>: [<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>],</code><div class="line-number">16</div></div><div class="block"><code>                <span class="hljs-string">"DiffuseColor"</span>: [<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>],</code><div class="line-number">17</div></div><div class="block"><code>                <span class="hljs-string">"Visibility"</span>: <span class="hljs-number">1</span></code><div class="line-number">18</div></div><div class="block"><code>            },</code><div class="line-number">19</div></div><div class="block"><code></code><div class="line-number">20</div></div><div class="block"><code>            <span class="hljs-string">"label"</span>:</code><div class="line-number">21</div></div><div class="block"><code>                {</code><div class="line-number">22</div></div><div class="block"><code>                    <span class="hljs-string">"source"</span>: {<span class="hljs-string">"Text"</span>: <span class="hljs-string">r"$\alpha^2$/β"</span>},</code><div class="line-number">23</div></div><div class="block"><code>                    <span class="hljs-string">"display"</span>: {</code><div class="line-number">24</div></div><div class="block"><code>                        <span class="hljs-string">"FontSize"</span>: <span class="hljs-number">24</span>,</code><div class="line-number">25</div></div><div class="block"><code>                        <span class="hljs-string">"Color"</span>: [<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>]</code><div class="line-number">26</div></div><div class="block"><code>                    }</code><div class="line-number">27</div></div><div class="block"><code>                }</code><div class="line-number">28</div></div><div class="block"><code>        }</code><div class="line-number">29</div></div><div class="block"><code></code><div class="line-number">30</div></div><div class="block"><code></code><div class="line-number">31</div></div><div class="block"><code>skwargs[<span class="hljs-string">'direction'</span>] = <span class="hljs-string">"X"</span></code><div class="line-number">32</div></div><div class="block"><code>skwargs[<span class="hljs-string">'extent'</span>] = [-<span class="hljs-number">40</span>, <span class="hljs-number">40</span>]</code><div class="line-number">33</div></div><div class="block"><code>xAxis = mvs.Axis()</code><div class="line-number">34</div></div><div class="block"><code></code><div class="line-number">35</div></div><div class="block"><code>skwargs[<span class="hljs-string">'direction'</span>] = <span class="hljs-string">"Y"</span></code><div class="line-number">36</div></div><div class="block"><code>skwargs[<span class="hljs-string">'extent'</span>] = [-<span class="hljs-number">40</span>, <span class="hljs-number">40</span>]</code><div class="line-number">37</div></div><div class="block"><code>yAxis = mvs.Axis(registrationName=<span class="hljs-string">"s^2/β Axis"</span>, **skwargs)</code><div class="line-number">38</div></div><div class="block"><code>mvs.SetPresentationProperties(source=yAxis, **dkwargs)</code><div class="line-number">39</div></div><div class="block"><code>mvs.SetTitle(<span class="hljs-string">"Three Axes"</span>)</code><div class="line-number">40</div></div><div class="block"><code></code><div class="line-number">41</div></div><div class="block"><code>skwargs[<span class="hljs-string">'direction'</span>] = <span class="hljs-string">"Z"</span></code><div class="line-number">42</div></div><div class="block"><code>skwargs[<span class="hljs-string">'extent'</span>] = [-<span class="hljs-number">40</span>, <span class="hljs-number">40</span>]</code><div class="line-number">43</div></div><div class="block"><code>zAxis = mvs.Axis(**skwargs)</code><div class="line-number">44</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/Axis_demo-2.png" alt="Axis_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h2 class=""><a name="batsrus" class="anchor hanchor" href="#batsrus"><span class="hnumber">7.4</span>&nbsp;<span class="htext">BATSRUS</span></a></h2>
+      </div>
+      <div class="block">
+        <p>Source file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/BATSRUS.py">BATSRUS.py</a> | Demo file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/BATSRUS_demo.py">BATSRUS_demo.py</a></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-1" class="anchor hanchor" href="#demo-1"><span class="hnumber">7.4.1</span>&nbsp;<span class="htext">Demo 1</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">1</div></div><div class="block"><code><span class="hljs-comment"># See BATSRUS_prep.py for downloading this file.</span></code><div class="line-number">2</div></div><div class="block"><code>vtkfile = <span class="hljs-string">"/tmp/3d__var_2_e20190902-041000-000.vtk"</span></code><div class="line-number">3</div></div><div class="block"><code></code><div class="line-number">4</div></div><div class="block"><code>batsrus = mvs.BATSRUS(file=vtkfile)</code><div class="line-number">5</div></div><div class="block"><code>mvs.SetTitle(<span class="hljs-string">"Default"</span>)</code><div class="line-number">6</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/BATSRUS_demo-1.png" alt="BATSRUS_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-2" class="anchor hanchor" href="#demo-2"><span class="hnumber">7.4.2</span>&nbsp;<span class="htext">Demo 2</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">1</div></div><div class="block"><code>mvs.CreateViewAndLayout()</code><div class="line-number">2</div></div><div class="block"><code>batsrus = mvs.BATSRUS(file=vtkfile)</code><div class="line-number">3</div></div><div class="block"><code>mvs.SetTitle(<span class="hljs-string">"Run files: http://mag.gmu.edu/git-data/swmfio/3d__var_2_e20190902-041000-000.*"</span>)</code><div class="line-number">4</div></div><div class="block"><code></code><div class="line-number">5</div></div><div class="block"><code><span class="hljs-comment"># Add slice</span></code><div class="line-number">6</div></div><div class="block"><code><span class="hljs-keyword">import</span> paraview.simple <span class="hljs-keyword">as</span> pvs</code><div class="line-number">7</div></div><div class="block"><code>pvs.Hide(batsrus)</code><div class="line-number">8</div></div><div class="block"><code></code><div class="line-number">9</div></div><div class="block"><code>view = pvs.GetActiveViewOrCreate(<span class="hljs-string">'RenderView'</span>)</code><div class="line-number">10</div></div><div class="block"><code></code><div class="line-number">11</div></div><div class="block"><code>sliceY = pvs.Slice(registrationName=<span class="hljs-string">' y=0 slice'</span>, Input=batsrus)</code><div class="line-number">12</div></div><div class="block"><code>sliceY.SliceType = <span class="hljs-string">'Plane'</span></code><div class="line-number">13</div></div><div class="block"><code>sliceY.SliceType.Normal = [<span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>]</code><div class="line-number">14</div></div><div class="block"><code></code><div class="line-number">15</div></div><div class="block"><code>sliceZ = pvs.Slice(registrationName=<span class="hljs-string">' z=0 slice'</span>, Input=batsrus)</code><div class="line-number">16</div></div><div class="block"><code>sliceZ.SliceType = <span class="hljs-string">'Plane'</span></code><div class="line-number">17</div></div><div class="block"><code>sliceZ.SliceType.Normal = [<span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>]</code><div class="line-number">18</div></div><div class="block"><code></code><div class="line-number">19</div></div><div class="block"><code>sliceYDisplay = pvs.Show(sliceY, view, <span class="hljs-string">'GeometryRepresentation'</span>)</code><div class="line-number">20</div></div><div class="block"><code>sliceZDisplay = pvs.Show(sliceZ, view, <span class="hljs-string">'GeometryRepresentation'</span>)</code><div class="line-number">21</div></div><div class="block"><code></code><div class="line-number">22</div></div><div class="block"><code>pvs.Hide3DWidgets(proxy=sliceY.SliceType)</code><div class="line-number">23</div></div><div class="block"><code>pvs.Hide3DWidgets(proxy=sliceZ.SliceType)</code><div class="line-number">24</div></div><div class="block"><code></code><div class="line-number">25</div></div><div class="block"><code>ckwargs =  {</code><div class="line-number">26</div></div><div class="block"><code>    <span class="hljs-string">'colorBy'</span>: (<span class="hljs-string">'CELLS'</span>, <span class="hljs-string">'rho'</span>),</code><div class="line-number">27</div></div><div class="block"><code>    <span class="hljs-string">'scalarBar'</span>: {</code><div class="line-number">28</div></div><div class="block"><code>                    <span class="hljs-string">'Title'</span>: <span class="hljs-string">r"ρ [m$_p$/cm$^3$]"</span>,</code><div class="line-number">29</div></div><div class="block"><code>                    <span class="hljs-string">'ComponentTitle'</span>: <span class="hljs-string">''</span>,</code><div class="line-number">30</div></div><div class="block"><code>                    <span class="hljs-string">'HorizontalTitle'</span>: <span class="hljs-number">1</span>,</code><div class="line-number">31</div></div><div class="block"><code>                    <span class="hljs-string">'TitleJustification'</span>: <span class="hljs-string">'Left'</span>,</code><div class="line-number">32</div></div><div class="block"><code>                    <span class="hljs-string">'Visibility'</span>: <span class="hljs-number">1</span>,</code><div class="line-number">33</div></div><div class="block"><code>                    <span class="hljs-string">'ScalarBarLength'</span>: <span class="hljs-number">0.8</span></code><div class="line-number">34</div></div><div class="block"><code>                },</code><div class="line-number">35</div></div><div class="block"><code>    <span class="hljs-string">'colorTransferFunction'</span>: {</code><div class="line-number">36</div></div><div class="block"><code>                                <span class="hljs-string">"UseLogScale"</span>: <span class="hljs-number">1</span> </code><div class="line-number">37</div></div><div class="block"><code>                            }</code><div class="line-number">38</div></div><div class="block"><code>}</code><div class="line-number">39</div></div><div class="block"><code></code><div class="line-number">40</div></div><div class="block"><code>mvs.SetColoring(source=sliceY, display=sliceYDisplay, **ckwargs)</code><div class="line-number">41</div></div><div class="block"><code></code><div class="line-number">42</div></div><div class="block"><code>sliceZDisplay.SetScalarBarVisibility(view, <span class="hljs-literal">False</span>)</code><div class="line-number">43</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/BATSRUS_demo-2.png" alt="BATSRUS_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-3" class="anchor hanchor" href="#demo-3"><span class="hnumber">7.4.3</span>&nbsp;<span class="htext">Demo 3</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">1</div></div><div class="block"><code>mvs.CreateViewAndLayout()</code><div class="line-number">2</div></div><div class="block"><code>batsrus = mvs.BATSRUS(file=vtkfile)</code><div class="line-number">3</div></div><div class="block"><code>mvs.SetTitle(<span class="hljs-string">"Cells colored by block_id"</span>)</code><div class="line-number">4</div></div><div class="block"><code></code><div class="line-number">5</div></div><div class="block"><code><span class="hljs-comment"># See next example for setting coloring using mvs.SetColoring()</span></code><div class="line-number">6</div></div><div class="block"><code><span class="hljs-keyword">import</span> paraview.simple <span class="hljs-keyword">as</span> pvs</code><div class="line-number">7</div></div><div class="block"><code>view = pvs.GetActiveViewOrCreate(<span class="hljs-string">'RenderView'</span>)</code><div class="line-number">8</div></div><div class="block"><code>display = pvs.GetDisplayProperties(proxy=batsrus, view=view)</code><div class="line-number">9</div></div><div class="block"><code>pvs.ColorBy(display, (<span class="hljs-string">'CELLS'</span>, <span class="hljs-string">'block_id'</span>), separate=<span class="hljs-literal">True</span>)</code><div class="line-number">10</div></div><div class="block"><code>pvs.UpdateScalarBars(view=view)</code><div class="line-number">11</div></div><div class="block"><code>view.Update()</code><div class="line-number">12</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/BATSRUS_demo-3.png" alt="BATSRUS_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-4" class="anchor hanchor" href="#demo-4"><span class="hnumber">7.4.4</span>&nbsp;<span class="htext">Demo 4</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">1</div></div><div class="block"><code><span class="hljs-keyword">import</span> paraview.simple <span class="hljs-keyword">as</span> pvs</code><div class="line-number">2</div></div><div class="block"><code>mvs.CreateViewAndLayout()</code><div class="line-number">3</div></div><div class="block"><code>batsrus = mvs.BATSRUS(file=vtkfile)</code><div class="line-number">4</div></div><div class="block"><code>pvs.Hide(batsrus)</code><div class="line-number">5</div></div><div class="block"><code></code><div class="line-number">6</div></div><div class="block"><code>akwargs = {<span class="hljs-string">"label"</span>: {<span class="hljs-string">"display"</span>: {<span class="hljs-string">"Color"</span>: [<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>]}}}</code><div class="line-number">7</div></div><div class="block"><code>xAxis = mvs.Axis(direction=<span class="hljs-string">"X"</span>, extent=[<span class="hljs-number">0</span>, <span class="hljs-number">70</span>], vtkTubeFilter=[<span class="hljs-string">'Radius: 2'</span>])</code><div class="line-number">8</div></div><div class="block"><code>mvs.SetPresentationProperties(xAxis, **akwargs)</code><div class="line-number">9</div></div><div class="block"><code>yAxis = mvs.Axis(direction=<span class="hljs-string">"Y"</span>, extent=[<span class="hljs-number">0</span>, <span class="hljs-number">70</span>], vtkTubeFilter=[<span class="hljs-string">'Radius: 2'</span>])</code><div class="line-number">10</div></div><div class="block"><code>mvs.SetPresentationProperties(yAxis, **akwargs)</code><div class="line-number">11</div></div><div class="block"><code>zAxis = mvs.Axis(direction=<span class="hljs-string">"Z"</span>, extent=[<span class="hljs-number">0</span>, <span class="hljs-number">140</span>], vtkTubeFilter=[<span class="hljs-string">'Radius: 2'</span>])</code><div class="line-number">12</div></div><div class="block"><code>mvs.SetPresentationProperties(zAxis, **akwargs)</code><div class="line-number">13</div></div><div class="block"><code></code><div class="line-number">14</div></div><div class="block"><code>mvs.SetTitle(<span class="hljs-string">'Simulation Grid Cube Side Length'</span>)</code><div class="line-number">15</div></div><div class="block"><code></code><div class="line-number">16</div></div><div class="block"><code><span class="hljs-comment"># Compute Cell volumes</span></code><div class="line-number">17</div></div><div class="block"><code>cellSize1 = pvs.CellSize(registrationName=<span class="hljs-string">'CellSize'</span>, Input=batsrus)</code><div class="line-number">18</div></div><div class="block"><code>cellSize1.ComputeVertexCount = <span class="hljs-number">0</span></code><div class="line-number">19</div></div><div class="block"><code>cellSize1.ComputeLength = <span class="hljs-number">0</span></code><div class="line-number">20</div></div><div class="block"><code>cellSize1.ComputeArea = <span class="hljs-number">0</span></code><div class="line-number">21</div></div><div class="block"><code>cellSize1.ComputeVolume = <span class="hljs-number">1</span></code><div class="line-number">22</div></div><div class="block"><code></code><div class="line-number">23</div></div><div class="block"><code><span class="hljs-comment"># Compute Cell side length</span></code><div class="line-number">24</div></div><div class="block"><code>calculator1 = pvs.Calculator(registrationName=<span class="hljs-string">'Calculator1'</span>, Input=cellSize1)</code><div class="line-number">25</div></div><div class="block"><code>calculator1.AttributeType = <span class="hljs-string">'Cell Data'</span></code><div class="line-number">26</div></div><div class="block"><code>calculator1.ResultArrayName = <span class="hljs-string">'Δ'</span></code><div class="line-number">27</div></div><div class="block"><code>calculator1.Function = <span class="hljs-string">'round(10000*Volume^(1/3))/10000'</span></code><div class="line-number">28</div></div><div class="block"><code></code><div class="line-number">29</div></div><div class="block"><code><span class="hljs-comment"># The use of Volume^(1/3) calculation leads to values such as </span></code><div class="line-number">30</div></div><div class="block"><code><span class="hljs-comment"># 06250000000000001. The use of round(...) above addresses this.</span></code><div class="line-number">31</div></div><div class="block"><code></code><div class="line-number">32</div></div><div class="block"><code>clip1 = pvs.Clip(registrationName=<span class="hljs-string">'Clip1'</span>, Input=calculator1)</code><div class="line-number">33</div></div><div class="block"><code>clip1.ClipType = <span class="hljs-string">'Plane'</span></code><div class="line-number">34</div></div><div class="block"><code>clip1.HyperTreeGridClipper = <span class="hljs-string">'Plane'</span></code><div class="line-number">35</div></div><div class="block"><code>clip1.Scalars = [<span class="hljs-string">'CELLS'</span>, <span class="hljs-string">'Δ'</span>]</code><div class="line-number">36</div></div><div class="block"><code>clip1.Value = <span class="hljs-number">0.0</span></code><div class="line-number">37</div></div><div class="block"><code>clip1.ClipType.Origin = [<span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>]</code><div class="line-number">38</div></div><div class="block"><code>clip1.ClipType.Origin = [<span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>]</code><div class="line-number">39</div></div><div class="block"><code>clip1.ClipType.Normal = [<span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>]</code><div class="line-number">40</div></div><div class="block"><code></code><div class="line-number">41</div></div><div class="block"><code></code><div class="line-number">42</div></div><div class="block"><code>ckwargs =  {</code><div class="line-number">43</div></div><div class="block"><code>    <span class="hljs-string">'scalarBar'</span>: {</code><div class="line-number">44</div></div><div class="block"><code>                    <span class="hljs-string">'Title'</span>: <span class="hljs-string">r"Δ [R$_E$]"</span>,</code><div class="line-number">45</div></div><div class="block"><code>                    <span class="hljs-string">'ComponentTitle'</span>: <span class="hljs-string">''</span>,</code><div class="line-number">46</div></div><div class="block"><code>                    <span class="hljs-string">'HorizontalTitle'</span>: <span class="hljs-number">1</span>,</code><div class="line-number">47</div></div><div class="block"><code>                    <span class="hljs-string">'TitleJustification'</span>: <span class="hljs-string">'Centered'</span>,</code><div class="line-number">48</div></div><div class="block"><code>                    <span class="hljs-string">'Visibility'</span>: <span class="hljs-number">1</span>,</code><div class="line-number">49</div></div><div class="block"><code>                    <span class="hljs-string">'ScalarBarLength'</span>: <span class="hljs-number">0.8</span></code><div class="line-number">50</div></div><div class="block"><code>                },</code><div class="line-number">51</div></div><div class="block"><code>    <span class="hljs-string">'colorTransferFunction'</span>: {</code><div class="line-number">52</div></div><div class="block"><code>                                <span class="hljs-string">'InterpretValuesAsCategories'</span>: <span class="hljs-number">1</span>,</code><div class="line-number">53</div></div><div class="block"><code>                                <span class="hljs-string">'Annotations'</span>: [<span class="hljs-string">'0.0625'</span>, <span class="hljs-string">'1/16'</span>, <span class="hljs-string">'0.125'</span>, <span class="hljs-string">'1/8'</span>, <span class="hljs-string">'0.25'</span>, <span class="hljs-string">'1/4'</span>, <span class="hljs-string">'0.5'</span>, <span class="hljs-string">'1/2'</span>, <span class="hljs-string">'1'</span>, <span class="hljs-string">'1'</span>, <span class="hljs-string">'2'</span>, <span class="hljs-string">'2'</span>, <span class="hljs-string">'4.0'</span>, <span class="hljs-string">'4'</span>, <span class="hljs-string">'8.0'</span>, <span class="hljs-string">'8'</span>]</code><div class="line-number">54</div></div><div class="block"><code>                            }</code><div class="line-number">55</div></div><div class="block"><code>}</code><div class="line-number">56</div></div><div class="block"><code></code><div class="line-number">57</div></div><div class="block"><code><span class="hljs-keyword">from</span> paraview.simple <span class="hljs-keyword">import</span> *</code><div class="line-number">58</div></div><div class="block"><code></code><div class="line-number">59</div></div><div class="block"><code><span class="hljs-comment"># get active view</span></code><div class="line-number">60</div></div><div class="block"><code>renderView2 = GetActiveViewOrCreate(<span class="hljs-string">'RenderView'</span>)</code><div class="line-number">61</div></div><div class="block"><code></code><div class="line-number">62</div></div><div class="block"><code><span class="hljs-comment"># get display properties</span></code><div class="line-number">63</div></div><div class="block"><code>clip1Display = GetDisplayProperties(clip1, view=renderView2)</code><div class="line-number">64</div></div><div class="block"><code></code><div class="line-number">65</div></div><div class="block"><code><span class="hljs-comment"># get active source.</span></code><div class="line-number">66</div></div><div class="block"><code>clip1 = GetActiveSource()</code><div class="line-number">67</div></div><div class="block"><code></code><div class="line-number">68</div></div><div class="block"><code></code><div class="line-number">69</div></div><div class="block"><code>pvs.ResetCamera()</code><div class="line-number">70</div></div><div class="block"><code>pvs.Hide3DWidgets(proxy=clip1.ClipType)</code><div class="line-number">71</div></div><div class="block"><code></code><div class="line-number">72</div></div><div class="block"><code>mvs.SetColoring((<span class="hljs-string">'CELLS'</span>, <span class="hljs-string">'Δ'</span>), source=clip1, view=renderView2, display=clip1Display, **ckwargs)</code><div class="line-number">73</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/BATSRUS_demo-4.png" alt="BATSRUS_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-5" class="anchor hanchor" href="#demo-5"><span class="hnumber">7.4.5</span>&nbsp;<span class="htext">Demo 5</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-comment"># This demo shows an issue with the VTK StreamTracer when tracing line</span></code><div class="line-number">1</div></div><div class="block"><code><span class="hljs-comment"># in the native BATSRUS grid. Some of the stream lines stop and the</span></code><div class="line-number">2</div></div><div class="block"><code><span class="hljs-comment"># reason for stopping does not seem to be correct. In Demo 5, the</span></code><div class="line-number">3</div></div><div class="block"><code><span class="hljs-comment"># data are interpolated to a uniform grid and then the stream tracing</span></code><div class="line-number">4</div></div><div class="block"><code><span class="hljs-comment"># works as expected.</span></code><div class="line-number">5</div></div><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">6</div></div><div class="block"><code><span class="hljs-keyword">import</span> paraview.simple <span class="hljs-keyword">as</span> pvs</code><div class="line-number">7</div></div><div class="block"><code><span class="hljs-keyword">from</span> paraview.simple <span class="hljs-keyword">import</span> *</code><div class="line-number">8</div></div><div class="block"><code></code><div class="line-number">9</div></div><div class="block"><code>mvs.CreateViewAndLayout()</code><div class="line-number">10</div></div><div class="block"><code>batsrus = mvs.BATSRUS(file=vtkfile)</code><div class="line-number">11</div></div><div class="block"><code></code><div class="line-number">12</div></div><div class="block"><code><span class="hljs-comment"># http://davis.lbl.gov/Manuals/VTK-4.5/classvtkStreamTracer.html</span></code><div class="line-number">13</div></div><div class="block"><code><span class="hljs-comment"># OUT_OF_DOMAIN = 1</span></code><div class="line-number">14</div></div><div class="block"><code><span class="hljs-comment"># NOT_INITIALIZED = 2</span></code><div class="line-number">15</div></div><div class="block"><code><span class="hljs-comment"># UNEXPECTED_VALUE = 3</span></code><div class="line-number">16</div></div><div class="block"><code><span class="hljs-comment"># OUT_OF_TIME = 4</span></code><div class="line-number">17</div></div><div class="block"><code><span class="hljs-comment"># OUT_OF_STEPS = 5</span></code><div class="line-number">18</div></div><div class="block"><code><span class="hljs-comment"># STAGNATION =6</span></code><div class="line-number">19</div></div><div class="block"><code></code><div class="line-number">20</div></div><div class="block"><code>pvs.Hide(batsrus)</code><div class="line-number">21</div></div><div class="block"><code></code><div class="line-number">22</div></div><div class="block"><code><span class="hljs-comment"># create a new 'Stream Tracer'</span></code><div class="line-number">23</div></div><div class="block"><code>streamTracer1 = StreamTracer(registrationName=<span class="hljs-string">'StreamTracer1'</span>, Input=batsrus, SeedType=<span class="hljs-string">'Line'</span>)</code><div class="line-number">24</div></div><div class="block"><code>streamTracer1.Vectors = [<span class="hljs-string">'CELLS'</span>, <span class="hljs-string">'b'</span>]</code><div class="line-number">25</div></div><div class="block"><code>streamTracer1.MaximumStreamlineLength = <span class="hljs-number">256.0</span></code><div class="line-number">26</div></div><div class="block"><code></code><div class="line-number">27</div></div><div class="block"><code><span class="hljs-comment"># Bug to report: When these are changed in the GUI, the</span></code><div class="line-number">28</div></div><div class="block"><code><span class="hljs-comment"># changed values don't show in Python trace</span></code><div class="line-number">29</div></div><div class="block"><code><span class="hljs-comment"># init the 'Line' selected for 'SeedType'</span></code><div class="line-number">30</div></div><div class="block"><code>streamTracer1.SeedType.Point1 = [-<span class="hljs-number">3</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>]</code><div class="line-number">31</div></div><div class="block"><code>streamTracer1.SeedType.Point2 = [-<span class="hljs-number">10</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>]</code><div class="line-number">32</div></div><div class="block"><code>streamTracer1.SeedType.Resolution = <span class="hljs-number">10</span></code><div class="line-number">33</div></div><div class="block"><code></code><div class="line-number">34</div></div><div class="block"><code><span class="hljs-comment"># toggle 3D widget visibility (only when running from the GUI)</span></code><div class="line-number">35</div></div><div class="block"><code>Hide3DWidgets(proxy=streamTracer1.SeedType)</code><div class="line-number">36</div></div><div class="block"><code></code><div class="line-number">37</div></div><div class="block"><code>view = GetActiveViewOrCreate(<span class="hljs-string">'RenderView'</span>)</code><div class="line-number">38</div></div><div class="block"><code></code><div class="line-number">39</div></div><div class="block"><code><span class="hljs-comment"># show data in view</span></code><div class="line-number">40</div></div><div class="block"><code>streamTracer1Display = Show(streamTracer1, view, <span class="hljs-string">'GeometryRepresentation'</span>)</code><div class="line-number">41</div></div><div class="block"><code></code><div class="line-number">42</div></div><div class="block"><code><span class="hljs-comment"># set active source</span></code><div class="line-number">43</div></div><div class="block"><code>SetActiveSource(streamTracer1)</code><div class="line-number">44</div></div><div class="block"><code></code><div class="line-number">45</div></div><div class="block"><code><span class="hljs-comment"># set scalar coloring</span></code><div class="line-number">46</div></div><div class="block"><code>ColorBy(streamTracer1Display, (<span class="hljs-string">'CELLS'</span>, <span class="hljs-string">'ReasonForTermination'</span>), separate=<span class="hljs-literal">True</span>)</code><div class="line-number">47</div></div><div class="block"><code></code><div class="line-number">48</div></div><div class="block"><code><span class="hljs-comment"># rescale color and/or opacity maps used to include current data range</span></code><div class="line-number">49</div></div><div class="block"><code>streamTracer1Display.RescaleTransferFunctionToDataRange(<span class="hljs-literal">True</span>, <span class="hljs-literal">False</span>)</code><div class="line-number">50</div></div><div class="block"><code></code><div class="line-number">51</div></div><div class="block"><code><span class="hljs-comment"># show color bar/color legend</span></code><div class="line-number">52</div></div><div class="block"><code>streamTracer1Display.SetScalarBarVisibility(view, <span class="hljs-literal">True</span>)</code><div class="line-number">53</div></div><div class="block"><code></code><div class="line-number">54</div></div><div class="block"><code><span class="hljs-comment"># get color transfer function/color map for 'ReasonForTermination'</span></code><div class="line-number">55</div></div><div class="block"><code>reasonForTerminationLUT = GetColorTransferFunction(<span class="hljs-string">'ReasonForTermination'</span>, streamTracer1Display, separate=<span class="hljs-literal">True</span>)</code><div class="line-number">56</div></div><div class="block"><code>reasonForTerminationLUT.RGBPoints = [<span class="hljs-number">1.0</span>, <span class="hljs-number">0.231373</span>, <span class="hljs-number">0.298039</span>, <span class="hljs-number">0.752941</span>, <span class="hljs-number">3.0</span>, <span class="hljs-number">0.865003</span>, <span class="hljs-number">0.865003</span>, <span class="hljs-number">0.865003</span>, <span class="hljs-number">5.0</span>, <span class="hljs-number">0.705882</span>, <span class="hljs-number">0.0156863</span>, <span class="hljs-number">0.14902</span>]</code><div class="line-number">57</div></div><div class="block"><code>reasonForTerminationLUT.ScalarRangeInitialized = <span class="hljs-number">1.0</span></code><div class="line-number">58</div></div><div class="block"><code></code><div class="line-number">59</div></div><div class="block"><code><span class="hljs-comment"># get opacity transfer function/opacity map for 'ReasonForTermination'</span></code><div class="line-number">60</div></div><div class="block"><code>reasonForTerminationPWF = GetOpacityTransferFunction(<span class="hljs-string">'ReasonForTermination'</span>, streamTracer1Display, separate=<span class="hljs-literal">True</span>)</code><div class="line-number">61</div></div><div class="block"><code>reasonForTerminationPWF.Points = [<span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.5</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">5.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.5</span>, <span class="hljs-number">0.0</span>]</code><div class="line-number">62</div></div><div class="block"><code>reasonForTerminationPWF.ScalarRangeInitialized = <span class="hljs-number">1</span></code><div class="line-number">63</div></div><div class="block"><code></code><div class="line-number">64</div></div><div class="block"><code><span class="hljs-comment"># Properties modified on reasonForTerminationLUT</span></code><div class="line-number">65</div></div><div class="block"><code>reasonForTerminationLUT.InterpretValuesAsCategories = <span class="hljs-number">1</span></code><div class="line-number">66</div></div><div class="block"><code>reasonForTerminationLUT.AnnotationsInitialized = <span class="hljs-number">1</span></code><div class="line-number">67</div></div><div class="block"><code></code><div class="line-number">68</div></div><div class="block"><code><span class="hljs-comment"># Properties modified on reasonForTerminationLUT</span></code><div class="line-number">69</div></div><div class="block"><code>reasonForTerminationLUT.Annotations = [<span class="hljs-string">'1'</span>, <span class="hljs-string">'1'</span>, <span class="hljs-string">'5'</span>, <span class="hljs-string">'5'</span>]</code><div class="line-number">70</div></div><div class="block"><code>reasonForTerminationLUT.IndexedColors = [<span class="hljs-number">1.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>]</code><div class="line-number">71</div></div><div class="block"><code>reasonForTerminationLUT.IndexedOpacities = [<span class="hljs-number">1.0</span>, <span class="hljs-number">1.0</span>]</code><div class="line-number">72</div></div><div class="block"><code></code><div class="line-number">73</div></div><div class="block"><code>pvs.ResetCamera()</code><div class="line-number">74</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/BATSRUS_demo-5.png" alt="BATSRUS_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h2><a name="bowshock" class="anchor hanchor" href="#bowshock"><span class="hnumber">7.5</span>&nbsp;<span class="htext">Bowshock</span></a></h2>
+      </div>
+      <div class="block">
+        <p>Source file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Bowshock.py">Bowshock.py</a> | Demo file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Bowshock_demo.py">Bowshock_demo.py</a></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-1" class="anchor hanchor" href="#demo-1"><span class="hnumber">7.5.1</span>&nbsp;<span class="htext">Demo 1</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code></div><div class="block"><code>bowshock = mvs.Bowshock()</code></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/Bowshock_demo-1.png" alt="Bowshock_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h2><a name="circle" class="anchor hanchor" href="#circle"><span class="hnumber">7.6</span>&nbsp;<span class="htext">Circle</span></a></h2>
+      </div>
+      <div class="block">
+        <p>Source file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Circle.py">Circle.py</a> | Demo file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Circle_demo.py">Circle_demo.py</a></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-1" class="anchor hanchor" href="#demo-1"><span class="hnumber">7.6.1</span>&nbsp;<span class="htext">Demo 1</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code></div><div class="block"><code>mvs.Circle()</code></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/Circle_demo-1.png" alt="Circle_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h2><a name="curve" class="anchor hanchor" href="#curve"><span class="hnumber">7.7</span>&nbsp;<span class="htext">Curve</span></a></h2>
+      </div>
+      <div class="block">
+        <p>Source file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Curve.py">Curve.py</a> | Demo file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Curve_demo.py">Curve_demo.py</a></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3 class=""><a name="demo-1" class="anchor hanchor" href="#demo-1"><span class="hnumber">7.7.1</span>&nbsp;<span class="htext">Demo 1</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">1</div></div><div class="block"><code>mvs.Curve()</code><div class="line-number">2</div></div><div class="block"><code>mvs.SetCamera(viewType=<span class="hljs-string">"isometric"</span>, Zoom=<span class="hljs-number">10</span>)</code><div class="line-number">3</div></div><div class="block"><code></code><div class="line-number">4</div></div><div class="block"><code><span class="hljs-comment">#mvs.PrintSourceDefaults('Curve')</span></code><div class="line-number">5</div></div><div class="block"><code>mvs.SetTitle(<span class="hljs-string">"Curve with default options"</span>)</code><div class="line-number">6</div></div><div class="block"><code><span class="hljs-comment">#mvs.PrintPresentationDefaults('Curve', all=True)</span></code><div class="line-number">7</div></div><div class="block"><code></code><div class="line-number">8</div></div><div class="block"><code><span class="hljs-keyword">if</span> <span class="hljs-literal">False</span>:</code><div class="line-number">9</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/Curve_demo-1.png" alt="Curve_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h2><a name="differentialdisk" class="anchor hanchor" href="#differentialdisk"><span class="hnumber">7.8</span>&nbsp;<span class="htext">DifferentialDisk</span></a></h2>
+      </div>
+      <div class="block">
+        <p>Source file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/DifferentialDisk.py">DifferentialDisk.py</a> | Demo file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/DifferentialDisk_demo.py">DifferentialDisk_demo.py</a></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-1" class="anchor hanchor" href="#demo-1"><span class="hnumber">7.8.1</span>&nbsp;<span class="htext">Demo 1</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code></div><div class="block"><code>mvs.DifferentialDisk()</code></div><div class="block"><code>mvs.SetColoring(colorTransferFunction={<span class="hljs-string">"separate"</span>: <span class="hljs-literal">True</span>})</code></div><div class="block"><code>mvs.SetTitle(<span class="hljs-string">"Differential Disk with Default Options"</span>)</code></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/DifferentialDisk_demo-1.png" alt="DifferentialDisk_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-2" class="anchor hanchor" href="#demo-2"><span class="hnumber">7.8.2</span>&nbsp;<span class="htext">Demo 2</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">1</div></div><div class="block"><code>mvs.CreateViewAndLayout()</code><div class="line-number">2</div></div><div class="block"><code>mvs.DifferentialDisk(Nr=<span class="hljs-number">1</span>)</code><div class="line-number">3</div></div><div class="block"><code>mvs.SetColoring(colorTransferFunction={<span class="hljs-string">"separate"</span>: <span class="hljs-literal">True</span>})</code><div class="line-number">4</div></div><div class="block"><code>mvs.SetTitle(<span class="hljs-string">"Nr=1"</span>)</code><div class="line-number">5</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/DifferentialDisk_demo-2.png" alt="DifferentialDisk_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-3" class="anchor hanchor" href="#demo-3"><span class="hnumber">7.8.3</span>&nbsp;<span class="htext">Demo 3</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">1</div></div><div class="block"><code>mvs.CreateViewAndLayout()</code><div class="line-number">2</div></div><div class="block"><code>mvs.DifferentialDisk(ro=<span class="hljs-number">1</span>, rf=<span class="hljs-number">2</span>, Nφ=<span class="hljs-number">10</span>, φo=<span class="hljs-number">0</span>, φf=<span class="hljs-number">360</span>)</code><div class="line-number">3</div></div><div class="block"><code>mvs.SetColoring(colorTransferFunction={<span class="hljs-string">"separate"</span>: <span class="hljs-literal">True</span>})</code><div class="line-number">4</div></div><div class="block"><code>mvs.SetTitle(<span class="hljs-string">"ro=1, rf=2, Nφ=10, φo=0, φf=360"</span>)</code><div class="line-number">5</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/DifferentialDisk_demo-3.png" alt="DifferentialDisk_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-4" class="anchor hanchor" href="#demo-4"><span class="hnumber">7.8.4</span>&nbsp;<span class="htext">Demo 4</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">1</div></div><div class="block"><code>mvs.CreateViewAndLayout()</code><div class="line-number">2</div></div><div class="block"><code>mvs.DifferentialDisk(ro=<span class="hljs-number">1</span>, rf=<span class="hljs-number">2</span>, Nφ=<span class="hljs-number">10</span>, φo=<span class="hljs-number">0</span>, φf=<span class="hljs-number">80</span>, closed=<span class="hljs-literal">False</span>)</code><div class="line-number">3</div></div><div class="block"><code>mvs.SetColoring(colorTransferFunction={<span class="hljs-string">"separate"</span>: <span class="hljs-literal">True</span>})</code><div class="line-number">4</div></div><div class="block"><code>mvs.SetTitle(<span class="hljs-string">"$ro=1, rf=2, Nφ=10, φo=0, φf=80, closed=False$"</span>)</code><div class="line-number">5</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/DifferentialDisk_demo-4.png" alt="DifferentialDisk_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h2><a name="dipole" class="anchor hanchor" href="#dipole"><span class="hnumber">7.9</span>&nbsp;<span class="htext">Dipole</span></a></h2>
+      </div>
+      <div class="block">
+        <p>Source file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Dipole.py">Dipole.py</a> | Demo file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Dipole_demo.py">Dipole_demo.py</a></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-1" class="anchor hanchor" href="#demo-1"><span class="hnumber">7.9.1</span>&nbsp;<span class="htext">Demo 1</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code></div><div class="block"><code>mvs.Dipole()</code></div><div class="block"><code>mvs.SetTitle(<span class="hljs-string">"Dipole with Default Options"</span>)</code></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/Dipole_demo-1.png" alt="Dipole_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-2" class="anchor hanchor" href="#demo-2"><span class="hnumber">7.9.2</span>&nbsp;<span class="htext">Demo 2</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">1</div></div><div class="block"><code>mvs.CreateViewAndLayout()</code><div class="line-number">2</div></div><div class="block"><code>dipole = mvs.Dipole(OutputDataSetType=<span class="hljs-string">"vtkRectilinearGrid"</span>, dimensions=[<span class="hljs-number">10</span>, <span class="hljs-number">10</span>, <span class="hljs-number">10</span>])</code><div class="line-number">3</div></div><div class="block"><code>mvs.SetTitle(<span class="hljs-string">"Dipole with Stream Trace and Slice"</span>)</code><div class="line-number">4</div></div><div class="block"><code></code><div class="line-number">5</div></div><div class="block"><code><span class="hljs-keyword">import</span> paraview.simple <span class="hljs-keyword">as</span> pvs</code><div class="line-number">6</div></div><div class="block"><code>pvs.Hide(dipole)</code><div class="line-number">7</div></div><div class="block"><code></code><div class="line-number">8</div></div><div class="block"><code>streamTracer1 = pvs.StreamTracer(registrationName=<span class="hljs-string">'StreamTracer1'</span>, Input=dipole, SeedType=<span class="hljs-string">'Line'</span>)</code><div class="line-number">9</div></div><div class="block"><code>streamTracer1.Vectors = [<span class="hljs-string">'POINTS'</span>, <span class="hljs-string">'B'</span>]</code><div class="line-number">10</div></div><div class="block"><code>streamTracer1.MaximumStreamlineLength = <span class="hljs-number">50.0</span></code><div class="line-number">11</div></div><div class="block"><code></code><div class="line-number">12</div></div><div class="block"><code><span class="hljs-comment">#pvs.ColorBy(streamTracer1Display, ('POINTS', 'B', 'Magnitude'))</span></code><div class="line-number">13</div></div><div class="block"><code></code><div class="line-number">14</div></div><div class="block"><code>streamTracer1.SeedType.Point1 = [-<span class="hljs-number">20.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>]</code><div class="line-number">15</div></div><div class="block"><code>streamTracer1.SeedType.Point2 = [-<span class="hljs-number">10.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>]</code><div class="line-number">16</div></div><div class="block"><code>streamTracer1.SeedType.Resolution = <span class="hljs-number">10</span></code><div class="line-number">17</div></div><div class="block"><code></code><div class="line-number">18</div></div><div class="block"><code>pvs.SetActiveSource(streamTracer1)</code><div class="line-number">19</div></div><div class="block"><code></code><div class="line-number">20</div></div><div class="block"><code>streamTracer1Display = pvs.Show(streamTracer1)</code><div class="line-number">21</div></div><div class="block"><code></code><div class="line-number">22</div></div><div class="block"><code>slice1 = pvs.Slice(registrationName=<span class="hljs-string">'Slice1'</span>, Input=dipole)</code><div class="line-number">23</div></div><div class="block"><code>slice1.SliceType = <span class="hljs-string">'Plane'</span></code><div class="line-number">24</div></div><div class="block"><code>slice1.HyperTreeGridSlicer = <span class="hljs-string">'Plane'</span></code><div class="line-number">25</div></div><div class="block"><code>slice1.SliceOffsetValues = [<span class="hljs-number">0.0</span>]</code><div class="line-number">26</div></div><div class="block"><code></code><div class="line-number">27</div></div><div class="block"><code>slice1.SliceType.Normal = [<span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>]</code><div class="line-number">28</div></div><div class="block"><code></code><div class="line-number">29</div></div><div class="block"><code>renderView1 = pvs.GetActiveViewOrCreate(<span class="hljs-string">'RenderView'</span>)</code><div class="line-number">30</div></div><div class="block"><code>slice1Display = pvs.Show(slice1, renderView1, <span class="hljs-string">'GeometryRepresentation'</span>)</code><div class="line-number">31</div></div><div class="block"><code>pvs.ColorBy(slice1Display, (<span class="hljs-string">'CELLS'</span>, <span class="hljs-string">'B'</span>, <span class="hljs-string">'Magnitude'</span>))</code><div class="line-number">32</div></div><div class="block"><code></code><div class="line-number">33</div></div><div class="block"><code>sourceData = pvs.servermanager.Fetch(streamTracer1)</code><div class="line-number">34</div></div><div class="block"><code>trace0 = sourceData.GetCell(<span class="hljs-number">0</span>)</code><div class="line-number">35</div></div><div class="block"><code>trace0Array = trace0.GetPoints().GetData()</code><div class="line-number">36</div></div><div class="block"><code><span class="hljs-keyword">from</span> vtk.util <span class="hljs-keyword">import</span> numpy_support</code><div class="line-number">37</div></div><div class="block"><code>trace0 = numpy_support.vtk_to_numpy(trace0Array)</code><div class="line-number">38</div></div><div class="block"><code>print(<span class="hljs-string">"First 3 x, y, z values for first trace:"</span>)</code><div class="line-number">39</div></div><div class="block"><code>print(trace0[<span class="hljs-number">0</span>:<span class="hljs-number">3</span>,:])</code><div class="line-number">40</div></div><div class="block"><code></code><div class="line-number">41</div></div><div class="block"><code>pvs.Hide3DWidgets(proxy=slice1.SliceType)</code><div class="line-number">42</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/Dipole_demo-2.png" alt="Dipole_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h2><a name="earth" class="anchor hanchor" href="#earth"><span class="hnumber">7.10</span>&nbsp;<span class="htext">Earth</span></a></h2>
+      </div>
+      <div class="block">
+        <p>Source file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Earth.py">Earth.py</a> | Demo file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Earth_demo.py">Earth_demo.py</a></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-1" class="anchor hanchor" href="#demo-1"><span class="hnumber">7.10.1</span>&nbsp;<span class="htext">Demo 1</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code></div><div class="block"><code>mvs.Earth()</code></div><div class="block"><code>mvs.SetTitle(<span class="hljs-string">"  Earth with Default Options"</span>)</code></div><div class="block"><code>mvs.SetOrientationAxisLabel(<span class="hljs-string">'GSM'</span>)</code></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/Earth_demo-1.png" alt="Earth_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-2" class="anchor hanchor" href="#demo-2"><span class="hnumber">7.10.2</span>&nbsp;<span class="htext">Demo 2</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">1</div></div><div class="block"><code>mvs.CreateViewAndLayout()</code><div class="line-number">2</div></div><div class="block"><code>mvs.Earth(style=<span class="hljs-string">"daynight"</span>)</code><div class="line-number">3</div></div><div class="block"><code>mvs.SetTitle(<span class="hljs-string">'  Earth with style="daynight"'</span>)</code><div class="line-number">4</div></div><div class="block"><code>mvs.SetOrientationAxisLabel(<span class="hljs-string">'GSM'</span>)</code><div class="line-number">5</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/Earth_demo-2.png" alt="Earth_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-3" class="anchor hanchor" href="#demo-3"><span class="hnumber">7.10.3</span>&nbsp;<span class="htext">Demo 3</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">1</div></div><div class="block"><code>mvs.CreateViewAndLayout()</code><div class="line-number">2</div></div><div class="block"><code>mvs.Earth()</code><div class="line-number">3</div></div><div class="block"><code>mvs.SetTitle(<span class="hljs-string">"  Earth with Axes"</span>)</code><div class="line-number">4</div></div><div class="block"><code>mvs.SetOrientationAxisLabel(<span class="hljs-string">'GSM'</span>)</code><div class="line-number">5</div></div><div class="block"><code></code><div class="line-number">6</div></div><div class="block"><code>xAxis = mvs.Axis(direction=<span class="hljs-string">"X"</span>, extent=[-<span class="hljs-number">3</span>, <span class="hljs-number">3</span>])</code><div class="line-number">7</div></div><div class="block"><code>mvs.SetPresentationProperties(source=xAxis, </code><div class="line-number">8</div></div><div class="block"><code>        **{<span class="hljs-string">"label"</span>: {<span class="hljs-string">"source"</span>: {<span class="hljs-string">"Text"</span>: <span class="hljs-string">"$X_{GSM}$"</span>}}})</code><div class="line-number">9</div></div><div class="block"><code></code><div class="line-number">10</div></div><div class="block"><code>yAxis = mvs.Axis(direction=<span class="hljs-string">"Y"</span>, extent=[-<span class="hljs-number">3</span>, <span class="hljs-number">3</span>])</code><div class="line-number">11</div></div><div class="block"><code>mvs.SetPresentationProperties(source=yAxis, </code><div class="line-number">12</div></div><div class="block"><code>        **{<span class="hljs-string">"label"</span>: {<span class="hljs-string">"source"</span>: {<span class="hljs-string">"Text"</span>: <span class="hljs-string">"$Y_{GSM}$"</span>}}})</code><div class="line-number">13</div></div><div class="block"><code></code><div class="line-number">14</div></div><div class="block"><code>zAxis = mvs.Axis(direction=<span class="hljs-string">"Z"</span>, extent=[-<span class="hljs-number">3</span>, <span class="hljs-number">3</span>])</code><div class="line-number">15</div></div><div class="block"><code>mvs.SetPresentationProperties(source=zAxis, </code><div class="line-number">16</div></div><div class="block"><code>        **{<span class="hljs-string">"label"</span>: {<span class="hljs-string">"source"</span>: {<span class="hljs-string">"Text"</span>: <span class="hljs-string">"$Z_{GSM}$"</span>}}})</code><div class="line-number">17</div></div><div class="block"><code></code><div class="line-number">18</div></div><div class="block"><code>dkwargs = {</code><div class="line-number">19</div></div><div class="block"><code>            <span class="hljs-string">"display"</span>: {</code><div class="line-number">20</div></div><div class="block"><code>                <span class="hljs-string">"AmbientColor"</span>: [<span class="hljs-number">0.5</span>,<span class="hljs-number">0.5</span>,<span class="hljs-number">0.5</span>],</code><div class="line-number">21</div></div><div class="block"><code>                <span class="hljs-string">"DiffuseColor"</span>: [<span class="hljs-number">0.5</span>,<span class="hljs-number">0.5</span>,<span class="hljs-number">0.5</span>]</code><div class="line-number">22</div></div><div class="block"><code>            },</code><div class="line-number">23</div></div><div class="block"><code>            <span class="hljs-string">"label"</span>: {</code><div class="line-number">24</div></div><div class="block"><code>                <span class="hljs-string">"source"</span>: {<span class="hljs-string">"Text"</span>: <span class="hljs-string">"$Z_{GEO}$"</span>},</code><div class="line-number">25</div></div><div class="block"><code>                <span class="hljs-string">"display"</span>: {<span class="hljs-string">"Color"</span>: [<span class="hljs-number">0.5</span>,<span class="hljs-number">0.5</span>,<span class="hljs-number">0.5</span>]}</code><div class="line-number">26</div></div><div class="block"><code>            }</code><div class="line-number">27</div></div><div class="block"><code>        }</code><div class="line-number">28</div></div><div class="block"><code>zAxis2 = mvs.Axis(direction=<span class="hljs-string">"Z"</span>, extent=[-<span class="hljs-number">3</span>, <span class="hljs-number">3</span>], coord_sys=<span class="hljs-string">"GEO"</span>)</code><div class="line-number">29</div></div><div class="block"><code>mvs.SetPresentationProperties(source=zAxis2, **dkwargs)</code><div class="line-number">30</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/Earth_demo-3.png" alt="Earth_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h2 class=""><a name="griddata" class="anchor hanchor" href="#griddata"><span class="hnumber">7.11</span>&nbsp;<span class="htext">GridData</span></a></h2>
+      </div>
+      <div class="block">
+        <p>Source file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/GridData.py">GridData.py</a> | Demo file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/GridData_demo.py">GridData_demo.py</a></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3 class=""><a name="demo-1" class="anchor hanchor" href="#demo-1"><span class="hnumber">7.11.1</span>&nbsp;<span class="htext">Demo 1</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code></div><div class="block"><code>mvs.GridData(OutputDataSetType=<span class="hljs-string">"vtkImageData"</span>)</code></div><div class="block"><code>mvs.SetTitle(<span class="hljs-string">"Dataset Type = vtkImageData"</span>)</code></div></pre>
+      </div>
+      <div class="block">
+        <p class=""><img src="magnetovis/Test/Sources/GridData_demo-1.png?1673627545985?1673627548063" alt="GridData_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-2" class="anchor hanchor" href="#demo-2"><span class="hnumber">7.11.2</span>&nbsp;<span class="htext">Demo 2</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code></div><div class="block"><code>mvs.CreateViewAndLayout()</code></div><div class="block"><code>mvs.GridData(OutputDataSetType=<span class="hljs-string">"vtkRectilinearGrid"</span>)</code></div><div class="block"><code>mvs.SetTitle(<span class="hljs-string">"Dataset Type = vtkRectilinearGrid"</span>)</code></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/GridData_demo-2.png" alt="GridData_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-3" class="anchor hanchor" href="#demo-3"><span class="hnumber">7.11.3</span>&nbsp;<span class="htext">Demo 3</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code></div><div class="block"><code>mvs.CreateViewAndLayout()</code></div><div class="block"><code>mvs.GridData(OutputDataSetType=<span class="hljs-string">"vtkStructuredGrid"</span>)</code></div><div class="block"><code>mvs.SetTitle(<span class="hljs-string">"Dataset Type = vtkStructuredGrid"</span>)</code></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/GridData_demo-3.png" alt="GridData_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-4" class="anchor hanchor" href="#demo-4"><span class="hnumber">7.11.4</span>&nbsp;<span class="htext">Demo 4</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">1</div></div><div class="block"><code>mvs.CreateViewAndLayout()</code><div class="line-number">2</div></div><div class="block"><code></code><div class="line-number">3</div></div><div class="block"><code>kwargs = {</code><div class="line-number">4</div></div><div class="block"><code>        <span class="hljs-string">"time"</span>: <span class="hljs-string">"2001-01-01T00:00:00"</span>,</code><div class="line-number">5</div></div><div class="block"><code>        <span class="hljs-string">"coord_sys"</span>: <span class="hljs-string">"GSM"</span>,</code><div class="line-number">6</div></div><div class="block"><code>        <span class="hljs-string">"dimensions"</span>: [<span class="hljs-number">4</span>,<span class="hljs-number">4</span>,<span class="hljs-number">4</span>],</code><div class="line-number">7</div></div><div class="block"><code>        <span class="hljs-string">"point_array_functions"</span>: [</code><div class="line-number">8</div></div><div class="block"><code>                                <span class="hljs-string">"dipole()"</span>,</code><div class="line-number">9</div></div><div class="block"><code>                                <span class="hljs-string">"radius()"</span></code><div class="line-number">10</div></div><div class="block"><code>                            ],</code><div class="line-number">11</div></div><div class="block"><code>        <span class="hljs-string">"cell_array_functions"</span>: [</code><div class="line-number">12</div></div><div class="block"><code>                                <span class="hljs-string">"r: radius()"</span></code><div class="line-number">13</div></div><div class="block"><code>                            ],</code><div class="line-number">14</div></div><div class="block"><code>        <span class="hljs-string">"dimensions"</span>: [<span class="hljs-number">10</span>, <span class="hljs-number">10</span>, <span class="hljs-number">10</span>]</code><div class="line-number">15</div></div><div class="block"><code>    }</code><div class="line-number">16</div></div><div class="block"><code></code><div class="line-number">17</div></div><div class="block"><code>registrationName = <span class="hljs-string">"Dipole on Structured Grid/{}/{}"</span> \</code><div class="line-number">18</div></div><div class="block"><code>                    .<span class="hljs-built_in">format</span>(mvs.util.trim_iso(kwargs[<span class="hljs-string">'time'</span>]), kwargs[<span class="hljs-string">'coord_sys'</span>])</code><div class="line-number">19</div></div><div class="block"><code>kwargs[<span class="hljs-string">"registrationName"</span>] = registrationName</code><div class="line-number">20</div></div><div class="block"><code></code><div class="line-number">21</div></div><div class="block"><code>mvs.Axis(direction=<span class="hljs-string">"X"</span>, extent=[<span class="hljs-number">0</span>, <span class="hljs-number">1.5</span>], vtkTubeFilter=[<span class="hljs-string">'Radius: 0.02'</span>])</code><div class="line-number">22</div></div><div class="block"><code>mvs.Axis(direction=<span class="hljs-string">"Y"</span>, extent=[<span class="hljs-number">0</span>, <span class="hljs-number">1.5</span>], vtkTubeFilter=[<span class="hljs-string">'Radius: 0.02'</span>])</code><div class="line-number">23</div></div><div class="block"><code>mvs.Axis(direction=<span class="hljs-string">"Z"</span>, extent=[<span class="hljs-number">0</span>, <span class="hljs-number">1.5</span>], vtkTubeFilter=[<span class="hljs-string">'Radius: 0.02'</span>])</code><div class="line-number">24</div></div><div class="block"><code></code><div class="line-number">25</div></div><div class="block"><code>sg2 = mvs.GridData(**kwargs)</code><div class="line-number">26</div></div><div class="block"><code></code><div class="line-number">27</div></div><div class="block"><code>dkwargs = {</code><div class="line-number">28</div></div><div class="block"><code>        <span class="hljs-string">"display"</span>: {</code><div class="line-number">29</div></div><div class="block"><code>            <span class="hljs-string">"Representation"</span>: <span class="hljs-string">"Surface With Edges"</span>,</code><div class="line-number">30</div></div><div class="block"><code>            <span class="hljs-string">"Opacity"</span>: <span class="hljs-number">1.0</span>,</code><div class="line-number">31</div></div><div class="block"><code>            <span class="hljs-string">"AmbientColor"</span>: [<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>],</code><div class="line-number">32</div></div><div class="block"><code>            <span class="hljs-string">"DiffuseColor"</span>: [<span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>],</code><div class="line-number">33</div></div><div class="block"><code>            <span class="hljs-string">"Visibility"</span>: <span class="hljs-number">1</span></code><div class="line-number">34</div></div><div class="block"><code>        },</code><div class="line-number">35</div></div><div class="block"><code>        <span class="hljs-string">'coloring'</span>: {</code><div class="line-number">36</div></div><div class="block"><code>            <span class="hljs-string">'colorBy'</span>: (<span class="hljs-string">'POINTS'</span>, <span class="hljs-string">'dipole'</span>),</code><div class="line-number">37</div></div><div class="block"><code>            <span class="hljs-string">'scalarBar'</span>: {</code><div class="line-number">38</div></div><div class="block"><code>                            <span class="hljs-string">'Title'</span>: <span class="hljs-string">r"$\|\mathbf{B}\|$ [nT]"</span>,</code><div class="line-number">39</div></div><div class="block"><code>                            <span class="hljs-string">'ComponentTitle'</span>: <span class="hljs-string">''</span>,</code><div class="line-number">40</div></div><div class="block"><code>                            <span class="hljs-string">'HorizontalTitle'</span>: <span class="hljs-number">1</span>,</code><div class="line-number">41</div></div><div class="block"><code>                            <span class="hljs-string">'TitleJustification'</span>: <span class="hljs-string">'Left'</span>,</code><div class="line-number">42</div></div><div class="block"><code>                            <span class="hljs-string">'Visibility'</span>: <span class="hljs-number">1</span>,</code><div class="line-number">43</div></div><div class="block"><code>                            <span class="hljs-string">'DrawNanAnnotation'</span>: <span class="hljs-number">1</span>,</code><div class="line-number">44</div></div><div class="block"><code>                            <span class="hljs-string">'ScalarBarLength'</span>: <span class="hljs-number">0.8</span>,</code><div class="line-number">45</div></div><div class="block"><code>                        },</code><div class="line-number">46</div></div><div class="block"><code>            <span class="hljs-string">'colorTransferFunction'</span>: {</code><div class="line-number">47</div></div><div class="block"><code>                                        <span class="hljs-string">'UseLogScale'</span>: <span class="hljs-number">1</span>,</code><div class="line-number">48</div></div><div class="block"><code>                                        <span class="hljs-string">'AutomaticRescaleRangeMode'</span>: <span class="hljs-number">1</span>,</code><div class="line-number">49</div></div><div class="block"><code>                                        <span class="hljs-string">'AutomaticRescaleRangeMode'</span>: <span class="hljs-string">"Grow and update on 'Apply'"</span>,</code><div class="line-number">50</div></div><div class="block"><code>                                        <span class="hljs-string">'NumberOfTableValues'</span>: <span class="hljs-number">16</span></code><div class="line-number">51</div></div><div class="block"><code>                                    }</code><div class="line-number">52</div></div><div class="block"><code>        }</code><div class="line-number">53</div></div><div class="block"><code>}</code><div class="line-number">54</div></div><div class="block"><code></code><div class="line-number">55</div></div><div class="block"><code>mvs.SetPresentationProperties(**dkwargs)</code><div class="line-number">56</div></div><div class="block"><code>mvs.SetCamera(Azimuth=<span class="hljs-number">225.0</span>, Elevation=<span class="hljs-number">30</span>)</code><div class="line-number">57</div></div><div class="block"><code>mvs.SetTitle()</code><div class="line-number">58</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/GridData_demo-4.png" alt="GridData_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h2><a name="latlong" class="anchor hanchor" href="#latlong"><span class="hnumber">7.12</span>&nbsp;<span class="htext">LatLong</span></a></h2>
+      </div>
+      <div class="block">
+        <p>Source file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/LatLong.py">LatLong.py</a> | Demo file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/LatLong_demo.py">LatLong_demo.py</a></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-1" class="anchor hanchor" href="#demo-1"><span class="hnumber">7.12.1</span>&nbsp;<span class="htext">Demo 1</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">1</div></div><div class="block"><code>mvs.SetOrientationAxisLabel()</code><div class="line-number">2</div></div><div class="block"><code>mvs.Earth()</code><div class="line-number">3</div></div><div class="block"><code>mvs.LatLong(coord_sys=<span class="hljs-string">"GEO"</span>)</code><div class="line-number">4</div></div><div class="block"><code>mvs.SetTitle()</code><div class="line-number">5</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/LatLong_demo-1.png" alt="LatLong_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-2" class="anchor hanchor" href="#demo-2"><span class="hnumber">7.12.2</span>&nbsp;<span class="htext">Demo 2</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">1</div></div><div class="block"><code>mvs.CreateViewAndLayout()</code><div class="line-number">2</div></div><div class="block"><code>mvs.SetOrientationAxisLabel(Text=<span class="hljs-string">"GEO"</span>)</code><div class="line-number">3</div></div><div class="block"><code>mvs.Earth(coord_sys=<span class="hljs-string">"GEO"</span>, coord_sys_view=<span class="hljs-string">"GEO"</span>)</code><div class="line-number">4</div></div><div class="block"><code>mvs.LatLong(coord_sys=<span class="hljs-string">"GEO"</span>, coord_sys_view=<span class="hljs-string">"GEO"</span>)</code><div class="line-number">5</div></div><div class="block"><code>mvs.SetTitle()</code><div class="line-number">6</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/LatLong_demo-2.png" alt="LatLong_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-3" class="anchor hanchor" href="#demo-3"><span class="hnumber">7.12.3</span>&nbsp;<span class="htext">Demo 3</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">1</div></div><div class="block"><code>mvs.CreateViewAndLayout()</code><div class="line-number">2</div></div><div class="block"><code>mvs.SetOrientationAxisLabel()</code><div class="line-number">3</div></div><div class="block"><code>mvs.Earth()</code><div class="line-number">4</div></div><div class="block"><code>mvs.LatLong(coord_sys=<span class="hljs-string">"GEO"</span>)</code><div class="line-number">5</div></div><div class="block"><code>mvs.SetTitle()</code><div class="line-number">6</div></div><div class="block"><code>mvs.SetOrientationAxisLabel()</code><div class="line-number">7</div></div><div class="block"><code>zAxis = mvs.Axis(direction=<span class="hljs-string">"Z"</span>, coord_sys=<span class="hljs-string">"GEO"</span>, extent=[-<span class="hljs-number">3</span>, <span class="hljs-number">3</span>])</code><div class="line-number">8</div></div><div class="block"><code>mvs.SetPresentationProperties(source=zAxis, </code><div class="line-number">9</div></div><div class="block"><code>    **{<span class="hljs-string">"label"</span>: {<span class="hljs-string">"source"</span>: {<span class="hljs-string">"Text"</span>: <span class="hljs-string">"$Z_{GEO}$"</span>}}})</code><div class="line-number">10</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/LatLong_demo-3.png" alt="LatLong_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-4" class="anchor hanchor" href="#demo-4"><span class="hnumber">7.12.4</span>&nbsp;<span class="htext">Demo 4</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">1</div></div><div class="block"><code>mvs.CreateViewAndLayout()</code><div class="line-number">2</div></div><div class="block"><code>mvs.SetOrientationAxisLabel()</code><div class="line-number">3</div></div><div class="block"><code>mvs.Earth()</code><div class="line-number">4</div></div><div class="block"><code>mvs.LatLong(coord_sys=<span class="hljs-string">"MAG"</span>)</code><div class="line-number">5</div></div><div class="block"><code>mvs.SetTitle()</code><div class="line-number">6</div></div><div class="block"><code>mvs.SetOrientationAxisLabel()</code><div class="line-number">7</div></div><div class="block"><code>zAxis = mvs.Axis(direction=<span class="hljs-string">"Z"</span>, coord_sys=<span class="hljs-string">"MAG"</span>, extent=[-<span class="hljs-number">3</span>, <span class="hljs-number">3</span>])</code><div class="line-number">8</div></div><div class="block"><code>mvs.SetPresentationProperties(source=zAxis, </code><div class="line-number">9</div></div><div class="block"><code>    **{<span class="hljs-string">"label"</span>: {<span class="hljs-string">"source"</span>: {<span class="hljs-string">"Text"</span>: <span class="hljs-string">"$Z_{MAG}$"</span>}}})</code><div class="line-number">10</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/LatLong_demo-4.png" alt="LatLong_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h2><a name="lines" class="anchor hanchor" href="#lines"><span class="hnumber">7.13</span>&nbsp;<span class="htext">Lines</span></a></h2>
+      </div>
+      <div class="block">
+        <p>Source file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Lines.py">Lines.py</a> | Demo file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Lines_demo.py">Lines_demo.py</a></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-1" class="anchor hanchor" href="#demo-1"><span class="hnumber">7.13.1</span>&nbsp;<span class="htext">Demo 1</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">1</div></div><div class="block"><code>mvs.Lines()</code><div class="line-number">2</div></div><div class="block"><code><span class="hljs-comment">#mvs.PrintSourceDefaults('Lines')</span></code><div class="line-number">3</div></div><div class="block"><code>mvs.SetTitle(<span class="hljs-string">"Line with default options"</span>)</code><div class="line-number">4</div></div><div class="block"><code><span class="hljs-comment">#mvs.PrintPresentationDefaults('Lines', all=True)</span></code><div class="line-number">5</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/Lines_demo-1.png" alt="Lines_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-2" class="anchor hanchor" href="#demo-2"><span class="hnumber">7.13.2</span>&nbsp;<span class="htext">Demo #2</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">1</div></div><div class="block"><code>mvs.CreateViewAndLayout()</code><div class="line-number">2</div></div><div class="block"><code></code><div class="line-number">3</div></div><div class="block"><code>kwargs = {</code><div class="line-number">4</div></div><div class="block"><code>            <span class="hljs-string">"time"</span>: <span class="hljs-string">"2001-01-01"</span>,</code><div class="line-number">5</div></div><div class="block"><code>            <span class="hljs-string">"coord_sys"</span>: <span class="hljs-string">"GSM"</span>,</code><div class="line-number">6</div></div><div class="block"><code>            <span class="hljs-string">"Nlines"</span>: <span class="hljs-number">3</span>,</code><div class="line-number">7</div></div><div class="block"><code>            <span class="hljs-string">"closed"</span>: <span class="hljs-literal">True</span>,</code><div class="line-number">8</div></div><div class="block"><code>            <span class="hljs-string">"point_function"</span>: <span class="hljs-string">"circle(radius=1.0, center=(0.0, 0.0, 0.0))"</span></code><div class="line-number">9</div></div><div class="block"><code>        }</code><div class="line-number">10</div></div><div class="block"><code></code><div class="line-number">11</div></div><div class="block"><code>mvs.Lines(**kwargs)</code><div class="line-number">12</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/Lines_demo-2.png" alt="Lines_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h2><a name="plasmasphere" class="anchor hanchor" href="#plasmasphere"><span class="hnumber">7.14</span>&nbsp;<span class="htext">Plasmasphere</span></a></h2>
+      </div>
+      <div class="block">
+        <p>Source file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Plasmasphere.py">Plasmasphere.py</a> | Demo file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Plasmasphere_demo.py">Plasmasphere_demo.py</a></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-1" class="anchor hanchor" href="#demo-1"><span class="hnumber">7.14.1</span>&nbsp;<span class="htext">Demo 1</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code></div><div class="block"><code>plasmasphere = mvs.Plasmasphere()</code></div><div class="block"><code>mvs.SetTitle()</code></div><div class="block"><code>mvs.SetOrientationAxisLabel(<span class="hljs-string">'GSM'</span>)</code></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/Plasmasphere_demo-1.png" alt="Plasmasphere_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-2" class="anchor hanchor" href="#demo-2"><span class="hnumber">7.14.2</span>&nbsp;<span class="htext">Demo #2</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">1</div></div><div class="block"><code>mvs.CreateViewAndLayout()</code><div class="line-number">2</div></div><div class="block"><code>plasmasphere = mvs.Plasmasphere(coord_sys=<span class="hljs-string">'SM'</span>, coord_sys_view=<span class="hljs-string">'SM'</span>)</code><div class="line-number">3</div></div><div class="block"><code>mvs.SetTitle()</code><div class="line-number">4</div></div><div class="block"><code>mvs.Earth(coord_sys=<span class="hljs-string">'SM'</span>, coord_sys_view=<span class="hljs-string">'SM'</span>)</code><div class="line-number">5</div></div><div class="block"><code>mvs.SetOrientationAxisLabel(<span class="hljs-string">'SM'</span>)</code><div class="line-number">6</div></div><div class="block"><code></code><div class="line-number">7</div></div><div class="block"><code><span class="hljs-comment"># Add slice</span></code><div class="line-number">8</div></div><div class="block"><code><span class="hljs-keyword">import</span> paraview.simple <span class="hljs-keyword">as</span> pvs</code><div class="line-number">9</div></div><div class="block"><code>pvs.Hide(plasmasphere)</code><div class="line-number">10</div></div><div class="block"><code>slice1 = pvs.Slice(registrationName=<span class="hljs-string">' y=0 slice'</span>, Input=plasmasphere)</code><div class="line-number">11</div></div><div class="block"><code>slice1.SliceType = <span class="hljs-string">'Plane'</span></code><div class="line-number">12</div></div><div class="block"><code>slice1.HyperTreeGridSlicer = <span class="hljs-string">'Plane'</span></code><div class="line-number">13</div></div><div class="block"><code>slice1.SliceOffsetValues = [<span class="hljs-number">0.0</span>]</code><div class="line-number">14</div></div><div class="block"><code>slice1.SliceType.Normal = [<span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>]</code><div class="line-number">15</div></div><div class="block"><code></code><div class="line-number">16</div></div><div class="block"><code>renderView1 = pvs.GetActiveViewOrCreate(<span class="hljs-string">'RenderView'</span>)</code><div class="line-number">17</div></div><div class="block"><code>slice1Display = pvs.Show(slice1, renderView1, <span class="hljs-string">'GeometryRepresentation'</span>)</code><div class="line-number">18</div></div><div class="block"><code></code><div class="line-number">19</div></div><div class="block"><code><span class="hljs-comment"># Show slice color bar</span></code><div class="line-number">20</div></div><div class="block"><code>slice1Display.SetScalarBarVisibility(renderView1, <span class="hljs-literal">True</span>)</code><div class="line-number">21</div></div><div class="block"><code>pvs.Hide3DWidgets(proxy=slice1.SliceType)</code><div class="line-number">22</div></div><div class="block"><code></code><div class="line-number">23</div></div><div class="block"><code><span class="hljs-comment"># Add countour</span></code><div class="line-number">24</div></div><div class="block"><code>contour1 = pvs.Contour(registrationName=<span class="hljs-string">'1.5 Contour'</span>, Input=slice1)</code><div class="line-number">25</div></div><div class="block"><code>contour1.ContourBy = [<span class="hljs-string">'POINTS'</span>, <span class="hljs-string">'H+ log density [cm^-3]'</span>]</code><div class="line-number">26</div></div><div class="block"><code>contour1.Isosurfaces = [<span class="hljs-number">1.5</span>]</code><div class="line-number">27</div></div><div class="block"><code>contour1.PointMergeMethod = <span class="hljs-string">'Uniform Binning'</span></code><div class="line-number">28</div></div><div class="block"><code>pvs.Show(contour1)</code><div class="line-number">29</div></div><div class="block"><code></code><div class="line-number">30</div></div><div class="block"><code>color = [<span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>]</code><div class="line-number">31</div></div><div class="block"><code>tube = pvs.Tube(contour1)</code><div class="line-number">32</div></div><div class="block"><code>pvs.Show(tube)</code><div class="line-number">33</div></div><div class="block"><code>mvs.SetColor(color)</code><div class="line-number">34</div></div><div class="block"><code></code><div class="line-number">35</div></div><div class="block"><code>text = pvs.Text(Text=<span class="hljs-string">'log(n) = 1.5'</span>)</code><div class="line-number">36</div></div><div class="block"><code>pvs.Show(text, TextPropMode=<span class="hljs-string">'Billboard 3D Text'</span>, BillboardPosition=[-<span class="hljs-number">5</span>, <span class="hljs-number">0.1</span>, <span class="hljs-number">0.0</span>], Color=color)</code><div class="line-number">37</div></div><div class="block"><code></code><div class="line-number">38</div></div><div class="block"><code>mvs.SetCamera(viewType=<span class="hljs-string">"-Y"</span>)</code><div class="line-number">39</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/Plasmasphere_demo-2.png" alt="Plasmasphere_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-3" class="anchor hanchor" href="#demo-3"><span class="hnumber">7.14.3</span>&nbsp;<span class="htext">Demo #3</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">1</div></div><div class="block"><code><span class="hljs-keyword">import</span> paraview.simple <span class="hljs-keyword">as</span> pvs</code><div class="line-number">2</div></div><div class="block"><code>mvs.CreateViewAndLayout()</code><div class="line-number">3</div></div><div class="block"><code>plasmasphere = mvs.Plasmasphere()</code><div class="line-number">4</div></div><div class="block"><code>pvs.Hide(plasmasphere)</code><div class="line-number">5</div></div><div class="block"><code>mvs.SetTitle(<span class="hljs-string">"log$(n)=1.5$"</span>, source=plasmasphere)</code><div class="line-number">6</div></div><div class="block"><code>mvs.Earth()</code><div class="line-number">7</div></div><div class="block"><code>mvs.SetOrientationAxisLabel(<span class="hljs-string">'GSM'</span>)</code><div class="line-number">8</div></div><div class="block"><code></code><div class="line-number">9</div></div><div class="block"><code><span class="hljs-comment"># Add slice</span></code><div class="line-number">10</div></div><div class="block"><code><span class="hljs-keyword">import</span> paraview.simple <span class="hljs-keyword">as</span> pvs</code><div class="line-number">11</div></div><div class="block"><code></code><div class="line-number">12</div></div><div class="block"><code><span class="hljs-comment"># Add countour</span></code><div class="line-number">13</div></div><div class="block"><code>contour1 = pvs.Contour(registrationName=<span class="hljs-string">'1.5 Contour'</span>, Input=plasmasphere)</code><div class="line-number">14</div></div><div class="block"><code>contour1.ContourBy = [<span class="hljs-string">'POINTS'</span>, <span class="hljs-string">'H+ log density [cm^-3]'</span>]</code><div class="line-number">15</div></div><div class="block"><code>contour1.Isosurfaces = [<span class="hljs-number">1.5</span>]</code><div class="line-number">16</div></div><div class="block"><code>contour1.PointMergeMethod = <span class="hljs-string">'Uniform Binning'</span></code><div class="line-number">17</div></div><div class="block"><code>pvs.Hide3DWidgets(proxy=slice1.SliceType)</code><div class="line-number">18</div></div><div class="block"><code></code><div class="line-number">19</div></div><div class="block"><code>clip1 = pvs.Clip(registrationName=<span class="hljs-string">'y=0 slice'</span>, Input=contour1)</code><div class="line-number">20</div></div><div class="block"><code>clip1.ClipType = <span class="hljs-string">'Plane'</span></code><div class="line-number">21</div></div><div class="block"><code>clip1.Value = [<span class="hljs-number">0.0</span>]</code><div class="line-number">22</div></div><div class="block"><code>clip1.ClipType.Origin = [<span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>]</code><div class="line-number">23</div></div><div class="block"><code>clip1.ClipType.Normal = [<span class="hljs-number">0.0</span>, <span class="hljs-number">1.0</span>, <span class="hljs-number">0.0</span>]</code><div class="line-number">24</div></div><div class="block"><code>pvs.Hide3DWidgets(proxy=clip1.ClipType)</code><div class="line-number">25</div></div><div class="block"><code>pvs.Show(clip1)</code><div class="line-number">26</div></div><div class="block"><code>mvs.SetCamera(viewType=<span class="hljs-string">"isometric"</span>)</code><div class="line-number">27</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/Plasmasphere_demo-3.png" alt="Plasmasphere_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h2><a name="satellite" class="anchor hanchor" href="#satellite"><span class="hnumber">7.15</span>&nbsp;<span class="htext">Satellite</span></a></h2>
+      </div>
+      <div class="block">
+        <p>Source file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Satellite.py">Satellite.py</a> | Demo file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/Satellite_demo.py">Satellite_demo.py</a></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-1" class="anchor hanchor" href="#demo-1"><span class="hnumber">7.15.1</span>&nbsp;<span class="htext">Demo 1</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code></div><div class="block"><code>mvs.Satellite()</code></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/Satellite_demo-1.png" alt="Satellite_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-2" class="anchor hanchor" href="#demo-2"><span class="hnumber">7.15.2</span>&nbsp;<span class="htext">Demo #2</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">1</div></div><div class="block"><code>mvs.CreateViewAndLayout()</code><div class="line-number">2</div></div><div class="block"><code>skwargs = {</code><div class="line-number">3</div></div><div class="block"><code>    <span class="hljs-string">"start"</span>: <span class="hljs-string">"2010-01-04T00:00:00"</span>,</code><div class="line-number">4</div></div><div class="block"><code>    <span class="hljs-string">"stop"</span>: <span class="hljs-string">"2010-01-05T00:00:00"</span>,</code><div class="line-number">5</div></div><div class="block"><code>    <span class="hljs-string">"coord_sys"</span>: <span class="hljs-string">"GSM"</span></code><div class="line-number">6</div></div><div class="block"><code>}</code><div class="line-number">7</div></div><div class="block"><code>themisa = mvs.Satellite(<span class="hljs-built_in">id</span>=<span class="hljs-string">'themisa'</span>, **skwargs)</code><div class="line-number">8</div></div><div class="block"><code>themisb = mvs.Satellite(<span class="hljs-built_in">id</span>=<span class="hljs-string">'themisb'</span>, **skwargs)</code><div class="line-number">9</div></div><div class="block"><code></code><div class="line-number">10</div></div><div class="block"><code>dkwargs = {</code><div class="line-number">11</div></div><div class="block"><code>            <span class="hljs-string">"label"</span>:</code><div class="line-number">12</div></div><div class="block"><code>                {</code><div class="line-number">13</div></div><div class="block"><code>                    <span class="hljs-string">"source"</span>: {<span class="hljs-string">"Text"</span>: <span class="hljs-string">""</span>},</code><div class="line-number">14</div></div><div class="block"><code>                    <span class="hljs-string">"display"</span>: {</code><div class="line-number">15</div></div><div class="block"><code>                        <span class="hljs-string">"FontSize"</span>: <span class="hljs-number">24</span>,</code><div class="line-number">16</div></div><div class="block"><code>                        <span class="hljs-string">"Color"</span>: [<span class="hljs-number">0.5</span>, <span class="hljs-number">0.5</span>, <span class="hljs-number">0.5</span>]</code><div class="line-number">17</div></div><div class="block"><code>                    }</code><div class="line-number">18</div></div><div class="block"><code>                }</code><div class="line-number">19</div></div><div class="block"><code>            }</code><div class="line-number">20</div></div><div class="block"><code></code><div class="line-number">21</div></div><div class="block"><code>dkwargs[<span class="hljs-string">'label'</span>][<span class="hljs-string">'source'</span>][<span class="hljs-string">'Text'</span>] = <span class="hljs-string">'THEMIS A'</span></code><div class="line-number">22</div></div><div class="block"><code>dkwargs[<span class="hljs-string">'label'</span>][<span class="hljs-string">'display'</span>][<span class="hljs-string">'Color'</span>] = [<span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>]</code><div class="line-number">23</div></div><div class="block"><code>mvs.SetPresentationProperties(source=themisa, **dkwargs)</code><div class="line-number">24</div></div><div class="block"><code></code><div class="line-number">25</div></div><div class="block"><code>dkwargs[<span class="hljs-string">'label'</span>][<span class="hljs-string">'source'</span>][<span class="hljs-string">'Text'</span>] = <span class="hljs-string">'THEMIS B'</span></code><div class="line-number">26</div></div><div class="block"><code>dkwargs[<span class="hljs-string">'label'</span>][<span class="hljs-string">'display'</span>][<span class="hljs-string">'Color'</span>] = [<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>]</code><div class="line-number">27</div></div><div class="block"><code>mvs.SetPresentationProperties(source=themisb, **dkwargs)</code><div class="line-number">28</div></div><div class="block"><code></code><div class="line-number">29</div></div><div class="block"><code>mvs.SetCamera(Azimuth=<span class="hljs-number">45</span>, Elevation=<span class="hljs-number">45</span>)</code><div class="line-number">30</div></div><div class="block"><code></code><div class="line-number">31</div></div><div class="block"><code>mvs.SetTitle(mvs.util.trim_iso(skwargs[<span class="hljs-string">"start"</span>]) \</code><div class="line-number">32</div></div><div class="block"><code>            + <span class="hljs-string">" - "</span> + mvs.util.trim_iso(skwargs[<span class="hljs-string">"stop"</span>]) \</code><div class="line-number">33</div></div><div class="block"><code>            + <span class="hljs-string">" "</span> + skwargs[<span class="hljs-string">"coord_sys"</span>], registrationName=<span class="hljs-string">"Title"</span>)</code><div class="line-number">34</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/Satellite_demo-2.png" alt="Satellite_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h2><a name="t89c" class="anchor hanchor" href="#t89c"><span class="hnumber">7.16</span>&nbsp;<span class="htext">T89c</span></a></h2>
+      </div>
+      <div class="block">
+        <p>Source file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/T89c.py">T89c.py</a> | Demo file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/T89c_demo.py">T89c_demo.py</a></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-1" class="anchor hanchor" href="#demo-1"><span class="hnumber">7.16.1</span>&nbsp;<span class="htext">Demo 1</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code></div><div class="block"><code>t89c = mvs.T89c(dimensions=[<span class="hljs-number">20</span>, <span class="hljs-number">20</span>, <span class="hljs-number">20</span>])</code></div><div class="block"><code>mvs.SetTitle()</code></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/T89c_demo-1.png" alt="T89c_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-2" class="anchor hanchor" href="#demo-2"><span class="hnumber">7.16.2</span>&nbsp;<span class="htext">Demo 2</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code><div class="line-number">1</div></div><div class="block"><code>mvs.CreateViewAndLayout()</code><div class="line-number">2</div></div><div class="block"><code>t89c = mvs.T89c(dimensions=[<span class="hljs-number">20</span>, <span class="hljs-number">20</span>, <span class="hljs-number">20</span>])</code><div class="line-number">3</div></div><div class="block"><code>mvs.SetTitle()</code><div class="line-number">4</div></div><div class="block"><code></code><div class="line-number">5</div></div><div class="block"><code><span class="hljs-keyword">import</span> paraview.simple <span class="hljs-keyword">as</span> pvs</code><div class="line-number">6</div></div><div class="block"><code>pvs.Hide(t89c)</code><div class="line-number">7</div></div><div class="block"><code>streamTracer1 = pvs.StreamTracer(registrationName=<span class="hljs-string">'StreamTracer1'</span>, Input=t89c, SeedType=<span class="hljs-string">'Line'</span>)</code><div class="line-number">8</div></div><div class="block"><code>streamTracer1.Vectors = [<span class="hljs-string">'POINTS'</span>, <span class="hljs-string">'B'</span>]</code><div class="line-number">9</div></div><div class="block"><code>streamTracer1.MaximumStreamlineLength = <span class="hljs-number">20.0</span></code><div class="line-number">10</div></div><div class="block"><code></code><div class="line-number">11</div></div><div class="block"><code><span class="hljs-comment"># init the 'Line' selected for 'SeedType'</span></code><div class="line-number">12</div></div><div class="block"><code>streamTracer1.SeedType.Point1 = [-<span class="hljs-number">10.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>]</code><div class="line-number">13</div></div><div class="block"><code>streamTracer1.SeedType.Point2 = [-<span class="hljs-number">2.0</span>, <span class="hljs-number">0.0</span>, <span class="hljs-number">0.0</span>]</code><div class="line-number">14</div></div><div class="block"><code>streamTracer1.SeedType.Resolution = <span class="hljs-number">10</span></code><div class="line-number">15</div></div><div class="block"><code></code><div class="line-number">16</div></div><div class="block"><code><span class="hljs-comment"># set active source</span></code><div class="line-number">17</div></div><div class="block"><code>pvs.SetActiveSource(streamTracer1)</code><div class="line-number">18</div></div><div class="block"><code></code><div class="line-number">19</div></div><div class="block"><code><span class="hljs-comment"># show data in view</span></code><div class="line-number">20</div></div><div class="block"><code>streamTracer1Display = pvs.Show(streamTracer1)</code><div class="line-number">21</div></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/T89c_demo-2.png" alt="T89c_demo.py"></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h2><a name="t95currentsheet" class="anchor hanchor" href="#t95currentsheet"><span class="hnumber">7.17</span>&nbsp;<span class="htext">T95CurrentSheet</span></a></h2>
+      </div>
+      <div class="block">
+        <p>Source file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/T95CurrentSheet.py">T95CurrentSheet.py</a> | Demo file: <a href="https://github.com/rweigel/magnetovis/tree/main/magnetovis/Sources/T95CurrentSheet_demo.py">T95CurrentSheet_demo.py</a></p>
+      </div>
+    </div>
+    <div class="section">
+      <div class="block">
+        <h3><a name="demo-1" class="anchor hanchor" href="#demo-1"><span class="hnumber">7.17.1</span>&nbsp;<span class="htext">Demo 1</span></a></h3>
+      </div>
+      <div class="block">
+        <pre class="language-python"><div class="block"><code><span class="hljs-keyword">import</span> magnetovis <span class="hljs-keyword">as</span> mvs</code></div><div class="block"><code>s = mvs.T95CurrentSheet()</code></div></pre>
+      </div>
+      <div class="block">
+        <p><img src="magnetovis/Test/Sources/T95CurrentSheet_demo-1.png" alt="T95CurrentSheet_demo.py"></p>
+      </div>
+    </div>
+  </div>
+  <script>
+    function tocClickListen() {
+      // No jQuery b/c also used in stand-alone HTML.
+      let hs = document.querySelectorAll('#toc > ol ol');
+      let el, ns;
+      for (let i = 0; i < hs.length; i++) {
+        if (hs[i].previousElementSibling) {
+          el = hs[i].previousElementSibling.firstElementChild;
+          if (el.length == 0) {
+            continue;
+          }
+          el.addEventListener('click', event => {
+            ns = event.target.parentNode.nextElementSibling;
+            if (!ns) return;
+            if (ns.style.display === 'none') {
+    ns.style.display = 'block';
+            }
+            else {
+    ns.style.display = 'none';
+            }
+          });
+        }
+      }
+    }
+    if (
+        document.readyState === "complete" ||
+        (document.readyState !== "loading" && 
+          !document.documentElement.doScroll)
+    ) {
+      tocClickListen();
+    } else {
+      document.addEventListener("DOMContentLoaded", tocClickListen);
+    }
+  </script>
+</body>
+
+</html>

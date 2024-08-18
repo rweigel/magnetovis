@@ -1,0 +1,1 @@
+Demo scripts must be in subdirectory because all files in the Plugins directory are executed at startup by ParaView.
